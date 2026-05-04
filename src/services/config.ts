@@ -1,0 +1,2 @@
+export const MEDIA_FRESHNESS_MS = 48 * 60 * 60 * 1000;   // 48 hours - standard cache TTL
+export const ACTIVE_SHOW_REFRESH_MS = 30 * 60 * 1000;     // 30 minutes - force refresh for airing/recent shows

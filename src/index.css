@@ -1,0 +1,141 @@
+@import "tailwindcss";
+
+:root {
+  color-scheme: dark;
+}
+
+@theme {
+  --animate-fade-in: fadeIn 0.5s ease-out forwards;
+  --animate-slide-up: slideUp 0.8s ease-out forwards;
+  --animate-subtle-zoom: subtle-zoom 20s ease-in-out infinite;
+
+  @keyframes fadeIn {
+    0% {
+      opacity: 0;
+    }
+
+    100% {
+      opacity: 1;
+    }
+  }
+
+  @keyframes slideUp {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes subtle-zoom {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.1); }
+  }
+}
+
+/* Custom Scrollbar Styles */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.netflix-shadow {
+  background: linear-gradient(to top, #141414, transparent 50%);
+}
+
+/* Global Scrollbar Hide - Force on ALL elements */
+* {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+  opacity: 0 !important;
+}
+
+html,
+body {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+  overflow-y: scroll;
+  /* Allow scroll but hide bar */
+}
+
+/* SyncMonitor Styles */
+.sync-monitor-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 12px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.7);
+  transition: all 0.3s ease;
+}
+
+.sync-monitor-container.syncing {
+  border-color: rgba(59, 130, 246, 0.5);
+  background: rgba(59, 130, 246, 0.1);
+}
+
+.sync-monitor-container.offline {
+  border-color: rgba(156, 163, 175, 0.5);
+  background: rgba(156, 163, 175, 0.1);
+  color: #9ca3af;
+}
+
+.offline .sync-dot {
+  background: #6b7280;
+  box-shadow: none;
+}
+
+.offline-text {
+  font-weight: 500;
+}
+
+.sync-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #10b981;
+}
+
+.error .sync-dot {
+  background: #ef4444;
+  box-shadow: 0 0 8px #ef4444;
+}
+
+.sync-spinner {
+  width: 14px;
+  height: 14px;
+  animation: spin 1.5s linear infinite;
+  color: #3b82f6;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status-text {
+  font-weight: 500;
+}
+
+.error-text {
+  font-weight: 600;
+}

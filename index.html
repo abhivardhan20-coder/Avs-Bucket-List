@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="description" content="AV's Bucket List - Your ultimate personal movie and TV show tracker. Track what you've watched, manage your watchlist, and get smart recommendations." />
+  <meta name="theme-color" content="#141414" />
+  
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="AV’s Bucket List" />
+  <meta property="og:description" content="Track your movies and TV shows effortlessly with AV’s Bucket List." />
+  <meta property="og:image" content="/pwa-icon.svg" />
+
+  <link rel="icon" type="image/svg+xml" href="/pwa-icon.svg" />
+  <link rel="icon" type="image/png" href="/pwa-icon.png" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/manifest.webmanifest" />
+
+  <!-- ✅ Preload hero backdrop for faster LCP: updated by Hero.tsx once actual URL is known -->
+  <link id="hero-preload" rel="preload" as="image"
+    href="https://image.tmdb.org/t/p/original/placeholder.jpg"
+    fetchpriority="high" />
+  
+  <title>AV’s Bucket List | Personal Media Tracker</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" as="style"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap"
+    onload="this.onload=null;this.rel='stylesheet'">
+  <noscript>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap">
+  </noscript>
+  
+  <script type="module" src="/src/index.tsx"></script>
+</head>
+
+<body class="bg-[#141414]">
+  <div id="root"></div>
+</body>
+</html>
