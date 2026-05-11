@@ -15,10 +15,7 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-const DebugOverlay = import.meta.env.DEV
-  ? React.lazy(() => import('./components/DebugOverlay').then(m => ({ default: m.DebugOverlay })))
-  : null;
-
+import { DebugOverlay } from './components/DebugOverlay';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -52,15 +49,26 @@ if (!rootElement) {
   throw new Error("Could not find root element to mount to");
 }
 
+// Global safety timeout to detect "Blank Screen"
+setTimeout(() => {
+  if (rootElement.innerHTML === '') {
+    rootElement.innerHTML = `
+      <div style="padding: 3rem; text-align: center; color: white; background: #0a0a0a; min-height: 100vh; font-family: sans-serif;">
+        <h1 style="color: #ef4444;">Mounting Delay Detected</h1>
+        <p>The application is taking longer than usual to initialize.</p>
+        <button onclick="window.location.reload(true)" style="padding: 10px 20px; background: white; color: black; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; margin-top: 20px;">
+          Force Reload (Clear Cache)
+        </button>
+      </div>
+    `;
+  }
+}, 8000);
+
 const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      {import.meta.env.DEV && DebugOverlay && (
-        <React.Suspense fallback={null}>
-          <DebugOverlay />
-        </React.Suspense>
-      )}
+      {import.meta.env.DEV && <DebugOverlay />}
       <AppErrorBoundary variant="full">
         <GoogleOAuthProvider clientId={API_KEYS.GOOGLE_CLIENT_ID}>
           <ToastProvider>

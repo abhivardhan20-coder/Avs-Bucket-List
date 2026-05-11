@@ -17,7 +17,7 @@ export const ConflictReviewModal: React.FC<ConflictReviewModalProps> = ({ isOpen
     []
   );
 
-  const [resolvingId, setResolvingId] = useState<number | null>(null);
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   if (!isOpen) return null;
 
@@ -37,8 +37,8 @@ export const ConflictReviewModal: React.FC<ConflictReviewModalProps> = ({ isOpen
       }
 
       // 2. Mark conflict as resolved
-      await db.conflicts.update(conflict.id, {
-        resolved: true,
+      await db.conflicts.update([user.email, conflict.itemId], {
+        resolved: 1,
         resolvedWith: side
       });
 

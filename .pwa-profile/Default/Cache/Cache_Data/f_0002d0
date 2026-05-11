@@ -1,0 +1,201 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/stats/TimeSpentCard.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=36fb4cf8"; const Fragment = __vite__cjsImport0_react_jsxDevRuntime["Fragment"]; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport1_react from "/node_modules/.vite/deps/react.js?v=36fb4cf8"; const useState = __vite__cjsImport1_react["useState"];
+import { Clock, Calendar, Hourglass } from "/node_modules/.vite/deps/lucide-react.js?v=36fb4cf8";
+import WatchBreakdownModal from "/src/components/stats/WatchBreakdownModal.tsx";
+const TimeSpentCard = ({ stats }) => {
+  _s();
+  const [showPopup, setShowPopup] = useState(false);
+  return /* @__PURE__ */ jsxDEV(Fragment, { children: [
+    /* @__PURE__ */ jsxDEV(
+      "div",
+      {
+        onClick: () => setShowPopup(true),
+        className: "bg-gradient-to-br from-[#7f1d1d] to-[#450a0a] p-8 rounded-2xl border border-red-900/50 shadow-xl text-white relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.01] hover:shadow-2xl hover:border-red-500/50",
+        children: [
+          /* @__PURE__ */ jsxDEV("h3", { className: "text-2xl font-bold mb-8 flex items-center gap-2 relative z-10", children: [
+            /* @__PURE__ */ jsxDEV(Clock, { className: "w-6 h-6" }, void 0, false, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+              lineNumber: 27,
+              columnNumber: 11
+            }, this),
+            " Time Invested"
+          ] }, void 0, true, {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+            lineNumber: 26,
+            columnNumber: 9
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "grid grid-cols-2 md:grid-cols-4 gap-8 relative z-10", children: [
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "text-4xl md:text-5xl font-extrabold mb-1", children: stats.hours }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 32,
+                columnNumber: 13
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "text-sm text-red-200 uppercase font-bold tracking-wider", children: "Hours Total" }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 33,
+                columnNumber: 13
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+              lineNumber: 31,
+              columnNumber: 11
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "text-4xl md:text-5xl font-extrabold mb-1", children: stats.days }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 37,
+                columnNumber: 13
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "text-sm text-red-200 uppercase font-bold tracking-wider", children: "Days of Life" }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 38,
+                columnNumber: 13
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+              lineNumber: 36,
+              columnNumber: 11
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "text-4xl md:text-5xl font-extrabold mb-1", children: stats.hoursThisYear }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 42,
+                columnNumber: 13
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "text-sm text-red-200 uppercase font-bold tracking-wider", children: "Hours This Year" }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 43,
+                columnNumber: 13
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+              lineNumber: 41,
+              columnNumber: 11
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "relative min-h-[80px]", children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "absolute inset-0 flex items-center justify-center opacity-10 pointer-events-none -top-6", children: /* @__PURE__ */ jsxDEV(Hourglass, { className: "w-32 h-32" }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 48,
+                columnNumber: 15
+              }, this) }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 47,
+                columnNumber: 13
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "relative z-10 flex flex-col justify-end h-full", children: [
+                /* @__PURE__ */ jsxDEV("div", { className: "text-4xl md:text-5xl font-extrabold mb-1 opacity-0", children: "0" }, void 0, false, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                  lineNumber: 51,
+                  columnNumber: 15
+                }, this),
+                " ",
+                /* @__PURE__ */ jsxDEV("div", { className: "bg-black/20 backdrop-blur-sm p-3 rounded-lg border border-white/10 mt-auto", children: /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2 text-sm text-gray-200 justify-center whitespace-nowrap", children: [
+                  /* @__PURE__ */ jsxDEV(Calendar, { className: "w-4 h-4" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                    lineNumber: 54,
+                    columnNumber: 19
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { children: "Started 2024" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                    lineNumber: 55,
+                    columnNumber: 19
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                  lineNumber: 53,
+                  columnNumber: 17
+                }, this) }, void 0, false, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                  lineNumber: 52,
+                  columnNumber: 15
+                }, this)
+              ] }, void 0, true, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+                lineNumber: 50,
+                columnNumber: 13
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+              lineNumber: 46,
+              columnNumber: 11
+            }, this)
+          ] }, void 0, true, {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+            lineNumber: 30,
+            columnNumber: 9
+          }, this),
+          /* @__PURE__ */ jsxDEV("div", { className: "absolute bottom-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-xs text-red-200 font-medium bg-black/20 px-3 py-1 rounded-full backdrop-blur-sm", children: "Click for details" }, void 0, false, {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+            lineNumber: 63,
+            columnNumber: 9
+          }, this)
+        ]
+      },
+      void 0,
+      true,
+      {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+        lineNumber: 22,
+        columnNumber: 7
+      },
+      this
+    ),
+    /* @__PURE__ */ jsxDEV(
+      WatchBreakdownModal,
+      {
+        isOpen: showPopup,
+        onClose: () => setShowPopup(false),
+        stats: {
+          hours: stats.hours,
+          hoursMovies: stats.hoursMovies || 0,
+          hoursSeries: stats.hoursSeries || 0,
+          hoursAnime: stats.hoursAnime || 0
+        }
+      },
+      void 0,
+      false,
+      {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+        lineNumber: 69,
+        columnNumber: 7
+      },
+      this
+    )
+  ] }, void 0, true, {
+    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx",
+    lineNumber: 21,
+    columnNumber: 5
+  }, this);
+};
+_s(TimeSpentCard, "YxEq4CBtuWdF8IGTVx1DJqim++A=");
+_c = TimeSpentCard;
+export default TimeSpentCard;
+var _c;
+$RefreshReg$(_c, "TimeSpentCard");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/TimeSpentCard.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QSxRQUNDLFFBQVFKO0FBQUFBLFFBQ1IsU0FBUyxNQUFNQyxhQUFhLEtBQUs7QUFBQSxRQUNqQyxPQUFPO0FBQUEsVUFDTEMsT0FBT0osTUFBTUk7QUFBQUEsVUFDYkcsYUFBYVAsTUFBTU8sZUFBZTtBQUFBLFVBQ2xDQyxhQUFhUixNQUFNUSxlQUFlO0FBQUEsVUFDbENDLFlBQVlULE1BQU1TLGNBQWM7QUFBQSxRQUNsQztBQUFBO0FBQUEsTUFSRjtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUEsSUFRSTtBQUFBLE9BeEROO0FBQUE7QUFBQTtBQUFBO0FBQUEsU0EwREE7QUFFSjtBQUFFUixHQWhFSUYsZUFBMkM7QUFBQSxLQUEzQ0E7QUFrRU4sZUFBZUE7QUFBYyxJQUFBVztBQUFBLGFBQUFBLElBQUEiLCJuYW1lcyI6WyJ1c2VTdGF0ZSIsIkNsb2NrIiwiQ2FsZW5kYXIiLCJIb3VyZ2xhc3MiLCJXYXRjaEJyZWFrZG93bk1vZGFsIiwiVGltZVNwZW50Q2FyZCIsInN0YXRzIiwiX3MiLCJzaG93UG9wdXAiLCJzZXRTaG93UG9wdXAiLCJob3VycyIsImRheXMiLCJob3Vyc1RoaXNZZWFyIiwiaG91cnNNb3ZpZXMiLCJob3Vyc1NlcmllcyIsImhvdXJzQW5pbWUiLCJfYyJdLCJpZ25vcmVMaXN0IjpbXSwic291cmNlcyI6WyJUaW1lU3BlbnRDYXJkLnRzeCJdLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgUmVhY3QsIHsgdXNlU3RhdGUgfSBmcm9tICdyZWFjdCc7XHJcbmltcG9ydCB7IENsb2NrLCBDYWxlbmRhciwgSG91cmdsYXNzIH0gZnJvbSAnbHVjaWRlLXJlYWN0JztcclxuaW1wb3J0IFdhdGNoQnJlYWtkb3duTW9kYWwgZnJvbSAnLi9XYXRjaEJyZWFrZG93bk1vZGFsJztcclxuXHJcbmludGVyZmFjZSBUaW1lU3BlbnRDYXJkUHJvcHMge1xyXG4gIHN0YXRzOiB7XHJcbiAgICB0b3RhbE1pbnV0ZXM6IG51bWJlcjtcclxuICAgIGhvdXJzOiBudW1iZXI7XHJcbiAgICBkYXlzOiBzdHJpbmc7XHJcbiAgICBob3Vyc1RoaXNZZWFyOiBudW1iZXI7XHJcbiAgICBob3Vyc01vdmllcz86IG51bWJlcjtcclxuICAgIGhvdXJzU2VyaWVzPzogbnVtYmVyO1xyXG4gICAgaG91cnNBbmltZT86IG51bWJlcjtcclxuICB9O1xyXG59XHJcblxyXG5jb25zdCBUaW1lU3BlbnRDYXJkOiBSZWFjdC5GQzxUaW1lU3BlbnRDYXJkUHJvcHM+ID0gKHsgc3RhdHMgfSkgPT4ge1xyXG4gIGNvbnN0IFtzaG93UG9wdXAsIHNldFNob3dQb3B1cF0gPSB1c2VTdGF0ZShmYWxzZSk7XHJcblxyXG4gIHJldHVybiAoXHJcbiAgICA8PlxyXG4gICAgICA8ZGl2XHJcbiAgICAgICAgb25DbGljaz17KCkgPT4gc2V0U2hvd1BvcHVwKHRydWUpfVxyXG4gICAgICAgIGNsYXNzTmFtZT1cImJnLWdyYWRpZW50LXRvLWJyIGZyb20tWyM3ZjFkMWRdIHRvLVsjNDUwYTBhXSBwLTggcm91bmRlZC0yeGwgYm9yZGVyIGJvcmRlci1yZWQtOTAwLzUwIHNoYWRvdy14bCB0ZXh0LXdoaXRlIHJlbGF0aXZlIG92ZXJmbG93LWhpZGRlbiBncm91cCBjdXJzb3ItcG9pbnRlciB0cmFuc2l0aW9uLWFsbCBob3ZlcjpzY2FsZS1bMS4wMV0gaG92ZXI6c2hhZG93LTJ4bCBob3Zlcjpib3JkZXItcmVkLTUwMC81MFwiXHJcbiAgICAgID5cclxuICAgICAgICA8aDMgY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1ib2xkIG1iLTggZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgcmVsYXRpdmUgei0xMFwiPlxyXG4gICAgICAgICAgPENsb2NrIGNsYXNzTmFtZT1cInctNiBoLTZcIiAvPiBUaW1lIEludmVzdGVkXHJcbiAgICAgICAgPC9oMz5cclxuXHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJncmlkIGdyaWQtY29scy0yIG1kOmdyaWQtY29scy00IGdhcC04IHJlbGF0aXZlIHotMTBcIj5cclxuICAgICAgICAgIDxkaXY+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC00eGwgbWQ6dGV4dC01eGwgZm9udC1leHRyYWJvbGQgbWItMVwiPntzdGF0cy5ob3Vyc308L2Rpdj5cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXNtIHRleHQtcmVkLTIwMCB1cHBlcmNhc2UgZm9udC1ib2xkIHRyYWNraW5nLXdpZGVyXCI+SG91cnMgVG90YWw8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgIDxkaXY+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC00eGwgbWQ6dGV4dC01eGwgZm9udC1leHRyYWJvbGQgbWItMVwiPntzdGF0cy5kYXlzfTwvZGl2PlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1yZWQtMjAwIHVwcGVyY2FzZSBmb250LWJvbGQgdHJhY2tpbmctd2lkZXJcIj5EYXlzIG9mIExpZmU8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgIDxkaXY+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC00eGwgbWQ6dGV4dC01eGwgZm9udC1leHRyYWJvbGQgbWItMVwiPntzdGF0cy5ob3Vyc1RoaXNZZWFyfTwvZGl2PlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtc20gdGV4dC1yZWQtMjAwIHVwcGVyY2FzZSBmb250LWJvbGQgdHJhY2tpbmctd2lkZXJcIj5Ib3VycyBUaGlzIFllYXI8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicmVsYXRpdmUgbWluLWgtWzgwcHhdXCI+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgaW5zZXQtMCBmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBvcGFjaXR5LTEwIHBvaW50ZXItZXZlbnRzLW5vbmUgLXRvcC02XCI+XHJcbiAgICAgICAgICAgICAgPEhvdXJnbGFzcyBjbGFzc05hbWU9XCJ3LTMyIGgtMzJcIiAvPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJyZWxhdGl2ZSB6LTEwIGZsZXggZmxleC1jb2wganVzdGlmeS1lbmQgaC1mdWxsXCI+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LTR4bCBtZDp0ZXh0LTV4bCBmb250LWV4dHJhYm9sZCBtYi0xIG9wYWNpdHktMFwiPjA8L2Rpdj4gey8qIEludmlzaWJsZSBzcGFjZXIgdG8gbWF0Y2ggaGVpZ2h0ICovfVxyXG4gICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctYmxhY2svMjAgYmFja2Ryb3AtYmx1ci1zbSBwLTMgcm91bmRlZC1sZyBib3JkZXIgYm9yZGVyLXdoaXRlLzEwIG10LWF1dG9cIj5cclxuICAgICAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTIgdGV4dC1zbSB0ZXh0LWdyYXktMjAwIGp1c3RpZnktY2VudGVyIHdoaXRlc3BhY2Utbm93cmFwXCI+XHJcbiAgICAgICAgICAgICAgICAgIDxDYWxlbmRhciBjbGFzc05hbWU9XCJ3LTQgaC00XCIgLz5cclxuICAgICAgICAgICAgICAgICAgPHNwYW4+U3RhcnRlZCAyMDI0PC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgIHsvKiBMZWFybiBNb3JlIEhpbnQgKi99XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJhYnNvbHV0ZSBib3R0b20tNCByaWdodC00IG9wYWNpdHktMCBncm91cC1ob3ZlcjpvcGFjaXR5LTEwMCB0cmFuc2l0aW9uLW9wYWNpdHkgdGV4dC14cyB0ZXh0LXJlZC0yMDAgZm9udC1tZWRpdW0gYmctYmxhY2svMjAgcHgtMyBweS0xIHJvdW5kZWQtZnVsbCBiYWNrZHJvcC1ibHVyLXNtXCI+XHJcbiAgICAgICAgICBDbGljayBmb3IgZGV0YWlsc1xyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuXHJcbiAgICAgIHsvKiBCcmVha2Rvd24gUG9wdXAgKi99XHJcbiAgICAgIDxXYXRjaEJyZWFrZG93bk1vZGFsXHJcbiAgICAgICAgaXNPcGVuPXtzaG93UG9wdXB9XHJcbiAgICAgICAgb25DbG9zZT17KCkgPT4gc2V0U2hvd1BvcHVwKGZhbHNlKX1cclxuICAgICAgICBzdGF0cz17e1xyXG4gICAgICAgICAgaG91cnM6IHN0YXRzLmhvdXJzLFxyXG4gICAgICAgICAgaG91cnNNb3ZpZXM6IHN0YXRzLmhvdXJzTW92aWVzIHx8IDAsXHJcbiAgICAgICAgICBob3Vyc1Nlcmllczogc3RhdHMuaG91cnNTZXJpZXMgfHwgMCxcclxuICAgICAgICAgIGhvdXJzQW5pbWU6IHN0YXRzLmhvdXJzQW5pbWUgfHwgMFxyXG4gICAgICAgIH19XHJcbiAgICAgIC8+XHJcbiAgICA8Lz5cclxuICApO1xyXG59O1xyXG5cclxuZXhwb3J0IGRlZmF1bHQgVGltZVNwZW50Q2FyZDsiXSwiZmlsZSI6IkM6L1VzZXJzL2FiaGkvT25lRHJpdmUvRGVza3RvcC9BVlMgQkwvc3JjL2NvbXBvbmVudHMvc3RhdHMvVGltZVNwZW50Q2FyZC50c3gifQ==

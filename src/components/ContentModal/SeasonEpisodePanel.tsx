@@ -3,6 +3,7 @@ import { ChevronDown, ChevronUp, Bookmark, Check, WifiOff, Loader, RefreshCw, Tv
 import { MediaItem, Season, Episode } from '../../types';
 import { useLibraryActions } from '../../contexts/LibraryProvider';
 import { parseLocalDate } from '../../lib/dateUtils';
+import OptimizedImage from '../OptimizedImage';
 
 interface SeasonEpisodePanelProps {
   item: MediaItem;
@@ -172,7 +173,17 @@ const SeasonEpisodePanel: React.FC<SeasonEpisodePanelProps> = ({
                                   </div>
                                 )}
                                 <div className={`w-full md:w-44 aspect-video bg-gray-800 rounded-lg overflow-hidden flex-shrink-0 relative shadow-2xl ${isNextUp ? 'ring-2 ring-red-600/30 ring-offset-2 ring-offset-[#141414]' : ''}`}>
-                                  {ep.stillUrl ? <img src={ep.stillUrl || undefined} className="w-full h-full object-cover" /> : <div className="w-full h-full flex items-center justify-center text-gray-600"><Tv className="w-8 h-8" /></div>}
+                                  {ep.stillUrl ? (
+                                    <OptimizedImage 
+                                      src={ep.stillUrl} 
+                                      className="w-full h-full object-cover" 
+                                      alt={ep.title}
+                                    />
+                                  ) : (
+                                    <div className="w-full h-full flex items-center justify-center text-gray-600">
+                                      <Tv className="w-8 h-8" />
+                                    </div>
+                                  )}
                                   {isEpWatched && (<div className="absolute inset-0 bg-green-600/40 backdrop-blur-[1px] flex items-center justify-center"><div className="bg-white rounded-full p-2"><Check className="text-green-600 w-5 h-5 stroke-[4px]" /></div></div>)}
                                   {!epAired && ep.airDate && parseLocalDate(ep.airDate) && (<div className="absolute inset-0 bg-black/60 flex items-center justify-center text-center p-3"><span className="text-[10px] font-black text-white uppercase tracking-tighter">Releases {parseLocalDate(ep.airDate)!.toLocaleDateString()}</span></div>)}
                                 </div>

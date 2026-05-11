@@ -1,0 +1,12 @@
+2026/05/11-17:25:12.640 1078 Reusing MANIFEST C:\Users\abhi\OneDrive\Desktop\AVS BL\.pwa-profile\Default\IndexedDB\http_localhost_3000.indexeddb.leveldb/MANIFEST-000001
+2026/05/11-17:25:12.641 1078 Recovering log #7
+2026/05/11-17:25:12.667 1078 Reusing old log C:\Users\abhi\OneDrive\Desktop\AVS BL\.pwa-profile\Default\IndexedDB\http_localhost_3000.indexeddb.leveldb/000007.log 
+2026/05/11-17:26:03.121 4858 Level-0 table #12: started
+2026/05/11-17:26:03.162 4858 Level-0 table #12: 981024 bytes OK
+2026/05/11-17:26:03.167 4858 Delete type=0 #7
+2026/05/11-17:26:08.752 b68 Compacting 1@1 + 1@2 files
+2026/05/11-17:26:08.803 b68 Generated table #13@1: 8061 keys, 746568 bytes
+2026/05/11-17:26:08.803 b68 Compacted 1@1 + 1@2 files => 746568 bytes
+2026/05/11-17:26:08.806 b68 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/05/11-17:26:08.807 b68 Delete type=2 #9
+2026/05/11-17:26:08.807 b68 Delete type=2 #12

@@ -1,0 +1,44 @@
+{
+   "action": {
+      "requestHeaders": [ {
+         "header": "cookie",
+         "operation": "remove"
+      } ],
+      "type": "modifyHeaders"
+   },
+   "background": {
+      "service_worker": "background.js"
+   },
+   "content_scripts": [ {
+      "css": [ "toast/toast.css" ],
+      "js": [ "utils/common.js", "utils/type.js", "utils/pref.js", "utils/product.js", "utils/debug.js", "toast/toast.js", "antitrack/inject-antitrack.js", "wdsupport/wd_extension.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+      "run_at": "document_start"
+   } ],
+   "content_security_policy": {
+      "object-src": "self",
+      "script-src": "self"
+   },
+   "declarative_net_request": {
+      "rule_resources": [  ]
+   },
+   "default_locale": "en",
+   "description": "__MSG_description__",
+   "host_permissions": [ "\u003Call_urls>" ],
+   "icons": {
+      "128": "images/install_logo.png",
+      "48": "images/extension_logo.png"
+   },
+   "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA1Hsmyb/JolMqc33u+6s9gVK45byX2XJpk7dhXyKCJTXhw9HO9m1O+cnr9xQJw2YeMJAaxXOYPOoX/BDI21hKoCRYWKNdJDfWWB90f0+uXqk4hMGdnhTNhAu7ki1fWHF8QTh76SVNTlj/4uXTPFutOhzk+MdAAucyFiWctVfhFN+nhbNyMe/ny/P5nZUvFLhwA6a7jFM+d/zC1p0ixtS5uiobIaG1jpaEaUBbinYi969AG/xvvx8V7OmMrJ1Xn9JFMfZB8WIUdEcetOIze5lP7ayBW0ZkrOqdVAp2ck7raSF/r1isiNdm1MsfR1VfklblGEFhmJl1rh07y+OToHkgTQIDAQAB",
+   "manifest_version": 3,
+   "minimum_chrome_version": "88",
+   "name": "__MSG_name__",
+   "options_page": "option/options.html",
+   "permissions": [ "scripting", "tabs", "nativeMessaging", "storage", "activeTab", "webRequest", "webNavigation", "declarativeNetRequestWithHostAccess", "alarms" ],
+   "update_url": "https://clients2.google.com/service/update2/crx",
+   "version": "2.1.60",
+   "web_accessible_resources": [ {
+      "matches": [ "\u003Call_urls>" ],
+      "resources": [ "promo/*", "images/*" ]
+   } ]
+}

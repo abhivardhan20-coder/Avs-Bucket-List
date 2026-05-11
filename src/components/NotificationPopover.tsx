@@ -4,6 +4,7 @@ import { Loader, Calendar, BellOff, ChevronRight, Clock, Zap, Megaphone, List, I
 import { MediaItem } from '../types';
 import { NotificationItem } from '../hooks/useNotifications';
 import UpcomingCalendar from './upcoming/UpcomingCalendar';
+import OptimizedImage from './OptimizedImage';
 
 interface NotificationPopoverProps {
   items: NotificationItem[];
@@ -39,8 +40,8 @@ const NotificationRow: React.FC<{
             <ImageOff className="w-4 h-4 text-gray-600" />
           </div>
         ) : (
-          <img
-            src={item.posterUrl || undefined}
+          <OptimizedImage
+            src={item.posterUrl || ''}
             alt={item.title}
             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
             onError={() => setImgError(true)}

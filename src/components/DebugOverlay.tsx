@@ -15,18 +15,19 @@ export const DebugOverlay: React.FC = () => {
 
         const originalConsoleWarn = console.warn;
         console.warn = (...args) => {
-            // Filter out Google Sign-In warnings that spam the overlay
-            if (args.some(arg => typeof arg === 'string' && (
-                arg.includes('[GSI_LOGGER]') || 
-                arg.includes('width(-1) and height(-1)') ||
-                (arg.includes('TMDB API warning') && arg.includes('404'))
-            ))) {
+            const warnStr = args.map(arg => String(arg)).join(' ');
+            if (warnStr.includes('[GSI_LOGGER]') || 
+                warnStr.includes('SecurityError') || 
+                warnStr.includes('Blocked a frame') ||
+                warnStr.includes('width(-1) and height(-1)') ||
+                warnStr.includes('width(0) and height(0)') ||
+                (warnStr.includes('TMDB API warning') && warnStr.includes('404'))
+            ) {
                 originalConsoleWarn(...args);
                 return;
             }
-            // Use setTimeout to avoid 'Cannot update a component while rendering another component' warning
             setTimeout(() => {
-                setLogs(prev => [...prev.slice(-4), `WARN: ${args.join(' ')}`]);
+                setLogs(prev => [...prev.slice(-4), `WARN: ${warnStr.slice(0, 500)}`]);
             }, 0);
             originalConsoleWarn(...args);
         };

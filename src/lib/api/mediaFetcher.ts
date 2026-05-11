@@ -20,7 +20,8 @@ import { MEDIA_FRESHNESS_MS, ACTIVE_SHOW_REFRESH_MS } from '../../services/confi
 export async function fetchMediaItem(
   appId: string, 
   type: 'movie' | 'tv' | 'anime', 
-  isAnime = false
+  isAnime = false,
+  signal?: AbortSignal
 ): Promise<MediaItem | null> {
   return dedupedFetch(`media:${appId}`, async () => {
     const isActuallyAnime = isAnime || type === 'anime' || appId.startsWith('series_') || appId.startsWith('anime_');
@@ -61,7 +62,7 @@ export async function fetchMediaItem(
       }
 
       // Phase 1: Try Primary Source (TMDB)
-      const tmdbData = await fetchDetails(appId);
+      const tmdbData = await fetchDetails(appId, signal);
       if (tmdbData) {
         let finalItem = { 
           ...tmdbData, 

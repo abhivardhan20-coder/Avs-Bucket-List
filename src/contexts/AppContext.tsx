@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { AuthProvider, useAuth, AuthContextType } from './AuthProvider';
 import { SettingsProvider, useSettings, SettingsContextType } from './SettingsProvider';
 import { SyncProvider, useSync, SyncContextType } from './SyncProvider';
-import { LibraryProvider, useLibrary, useWatchlist, useWatched, useShared, WatchlistContextValue, WatchedContextValue, SharedContextValue } from './LibraryProvider';
+import { LibraryProvider, useLibrary, useWatchlist, useWatched, useShared, useLibraryActions, useLibraryData, WatchlistContextValue, WatchedContextValue, SharedContextValue } from './LibraryProvider';
 import { runMigrations } from '../lib/migrationService';
 
 const MigrationRunner = ({ children }: { children: React.ReactNode }) => {
@@ -32,5 +32,5 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
 };
 
 // Re-export specific hooks and types for convenience
-export { useAuth, useSettings, useSync, useLibrary, useWatchlist, useWatched, useShared };
+export { useAuth, useSettings, useSync, useLibrary, useWatchlist, useWatched, useShared, useLibraryActions, useLibraryData };
 export type { AuthContextType, SettingsContextType, SyncContextType, WatchlistContextValue, WatchedContextValue, SharedContextValue };

@@ -44,9 +44,9 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     showToast("Backup file downloaded!", "success");
   };
 
-  const handleClearData = () => {
+  const handleClearData = async () => {
     if (window.confirm("Are you sure you want to delete all saved data? This action cannot be undone.")) {
-      const res = clearData();
+      const res = await clearData();
       showToast(res.message, res.success ? 'success' : 'error');
       if (res.success) {
         setTimeout(onClose, 1500);

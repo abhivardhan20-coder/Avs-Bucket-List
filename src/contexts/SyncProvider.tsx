@@ -97,17 +97,41 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
       }
 
       await db.transaction('rw', db.watchlist, db.watched, async () => {
-        for (const entry of data) {
-          const local = entry.status === 'watchlist'
-            ? await db.watchlist.get([user.email, entry.id])
-            : await db.watched.get([user.email, entry.id]);
+        // Separate incoming items by type
+        const wlEntries = data.filter(e => e.status === 'watchlist');
+        const wdEntries = data.filter(e => e.status !== 'watchlist');
+
+        // Batch-fetch all local counterparts in two queries
+        const localWl = await db.watchlist
+          .where('[userEmail+id]')
+          .anyOf(wlEntries.map(e => [user.email, e.id]))
+          .toArray();
+        const localWd = await db.watched
+          .where('[userEmail+id]')
+          .anyOf(wdEntries.map(e => [user.email, e.id]))
+          .toArray();
+
+        const localWlMap = Object.fromEntries(localWl.map(i => [i.id, i]));
+        const localWdMap = Object.fromEntries(localWd.map(i => [i.id, i]));
+
+        const wlToPut: WatchlistDBItem[] = [];
+        const wdToPut: WatchedDBItem[] = [];
+
+        for (const entry of wlEntries) {
+          const local = localWlMap[entry.id];
           if ((entry.version ?? 0) > (local?.version ?? 0)) {
-            const item = fromSyncEntry(entry, user.email);
-            entry.status === 'watchlist'
-              ? await db.watchlist.put(item as WatchlistDBItem)
-              : await db.watched.put(item as WatchedDBItem);
+            wlToPut.push(fromSyncEntry(entry, user.email) as WatchlistDBItem);
           }
         }
+        for (const entry of wdEntries) {
+          const local = localWdMap[entry.id];
+          if ((entry.version ?? 0) > (local?.version ?? 0)) {
+            wdToPut.push(fromSyncEntry(entry, user.email) as WatchedDBItem);
+          }
+        }
+
+        if (wlToPut.length) await db.watchlist.bulkPut(wlToPut);
+        if (wdToPut.length) await db.watched.bulkPut(wdToPut);
       });
 
       setLastSyncCursor(serverTime);
@@ -528,7 +552,7 @@ export const SyncProvider = ({ children }: { children: React.ReactNode }) => {
   // Optimized settings sync: hash guard + skip first mount
   const isFirstSettingsRunRef = useRef(true);
   useEffect(() => {
-    if (!user?.email || !settingsPayload) return;
+    if (!user?.id || !settingsPayload || SINGLE_USER_MODE) return;
     
     const settingsHash = btoa(settingsPayload).slice(0, 16);
     const lastHash = localStorage.getItem('av_settings_hash');

@@ -1,0 +1,209 @@
+{
+   "360_safe": {
+      "message": "360安全卫士"
+   },
+   "360_total_security": {
+      "message": "360 Total Security"
+   },
+   "about": {
+      "message": "About"
+   },
+   "agreement_content_message": {
+      "message": "The Shopping Saver built in 360 Internet Protection is to auto-search better discounts for you when you shop online. Enable now to pay less!"
+   },
+   "checking_tips": {
+      "message": "Checking"
+   },
+   "checking_website": {
+      "message": "Checking security…"
+   },
+   "close": {
+      "message": "Close"
+   },
+   "copy_right_desc": {
+      "message": "Copyright: @2005-YEAR 360 Security Center"
+   },
+   "deal_price_accept": {
+      "message": "Enable"
+   },
+   "deal_price_note": {
+      "message": "*Shopping Saver can be turned off later in settings"
+   },
+   "deal_price_reject": {
+      "message": "Don't ask me again"
+   },
+   "default_title": {
+      "message": "360 Internet Protection"
+   },
+   "description": {
+      "message": "360 Internet Protection"
+   },
+   "enable_similar_items_searching": {
+      "message": "Notify me when more deals are found"
+   },
+   "enable_toast": {
+      "message": "Notify me when protection enabled"
+   },
+   "enable_toolbar_icon": {
+      "message": "Toolbar button"
+   },
+   "enableantitrack_tips": {
+      "message": "Privacy anti-tracking protection on"
+   },
+   "enhanced": {
+      "message": "Enhanced"
+   },
+   "extension_name": {
+      "message": "360 Internet Protection"
+   },
+   "learn_more": {
+      "message": "Learn More"
+   },
+   "name": {
+      "message": "360 Internet Protection"
+   },
+   "no_risk": {
+      "message": "No risk"
+   },
+   "official": {
+      "message": "Official"
+   },
+   "option_page_title": {
+      "message": "Settings"
+   },
+   "privacy_button_accept": {
+      "message": "Accept"
+   },
+   "privacy_button_decline": {
+      "message": "Decline"
+   },
+   "privacy_page_details": {
+      "message": "360 Internet Protection must have permissions to access and collect the web addresses (urls) and browser language that you visit.This way,we can identify threat URLs that can help protect while browsing the Web and gives you the best deals while shopping online."
+   },
+   "privacy_page_refuse": {
+      "message": "If you decline, 360 Internet Protection will not work and will not be able to identify the threat website."
+   },
+   "privacy_page_statements": {
+      "message": "To better understand our data collection policies, please visit our "
+   },
+   "privacy_page_title": {
+      "message": "Let us protect your internet security"
+   },
+   "privacy_policy_desc": {
+      "message": "User Experience Improvement Program"
+   },
+   "privacy_statement": {
+      "message": "Privacy Statement"
+   },
+   "recommended_message": {
+      "message": "Recommended"
+   },
+   "report_false_positive": {
+      "message": "Report False Positive"
+   },
+   "resolved": {
+      "message": "Resolved"
+   },
+   "risk_desc": {
+      "message": "The page has been reported as risky site, we strongly discourage visiting this page."
+   },
+   "risk_detected": {
+      "message": "Risk detected"
+   },
+   "risk_tips": {
+      "message": "Risk"
+   },
+   "risk_website": {
+      "message": "Risky Site"
+   },
+   "safe": {
+      "message": "Safe"
+   },
+   "safe_tips": {
+      "message": "Safe"
+   },
+   "safe_website": {
+      "message": "Safe Site"
+   },
+   "safe_website_antitrack": {
+      "message": "Privacy anti-tracking protection"
+   },
+   "safe_website_desc": {
+      "message": "Protect private data from being tracked"
+   },
+   "security_check": {
+      "message": "System Security"
+   },
+   "shopping_desc": {
+      "message": "Keep your shopping and transaction safe."
+   },
+   "shopping_desc_antitrack": {
+      "message": "Protect online shopping and transaction, while ensuring that private data is not tracked."
+   },
+   "shopping_protection": {
+      "message": "Shopping Protection"
+   },
+   "shopping_protection_check": {
+      "message": "Shopping Protection: Checking system security…"
+   },
+   "shopping_protection_exit_desc": {
+      "message": "We strongly recommend enabling Shopping Protection Mode to keep your shopping and transaction safe."
+   },
+   "shopping_protection_no_risk": {
+      "message": "Shopping Protection: No Risk"
+   },
+   "shopping_protection_off": {
+      "message": "Shopping Protection is OFF, you are visiting "
+   },
+   "shopping_protection_off_desc_ts": {
+      "message": "Shopping Protection module is disabled, please go to Main Program -> Protection -> Online Shopping Protection to enable it."
+   },
+   "shopping_protection_on": {
+      "message": "Shopping Protection is ON, you are visiting "
+   },
+   "shopping_protection_on_without_pattern": {
+      "message": "Shopping Protection is ON"
+   },
+   "shopping_protection_risk_found": {
+      "message": "Shopping Protection: Risk detected"
+   },
+   "shopping_tips": {
+      "message": "Shopping"
+   },
+   "shopping_website": {
+      "message": "Shopping Protection"
+   },
+   "shopping_website_off": {
+      "message": "Shopping Protection is OFF"
+   },
+   "status": {
+      "message": "Status"
+   },
+   "unknown_tips": {
+      "message": "360 Internet Protection"
+   },
+   "unknown_website": {
+      "message": "360 Internet Protection"
+   },
+   "unsupported_platform_message": {
+      "message": "360 Internet Protection\nThe extension only supports windows system browser"
+   },
+   "upgrade": {
+      "message": "Upgrade"
+   },
+   "upgrade_browser_message": {
+      "message": "360 Internet Protection has been installed successfully. New features will take effect after upgrading the current browser to the latest version."
+   },
+   "upgrade_env_message": {
+      "message": "360 Internet Protection has been installed successfully. New features will take effect after upgrading to the latest version of 360 Total Security."
+   },
+   "upgrade_ext_message": {
+      "message": "360 Internet Protection must be upgraded to  latest version. The current extension only support base function."
+   },
+   "web_protection_off_desc_ts": {
+      "message": "Web Protection module is disabled, please go to Main Program -> Protection -> Malicious Website Blocking to enable it and restart the browser."
+   },
+   "website": {
+      "message": "Website"
+   }
+}

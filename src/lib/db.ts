@@ -60,6 +60,18 @@ export interface SyncEntrySnapshot {
   title?: string;
 }
 
+export interface ConflictRecord {
+  id: string; // appId
+  userEmail: string;
+  title: string;
+  localSnapshot: SyncEntrySnapshot;
+  cloudSnapshot: SyncEntrySnapshot;
+  resolved: boolean | number;
+  resolvedWith?: 'local' | 'cloud';
+  resolvedAt?: string;
+  itemId: string; // The appId
+}
+
 
 
 export interface SyncTask {
@@ -89,6 +101,7 @@ export class AppDatabase extends Dexie {
   watched!: Table<WatchedDBItem, [string, string]>;
   mediaCache!: Table<MediaItem & { lastRefreshedAt?: number }, string>;
   syncQueue!: Table<SyncTask, string>;
+  conflicts!: Table<ConflictRecord, [string, string]>;
   logs!: Table<LogEntry, number>;
 
   constructor() {
@@ -120,6 +133,11 @@ export class AppDatabase extends Dexie {
     // ✅ v15: Add compound index for efficient cache eviction by type+lastRefreshedAt
     this.version(15).stores({
       mediaCache: 'id, type, year, lastRefreshedAt, lastAccessedAt, dataSource, anilistId, [type+lastRefreshedAt]'
+    });
+
+    // v16: Add conflicts table
+    this.version(16).stores({
+      conflicts: '[userEmail+id], userEmail, status'
     });
   }
 }

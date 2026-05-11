@@ -4,6 +4,7 @@ import { useLibraryData, useAuth, useSync } from '../contexts/AppContext';
 import { buildUserTaste } from '../lib/recommendationEngine';
 import { rankWatchlistForNext, WatchNextCandidate } from '../lib/watchNextEngine';
 import { MediaItem } from '../types';
+import OptimizedImage from './OptimizedImage';
 
 interface WatchNextModalProps {
   isOpen: boolean;
@@ -152,7 +153,7 @@ export const WatchNextModal: React.FC<WatchNextModalProps> = ({ isOpen, onClose,
               {/* Card UI */}
               <div className="relative group">
                 <div className="aspect-[2/3] w-full max-w-[200px] mx-auto rounded-2xl overflow-hidden shadow-2xl border border-white/10 relative">
-                  <img 
+                  <OptimizedImage 
                     src={currentPick.item.poster} 
                     alt={currentPick.item.title}
                     className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"

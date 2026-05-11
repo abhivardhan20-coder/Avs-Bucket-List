@@ -2,7 +2,7 @@ import { MediaItem, MediaType, Season, Episode, NextEpisodeInfo } from '@/types'
 const BASE_URL = 'https://api.themoviedb.org/3';
 
 // ✅ PERFORMANCE OPTIMIZED: Use optimized image sizes
-const getImageUrl = (path: string | null, size: 'original' | 'w1280' | 'w780' | 'w500' | 'w342' | 'w300' = 'w342') => {
+const getImageUrl = (path: string | null, size: 'original' | 'w1280' | 'w780' | 'w500' | 'w342' | 'w300' = 'original') => {
   if (!path) return '';
   const base = `https://image.tmdb.org/t/p/${size}`;
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
@@ -51,13 +51,13 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 5, ba
 /**
  * Robust fetch wrapper for TMDB (via Backend Proxy)
  */
-async function safeTmdbFetch<T>(endpoint: string): Promise<T | null> {
+async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise<T | null> {
   const apiKey = import.meta.env.VITE_TMDB_API_KEY;
   const separator = endpoint.includes('?') ? '&' : '?';
   const url = `${BASE_URL}${endpoint}${separator}api_key=${apiKey}`;
 
   try {
-    const response = await fetchWithRetry(url, { headers: getHeaders() });
+    const response = await fetchWithRetry(url, { headers: getHeaders(), signal }, 5);
     if (!response.ok) {
       if (response.status !== 404) {
         throw new Error(`TMDB_API_ERROR_${response.status}: ${response.statusText}`);
@@ -155,8 +155,8 @@ const mapResultToItem = (item: TmdbResult, type: MediaType): MediaItem => {
     id: toAppId(tmdbType, item.id),
     title: item.title || item.name,
     type: finalType,
-    backdropUrl: getImageUrl(item.backdrop_path, 'w780'),
-    posterUrl: getImageUrl(item.poster_path || item.backdrop_path, 'w342'),
+    backdropUrl: getImageUrl(item.backdrop_path, 'original'),
+    posterUrl: getImageUrl(item.poster_path || item.backdrop_path, 'original'),
     overview: item.overview || '',
     rating: (item.vote_average !== undefined && item.vote_average !== null) ? Number(Number(item.vote_average).toFixed(1)) : 0,
     year: new Date(item.release_date || item.first_air_date || Date.now()).getFullYear(),
@@ -212,15 +212,15 @@ export const fetchSeasonDetails = async (appId: string, seasonNumber: number): P
     runtime: Number(e.runtime) || 0,
     watched: false,
     overview: e.overview,
-    stillUrl: getImageUrl(e.still_path, 'w300'),
+    stillUrl: getImageUrl(e.still_path, 'original'),
     airDate: e.air_date
   })) || [];
 };
 
-export const fetchDetails = async (appId: string): Promise<Partial<MediaItem> | null> => {
+export const fetchDetails = async (appId: string, signal?: AbortSignal): Promise<Partial<MediaItem> | null> => {
   const { type, id } = parseAppId(appId);
   if (id === -1 || type === 'unknown') return null;
-  const data = await safeTmdbFetch<Record<string, any>>(`/${type}/${id}?append_to_response=videos,credits`);
+  const data = await safeTmdbFetch<Record<string, any>>(`/${type}/${id}?append_to_response=videos,credits`, signal);
   if (!data) return null;
 
   const videos = data.videos?.results?.filter((v: Record<string, any>) => v.site === 'YouTube') || [];
@@ -239,7 +239,7 @@ export const fetchDetails = async (appId: string): Promise<Partial<MediaItem> | 
         id: `season_${id}_${s.season_number}`,
         number: s.season_number,
         title: s.name,
-        posterUrl: getImageUrl(s.poster_path),
+        posterUrl: getImageUrl(s.poster_path, 'original'),
         airDate: s.air_date,
         episodes: [],
         episodeCount: s.episode_count

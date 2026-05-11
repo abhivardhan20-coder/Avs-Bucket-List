@@ -22,9 +22,10 @@ interface RequestOptions extends RequestInit {
   timeout?: number;
   retries?: number;
   retryDelay?: number;
+  signal?: AbortSignal;
 }
 
-const DEFAULT_TIMEOUT = 5000;
+const DEFAULT_TIMEOUT = 10000;
 const DEFAULT_RETRIES = 3;
 const DEFAULT_RETRY_DELAY = 1000;
 
@@ -54,6 +55,7 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
     timeout = DEFAULT_TIMEOUT, 
     retries = DEFAULT_RETRIES, 
     retryDelay = DEFAULT_RETRY_DELAY,
+    signal: externalSignal,
     ...fetchOptions 
   } = options;
 
@@ -64,6 +66,16 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
   for (let attempt = 0; attempt <= retries; attempt++) {
     const controller = new AbortController();
     const id = setTimeout(() => controller.abort(), timeout);
+
+    // If external signal is already aborted, fail immediately
+    if (externalSignal?.aborted) {
+      clearTimeout(id);
+      throw new ApiError(ApiErrorType.NETWORK, 'Request aborted by user');
+    }
+
+    // Link external signal to our controller
+    const onExternalAbort = () => controller.abort();
+    if (externalSignal) externalSignal.addEventListener('abort', onExternalAbort);
 
     try {
       if (attempt > 0) {
@@ -135,10 +147,12 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
         );
       }
 
+      if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
       return await response.json() as T;
 
     } catch (err: unknown) {
       clearTimeout(id);
+      if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
       
       if (err instanceof Error && err.name === 'AbortError') {
         lastError = new ApiError(ApiErrorType.TIMEOUT, `Request timed out after ${timeout}ms`);

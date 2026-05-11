@@ -1,0 +1,430 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/ErrorBoundary.tsx");import.meta.env = {"BASE_URL": "/", "DEV": true, "MODE": "development", "PROD": false, "SSR": false, "VITE_BACKEND_URL": "http://127.0.0.1:8000", "VITE_EMAIL_ADDRESS": "grimreapme@gmail.com", "VITE_EMAIL_PASSWORD": "sqfzkezjwvvuefdr", "VITE_FANART_API_KEY": "b6a495580cdb4cab809e17d3", "VITE_GOOGLE_CLIENT_ID": "1046050149051-bi9nmv9koan0k919q53df4f90v9sm4dt.apps.googleusercontent.com", "VITE_GOOGLE_CLIENT_SECRET": "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", "VITE_GOOGLE_SHEETS_API_URL": "http://127.0.0.1:8000/api/sync", "VITE_GOOGLE_SHEETS_TOKEN": "AV_BUCKET_LIST_SECRET_2026_SECURE", "VITE_SUPABASE_ANON_KEY": "YOUR_SUPABASE_ANON_KEY", "VITE_SUPABASE_URL": "https://nhqecvgyoncxiurflvwr.supabase.co", "VITE_TMDB_API_KEY": "cdf741ca0481bc5a2351954aeea641d2", "VITE_TRAKT_CLIENT_ID": "81ccd85db0a6fba54d475f0f2cdad8edb732e07c1c8df617ed4226969464c19a", "VITE_TRAKT_CLIENT_SECRET": "17cef1f3790fd70d4e89afbb53e5f3c3a39a4aeea10279abf545f25056851c66", "VITE_TVDB_API_KEY": "3b380759-7315-4aef-bda3-295f759dcff7"};import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=36fb4cf8"; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+var _s = $RefreshSig$();
+import __vite__cjsImport1_react from "/node_modules/.vite/deps/react.js?v=36fb4cf8"; const useCallback = __vite__cjsImport1_react["useCallback"];
+import { ErrorBoundary as ReactErrorBoundary } from "/node_modules/.vite/deps/react-error-boundary.js?v=36fb4cf8";
+import { useQueryErrorResetBoundary } from "/node_modules/.vite/deps/@tanstack_react-query.js?v=36fb4cf8";
+import { AlertTriangle, RefreshCcw, Home, X, Bug } from "/node_modules/.vite/deps/lucide-react.js?v=36fb4cf8";
+const reportError = (error, info, variant) => {
+  console.group(`%c Error Boundary Caught [${variant}] `, "background: #991b1b; color: #fff; font-weight: bold;");
+  console.error("Error:", error.message);
+  console.error("Component Stack:", info.componentStack);
+  console.log("Timestamp:", (/* @__PURE__ */ new Date()).toISOString());
+  console.groupEnd();
+};
+export const AppErrorBoundary = ({
+  children,
+  variant = "full",
+  onReset,
+  resetKeys,
+  fallback,
+  onError
+}) => {
+  _s();
+  const { reset: resetQueries } = useQueryErrorResetBoundary();
+  const handleReset = useCallback(() => {
+    resetQueries();
+    onReset?.();
+  }, [resetQueries, onReset]);
+  const handleError = useCallback((error, info) => {
+    reportError(error, info, variant);
+    onError?.(error, info);
+  }, [variant, onError]);
+  if (fallback) {
+    return /* @__PURE__ */ jsxDEV(
+      ReactErrorBoundary,
+      {
+        fallback,
+        onReset: handleReset,
+        onError: handleError,
+        resetKeys,
+        children
+      },
+      void 0,
+      false,
+      {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 56,
+        columnNumber: 7
+      },
+      this
+    );
+  }
+  return /* @__PURE__ */ jsxDEV(
+    ReactErrorBoundary,
+    {
+      fallbackRender: (props) => /* @__PURE__ */ jsxDEV(ErrorFallback, { ...props, variant, onReset: handleReset }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 70,
+        columnNumber: 7
+      }, this),
+      onReset: handleReset,
+      onError: handleError,
+      resetKeys,
+      children
+    },
+    void 0,
+    false,
+    {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 68,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_s(AppErrorBoundary, "IXoy3YiLZzhGUCWgocWY3syG+mE=", false, function() {
+  return [useQueryErrorResetBoundary];
+});
+_c = AppErrorBoundary;
+export { AppErrorBoundary as ErrorBoundary };
+const ErrorFallback = ({
+  error,
+  resetErrorBoundary,
+  variant,
+  onReset
+}) => {
+  const isDev = import.meta.env.DEV;
+  const handleRetry = () => {
+    onReset();
+    resetErrorBoundary();
+  };
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : void 0;
+  if (variant === "row") {
+    return /* @__PURE__ */ jsxDEV("div", { className: "w-full min-h-[220px] flex flex-col items-center justify-center bg-black/40 backdrop-blur-md rounded-2xl border border-white/5 text-gray-500 gap-4 my-6 p-8 animate-in fade-in zoom-in-95 duration-300", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "p-4 bg-red-900/10 rounded-full border border-red-900/20", children: /* @__PURE__ */ jsxDEV(Bug, { className: "w-6 h-6 text-red-500/60" }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 109,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 108,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "text-center space-y-1", children: [
+        /* @__PURE__ */ jsxDEV("h4", { className: "text-sm font-bold text-gray-300 uppercase tracking-widest", children: "Section Unavailable" }, void 0, false, {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+          lineNumber: 112,
+          columnNumber: 11
+        }, this),
+        /* @__PURE__ */ jsxDEV("p", { className: "text-[11px] text-gray-500 max-w-[200px] leading-relaxed", children: "Content encountered a temporary glitch. Other sections are unaffected." }, void 0, false, {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+          lineNumber: 113,
+          columnNumber: 11
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 111,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-3", children: [
+        /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            onClick: handleRetry,
+            className: "flex items-center gap-2 px-4 py-1.5 bg-white/5 hover:bg-white/10 text-xs font-bold text-gray-300 rounded-lg transition-all border border-white/10 active:scale-95",
+            children: [
+              /* @__PURE__ */ jsxDEV(RefreshCcw, { className: "w-3 h-3" }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+                lineNumber: 122,
+                columnNumber: 13
+              }, this),
+              "Retry"
+            ]
+          },
+          void 0,
+          true,
+          {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+            lineNumber: 118,
+            columnNumber: 11
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            onClick: resetErrorBoundary,
+            className: "text-[11px] font-medium text-gray-600 hover:text-gray-400 underline underline-offset-4",
+            children: "Dismiss"
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+            lineNumber: 125,
+            columnNumber: 11
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 117,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 107,
+      columnNumber: 7
+    }, this);
+  }
+  if (variant === "modal") {
+    return /* @__PURE__ */ jsxDEV("div", { className: "fixed inset-0 z-[200] flex items-center justify-center p-6 animate-in fade-in backdrop-blur-xl bg-black/60", children: /* @__PURE__ */ jsxDEV("div", { className: "bg-[#141414] border border-white/10 rounded-3xl p-10 max-w-md w-full text-center shadow-3xl relative overflow-hidden group", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "absolute top-0 left-0 w-full h-1 bg-red-600/50" }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 140,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          onClick: resetErrorBoundary,
+          className: "absolute top-5 right-5 text-gray-500 hover:text-white transition-colors",
+          children: /* @__PURE__ */ jsxDEV(X, { className: "w-6 h-6" }, void 0, false, {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+            lineNumber: 145,
+            columnNumber: 13
+          }, this)
+        },
+        void 0,
+        false,
+        {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+          lineNumber: 141,
+          columnNumber: 11
+        },
+        this
+      ),
+      /* @__PURE__ */ jsxDEV("div", { className: "w-20 h-20 bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-8 border border-red-900/30", children: /* @__PURE__ */ jsxDEV(AlertTriangle, { className: "w-10 h-10 text-red-500" }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 149,
+        columnNumber: 13
+      }, this) }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 148,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("h3", { className: "text-2xl font-black text-white mb-3", children: "Failed to load details" }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 152,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: "text-gray-400 text-sm mb-8 leading-relaxed", children: errorMessage || "The media metadata could not be fetched securely. This might be a temporary network issue." }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 153,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "flex flex-col gap-3", children: [
+        /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            onClick: handleRetry,
+            className: "w-full bg-white text-black py-3 rounded-xl font-bold text-sm hover:bg-gray-200 transition-all active:scale-95 flex items-center justify-center gap-2",
+            children: [
+              /* @__PURE__ */ jsxDEV(RefreshCcw, { className: "w-4 h-4" }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+                lineNumber: 162,
+                columnNumber: 15
+              }, this),
+              "Try Again"
+            ]
+          },
+          void 0,
+          true,
+          {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+            lineNumber: 158,
+            columnNumber: 13
+          },
+          this
+        ),
+        /* @__PURE__ */ jsxDEV(
+          "button",
+          {
+            onClick: resetErrorBoundary,
+            className: "w-full bg-transparent text-gray-500 py-2 text-xs font-bold hover:text-white transition-colors",
+            children: "Cancel"
+          },
+          void 0,
+          false,
+          {
+            fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+            lineNumber: 165,
+            columnNumber: 13
+          },
+          this
+        )
+      ] }, void 0, true, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 157,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 139,
+      columnNumber: 9
+    }, this) }, void 0, false, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 138,
+      columnNumber: 7
+    }, this);
+  }
+  return /* @__PURE__ */ jsxDEV("div", { className: "min-h-screen bg-[#0a0a0a] text-white flex flex-col items-center justify-center p-6 text-center animate-in fade-in duration-700", children: [
+    /* @__PURE__ */ jsxDEV("div", { className: "relative mb-10 group", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "absolute -inset-4 bg-red-600/20 blur-2xl rounded-full group-hover:bg-red-600/30 transition-all duration-500" }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 180,
+        columnNumber: 9
+      }, this),
+      /* @__PURE__ */ jsxDEV("div", { className: "relative bg-black border border-white/5 p-8 rounded-full shadow-2xl", children: /* @__PURE__ */ jsxDEV(AlertTriangle, { className: "w-20 h-20 text-red-600" }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 182,
+        columnNumber: 11
+      }, this) }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 181,
+        columnNumber: 9
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 179,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("h1", { className: "text-4xl md:text-5xl font-black mb-6 tracking-tight bg-clip-text text-transparent bg-gradient-to-b from-white to-gray-500", children: "System Interruption" }, void 0, false, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 186,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("p", { className: "text-gray-400 max-w-lg mb-10 text-lg leading-relaxed font-medium", children: "An unexpected logic error occurred. We've logged the incident and are ready to recover." }, void 0, false, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 190,
+      columnNumber: 7
+    }, this),
+    /* @__PURE__ */ jsxDEV("div", { className: "flex flex-col sm:flex-row gap-5 items-center", children: [
+      /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          onClick: () => window.location.reload(),
+          className: "flex items-center justify-center gap-3 px-10 py-4 bg-white text-black rounded-2xl font-black hover:bg-gray-200 transition-all shadow-xl active:scale-95 text-sm",
+          children: [
+            /* @__PURE__ */ jsxDEV(RefreshCcw, { className: "w-4 h-4" }, void 0, false, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+              lineNumber: 199,
+              columnNumber: 11
+            }, this),
+            "Hard Refresh"
+          ]
+        },
+        void 0,
+        true,
+        {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+          lineNumber: 195,
+          columnNumber: 9
+        },
+        this
+      ),
+      /* @__PURE__ */ jsxDEV(
+        "button",
+        {
+          onClick: () => {
+            onReset();
+            window.location.href = "/";
+          },
+          className: "flex items-center justify-center gap-3 px-10 py-4 bg-white/5 text-white rounded-2xl font-black hover:bg-white/10 transition-all border border-white/10 active:scale-95 text-sm",
+          children: [
+            /* @__PURE__ */ jsxDEV(Home, { className: "w-4 h-4" }, void 0, false, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+              lineNumber: 209,
+              columnNumber: 11
+            }, this),
+            "Go Home"
+          ]
+        },
+        void 0,
+        true,
+        {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+          lineNumber: 202,
+          columnNumber: 9
+        },
+        this
+      )
+    ] }, void 0, true, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 194,
+      columnNumber: 7
+    }, this),
+    isDev && /* @__PURE__ */ jsxDEV("div", { className: "mt-16 p-8 bg-black/80 rounded-2xl border border-white/5 max-w-4xl w-full text-left overflow-auto max-h-80 shadow-2xl", children: [
+      /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-2 mb-4 text-red-500 border-b border-white/5 pb-2", children: [
+        /* @__PURE__ */ jsxDEV(Bug, { className: "w-4 h-4" }, void 0, false, {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+          lineNumber: 217,
+          columnNumber: 13
+        }, this),
+        /* @__PURE__ */ jsxDEV("span", { className: "text-[10px] font-black uppercase tracking-widest", children: "Developer Context" }, void 0, false, {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+          lineNumber: 218,
+          columnNumber: 13
+        }, this)
+      ] }, void 0, true, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 216,
+        columnNumber: 11
+      }, this),
+      /* @__PURE__ */ jsxDEV("p", { className: "text-red-400/90 font-mono text-[11px] whitespace-pre-wrap leading-relaxed", children: errorStack || errorMessage }, void 0, false, {
+        fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+        lineNumber: 220,
+        columnNumber: 11
+      }, this)
+    ] }, void 0, true, {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+      lineNumber: 215,
+      columnNumber: 7
+    }, this)
+  ] }, void 0, true, {
+    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+    lineNumber: 178,
+    columnNumber: 5
+  }, this);
+};
+_c2 = ErrorFallback;
+export const withAppErrorBoundary = (Component, errorBoundaryProps) => {
+  return (props) => /* @__PURE__ */ jsxDEV(AppErrorBoundary, { ...errorBoundaryProps, children: /* @__PURE__ */ jsxDEV(Component, { ...props }, void 0, false, {
+    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+    lineNumber: 235,
+    columnNumber: 7
+  }, this) }, void 0, false, {
+    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx",
+    lineNumber: 234,
+    columnNumber: 3
+  }, this);
+};
+var _c, _c2;
+$RefreshReg$(_c, "AppErrorBoundary");
+$RefreshReg$(_c2, "ErrorFallback");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/ErrorBoundary.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUFBQSxhQUdBO0FBQUEsTUFDQSx1QkFBQyxPQUFFLFdBQVUsNkVBQ1ZRLHdCQUFjSCxnQkFEakI7QUFBQTtBQUFBO0FBQUE7QUFBQSxhQUVBO0FBQUEsU0FQRjtBQUFBO0FBQUE7QUFBQTtBQUFBLFdBUUE7QUFBQSxPQTdDSjtBQUFBO0FBQUE7QUFBQTtBQUFBLFNBK0NBO0FBRUo7QUFBRVUsTUExSUlqQjtBQTRJQyxhQUFNa0IsdUJBQXVCLENBQ2xDQyxXQUNBQyx1QkFDRztBQUNILFNBQU8sQ0FBQ3JCLFVBQ04sdUJBQUMsb0JBQWlCLEdBQUlxQixvQkFDcEIsaUNBQUMsYUFBVSxHQUFJckIsU0FBZjtBQUFBO0FBQUE7QUFBQTtBQUFBLFNBQXFCLEtBRHZCO0FBQUE7QUFBQTtBQUFBO0FBQUEsU0FFQTtBQUVKO0FBQUUsSUFBQXNCLElBQUFKO0FBQUEsYUFBQUksSUFBQTtBQUFBLGFBQUFKLEtBQUEiLCJuYW1lcyI6WyJ1c2VDYWxsYmFjayIsIkVycm9yQm91bmRhcnkiLCJSZWFjdEVycm9yQm91bmRhcnkiLCJ1c2VRdWVyeUVycm9yUmVzZXRCb3VuZGFyeSIsIkFsZXJ0VHJpYW5nbGUiLCJSZWZyZXNoQ2N3IiwiSG9tZSIsIlgiLCJCdWciLCJyZXBvcnRFcnJvciIsImVycm9yIiwiaW5mbyIsInZhcmlhbnQiLCJjb25zb2xlIiwiZ3JvdXAiLCJtZXNzYWdlIiwiY29tcG9uZW50U3RhY2siLCJsb2ciLCJEYXRlIiwidG9JU09TdHJpbmciLCJncm91cEVuZCIsIkFwcEVycm9yQm91bmRhcnkiLCJjaGlsZHJlbiIsIm9uUmVzZXQiLCJyZXNldEtleXMiLCJmYWxsYmFjayIsIm9uRXJyb3IiLCJfcyIsInJlc2V0IiwicmVzZXRRdWVyaWVzIiwiaGFuZGxlUmVzZXQiLCJoYW5kbGVFcnJvciIsInByb3BzIiwiRXJyb3JGYWxsYmFjayIsInJlc2V0RXJyb3JCb3VuZGFyeSIsImlzRGV2IiwiaW1wb3J0IiwiZW52IiwiREVWIiwiaGFuZGxlUmV0cnkiLCJlcnJvck1lc3NhZ2UiLCJFcnJvciIsIlN0cmluZyIsImVycm9yU3RhY2siLCJzdGFjayIsInVuZGVmaW5lZCIsIndpbmRvdyIsImxvY2F0aW9uIiwicmVsb2FkIiwiaHJlZiIsIl9jMiIsIndpdGhBcHBFcnJvckJvdW5kYXJ5IiwiQ29tcG9uZW50IiwiZXJyb3JCb3VuZGFyeVByb3BzIiwiX2MiXSwiaWdub3JlTGlzdCI6W10sInNvdXJjZXMiOlsiRXJyb3JCb3VuZGFyeS50c3giXSwic291cmNlc0NvbnRlbnQiOlsiaW1wb3J0IFJlYWN0LCB7IHVzZUNhbGxiYWNrIH0gZnJvbSAncmVhY3QnO1xyXG5pbXBvcnQgeyBFcnJvckJvdW5kYXJ5IGFzIFJlYWN0RXJyb3JCb3VuZGFyeSwgRmFsbGJhY2tQcm9wcyB9IGZyb20gJ3JlYWN0LWVycm9yLWJvdW5kYXJ5JztcclxuaW1wb3J0IHsgdXNlUXVlcnlFcnJvclJlc2V0Qm91bmRhcnkgfSBmcm9tICdAdGFuc3RhY2svcmVhY3QtcXVlcnknO1xyXG5pbXBvcnQgeyBBbGVydFRyaWFuZ2xlLCBSZWZyZXNoQ2N3LCBIb21lLCBYLCBCdWcgfSBmcm9tICdsdWNpZGUtcmVhY3QnO1xyXG5cclxuZXhwb3J0IHR5cGUgRXJyb3JWYXJpYW50ID0gJ2Z1bGwnIHwgJ3JvdycgfCAnbW9kYWwnO1xyXG5cclxuaW50ZXJmYWNlIEFwcEVycm9yQm91bmRhcnlQcm9wcyB7XHJcbiAgY2hpbGRyZW46IFJlYWN0LlJlYWN0Tm9kZTtcclxuICB2YXJpYW50PzogRXJyb3JWYXJpYW50O1xyXG4gIG9uUmVzZXQ/OiAoKSA9PiB2b2lkO1xyXG4gIHJlc2V0S2V5cz86IEFycmF5PHVua25vd24+O1xyXG4gIGZhbGxiYWNrPzogUmVhY3QuUmVhY3ROb2RlO1xyXG4gIC8qKiBPcHRpb25hbCBjdXN0b20gZXJyb3IgcmVwb3J0ZXIgKGUuZy4gU2VudHJ5KSAqL1xyXG4gIG9uRXJyb3I/OiAoZXJyb3I6IEVycm9yLCBpbmZvOiB7IGNvbXBvbmVudFN0YWNrOiBzdHJpbmcgfSkgPT4gdm9pZDtcclxufVxyXG5cclxuLyoqXHJcbiAqIFN0YW5kYXJkaXplZCBFcnJvciBSZXBvcnRpbmcgTG9naWNcclxuICovXHJcbmNvbnN0IHJlcG9ydEVycm9yID0gKGVycm9yOiBFcnJvciwgaW5mbzogeyBjb21wb25lbnRTdGFjazogc3RyaW5nIH0sIHZhcmlhbnQ6IEVycm9yVmFyaWFudCkgPT4ge1xyXG4gIGNvbnNvbGUuZ3JvdXAoYCVjIEVycm9yIEJvdW5kYXJ5IENhdWdodCBbJHt2YXJpYW50fV0gYCwgJ2JhY2tncm91bmQ6ICM5OTFiMWI7IGNvbG9yOiAjZmZmOyBmb250LXdlaWdodDogYm9sZDsnKTtcclxuICBjb25zb2xlLmVycm9yKCdFcnJvcjonLCBlcnJvci5tZXNzYWdlKTtcclxuICBjb25zb2xlLmVycm9yKCdDb21wb25lbnQgU3RhY2s6JywgaW5mby5jb21wb25lbnRTdGFjayk7XHJcbiAgY29uc29sZS5sb2coJ1RpbWVzdGFtcDonLCBuZXcgRGF0ZSgpLnRvSVNPU3RyaW5nKCkpO1xyXG4gIGNvbnNvbGUuZ3JvdXBFbmQoKTtcclxufTtcclxuXHJcbi8qKlxyXG4gKiBNb2Rlcm5pemVkIEVycm9yIEJvdW5kYXJ5IGZvciBBVidzIEJ1Y2tldCBMaXN0LlxyXG4gKiBCdWlsdCBvbiByZWFjdC1lcnJvci1ib3VuZGFyeSB2NSsgKyBUYW5TdGFjayBRdWVyeSBpbnRlZ3JhdGlvbi5cclxuICovXHJcbmV4cG9ydCBjb25zdCBBcHBFcnJvckJvdW5kYXJ5OiBSZWFjdC5GQzxBcHBFcnJvckJvdW5kYXJ5UHJvcHM+ID0gKHtcclxuICBjaGlsZHJlbixcclxuICB2YXJpYW50ID0gJ2Z1bGwnLFxyXG4gIG9uUmVzZXQsXHJcbiAgcmVzZXRLZXlzLFxyXG4gIGZhbGxiYWNrLFxyXG4gIG9uRXJyb3JcclxufSkgPT4ge1xyXG4gIGNvbnN0IHsgcmVzZXQ6IHJlc2V0UXVlcmllcyB9ID0gdXNlUXVlcnlFcnJvclJlc2V0Qm91bmRhcnkoKTtcclxuXHJcbiAgY29uc3QgaGFuZGxlUmVzZXQgPSB1c2VDYWxsYmFjaygoKSA9PiB7XHJcbiAgICByZXNldFF1ZXJpZXMoKTtcclxuICAgIG9uUmVzZXQ/LigpO1xyXG4gIH0sIFtyZXNldFF1ZXJpZXMsIG9uUmVzZXRdKTtcclxuXHJcbiAgY29uc3QgaGFuZGxlRXJyb3IgPSB1c2VDYWxsYmFjaygoZXJyb3I6IEVycm9yLCBpbmZvOiB7IGNvbXBvbmVudFN0YWNrOiBzdHJpbmcgfSkgPT4ge1xyXG4gICAgcmVwb3J0RXJyb3IoZXJyb3IsIGluZm8sIHZhcmlhbnQpO1xyXG4gICAgb25FcnJvcj8uKGVycm9yLCBpbmZvKTtcclxuICB9LCBbdmFyaWFudCwgb25FcnJvcl0pO1xyXG5cclxuICAvLyBJZiBhIGN1c3RvbSBzdGF0aWMgZmFsbGJhY2sgaXMgcHJvdmlkZWQsIHVzZSBpdFxyXG4gIGlmIChmYWxsYmFjaykge1xyXG4gICAgcmV0dXJuIChcclxuICAgICAgPFJlYWN0RXJyb3JCb3VuZGFyeVxyXG4gICAgICAgIGZhbGxiYWNrPXtmYWxsYmFjayBhcyBSZWFjdC5SZWFjdEVsZW1lbnR9XHJcbiAgICAgICAgb25SZXNldD17aGFuZGxlUmVzZXR9XHJcbiAgICAgICAgb25FcnJvcj17aGFuZGxlRXJyb3J9XHJcbiAgICAgICAgcmVzZXRLZXlzPXtyZXNldEtleXN9XHJcbiAgICAgID5cclxuICAgICAgICB7Y2hpbGRyZW59XHJcbiAgICAgIDwvUmVhY3RFcnJvckJvdW5kYXJ5PlxyXG4gICAgKTtcclxuICB9XHJcblxyXG4gIHJldHVybiAoXHJcbiAgICA8UmVhY3RFcnJvckJvdW5kYXJ5XHJcbiAgICAgIGZhbGxiYWNrUmVuZGVyPXsocHJvcHMpID0+IChcclxuICAgICAgICA8RXJyb3JGYWxsYmFjayB7Li4ucHJvcHN9IHZhcmlhbnQ9e3ZhcmlhbnR9IG9uUmVzZXQ9e2hhbmRsZVJlc2V0fSAvPlxyXG4gICAgICApfVxyXG4gICAgICBvblJlc2V0PXtoYW5kbGVSZXNldH1cclxuICAgICAgb25FcnJvcj17aGFuZGxlRXJyb3J9XHJcbiAgICAgIHJlc2V0S2V5cz17cmVzZXRLZXlzfVxyXG4gICAgPlxyXG4gICAgICB7Y2hpbGRyZW59XHJcbiAgICA8L1JlYWN0RXJyb3JCb3VuZGFyeT5cclxuICApO1xyXG59O1xyXG5cclxuLy8gQWxpYXNpbmcgZm9yIGNvbXBhdGliaWxpdHlcclxuZXhwb3J0IHsgQXBwRXJyb3JCb3VuZGFyeSBhcyBFcnJvckJvdW5kYXJ5IH07XHJcblxyXG5pbnRlcmZhY2UgRXJyb3JGYWxsYmFja1Byb3BzIGV4dGVuZHMgRmFsbGJhY2tQcm9wcyB7XHJcbiAgdmFyaWFudDogRXJyb3JWYXJpYW50O1xyXG4gIG9uUmVzZXQ6ICgpID0+IHZvaWQ7XHJcbn1cclxuXHJcbmNvbnN0IEVycm9yRmFsbGJhY2s6IFJlYWN0LkZDPEVycm9yRmFsbGJhY2tQcm9wcz4gPSAoe1xyXG4gIGVycm9yLFxyXG4gIHJlc2V0RXJyb3JCb3VuZGFyeSxcclxuICB2YXJpYW50LFxyXG4gIG9uUmVzZXRcclxufSkgPT4ge1xyXG4gIGNvbnN0IGlzRGV2ID0gaW1wb3J0Lm1ldGEuZW52LkRFVjtcclxuXHJcbiAgY29uc3QgaGFuZGxlUmV0cnkgPSAoKSA9PiB7XHJcbiAgICBvblJlc2V0KCk7XHJcbiAgICByZXNldEVycm9yQm91bmRhcnkoKTtcclxuICB9O1xyXG5cclxuICBjb25zdCBlcnJvck1lc3NhZ2UgPSBlcnJvciBpbnN0YW5jZW9mIEVycm9yID8gZXJyb3IubWVzc2FnZSA6IFN0cmluZyhlcnJvcik7XHJcbiAgY29uc3QgZXJyb3JTdGFjayA9IGVycm9yIGluc3RhbmNlb2YgRXJyb3IgPyBlcnJvci5zdGFjayA6IHVuZGVmaW5lZDtcclxuXHJcbiAgaWYgKHZhcmlhbnQgPT09ICdyb3cnKSB7XHJcbiAgICByZXR1cm4gKFxyXG4gICAgICA8ZGl2IGNsYXNzTmFtZT1cInctZnVsbCBtaW4taC1bMjIwcHhdIGZsZXggZmxleC1jb2wgaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGJnLWJsYWNrLzQwIGJhY2tkcm9wLWJsdXItbWQgcm91bmRlZC0yeGwgYm9yZGVyIGJvcmRlci13aGl0ZS81IHRleHQtZ3JheS01MDAgZ2FwLTQgbXktNiBwLTggYW5pbWF0ZS1pbiBmYWRlLWluIHpvb20taW4tOTUgZHVyYXRpb24tMzAwXCI+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwLTQgYmctcmVkLTkwMC8xMCByb3VuZGVkLWZ1bGwgYm9yZGVyIGJvcmRlci1yZWQtOTAwLzIwXCI+XHJcbiAgICAgICAgICA8QnVnIGNsYXNzTmFtZT1cInctNiBoLTYgdGV4dC1yZWQtNTAwLzYwXCIgLz5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInRleHQtY2VudGVyIHNwYWNlLXktMVwiPlxyXG4gICAgICAgICAgPGg0IGNsYXNzTmFtZT1cInRleHQtc20gZm9udC1ib2xkIHRleHQtZ3JheS0zMDAgdXBwZXJjYXNlIHRyYWNraW5nLXdpZGVzdFwiPlNlY3Rpb24gVW5hdmFpbGFibGU8L2g0PlxyXG4gICAgICAgICAgPHAgY2xhc3NOYW1lPVwidGV4dC1bMTFweF0gdGV4dC1ncmF5LTUwMCBtYXgtdy1bMjAwcHhdIGxlYWRpbmctcmVsYXhlZFwiPlxyXG4gICAgICAgICAgICBDb250ZW50IGVuY291bnRlcmVkIGEgdGVtcG9yYXJ5IGdsaXRjaC4gT3RoZXIgc2VjdGlvbnMgYXJlIHVuYWZmZWN0ZWQuXHJcbiAgICAgICAgICA8L3A+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBnYXAtM1wiPlxyXG4gICAgICAgICAgPGJ1dHRvbiBcclxuICAgICAgICAgICAgb25DbGljaz17aGFuZGxlUmV0cnl9XHJcbiAgICAgICAgICAgIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHB4LTQgcHktMS41IGJnLXdoaXRlLzUgaG92ZXI6Ymctd2hpdGUvMTAgdGV4dC14cyBmb250LWJvbGQgdGV4dC1ncmF5LTMwMCByb3VuZGVkLWxnIHRyYW5zaXRpb24tYWxsIGJvcmRlciBib3JkZXItd2hpdGUvMTAgYWN0aXZlOnNjYWxlLTk1XCJcclxuICAgICAgICAgID5cclxuICAgICAgICAgICAgPFJlZnJlc2hDY3cgY2xhc3NOYW1lPVwidy0zIGgtM1wiIC8+XHJcbiAgICAgICAgICAgIFJldHJ5XHJcbiAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgIDxidXR0b24gXHJcbiAgICAgICAgICAgIG9uQ2xpY2s9e3Jlc2V0RXJyb3JCb3VuZGFyeX1cclxuICAgICAgICAgICAgY2xhc3NOYW1lPVwidGV4dC1bMTFweF0gZm9udC1tZWRpdW0gdGV4dC1ncmF5LTYwMCBob3Zlcjp0ZXh0LWdyYXktNDAwIHVuZGVybGluZSB1bmRlcmxpbmUtb2Zmc2V0LTRcIlxyXG4gICAgICAgICAgPlxyXG4gICAgICAgICAgICBEaXNtaXNzXHJcbiAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcbiAgICApO1xyXG4gIH1cclxuXHJcbiAgaWYgKHZhcmlhbnQgPT09ICdtb2RhbCcpIHtcclxuICAgIHJldHVybiAoXHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZml4ZWQgaW5zZXQtMCB6LVsyMDBdIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHAtNiBhbmltYXRlLWluIGZhZGUtaW4gYmFja2Ryb3AtYmx1ci14bCBiZy1ibGFjay82MFwiPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYmctWyMxNDE0MTRdIGJvcmRlciBib3JkZXItd2hpdGUvMTAgcm91bmRlZC0zeGwgcC0xMCBtYXgtdy1tZCB3LWZ1bGwgdGV4dC1jZW50ZXIgc2hhZG93LTN4bCByZWxhdGl2ZSBvdmVyZmxvdy1oaWRkZW4gZ3JvdXBcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgdG9wLTAgbGVmdC0wIHctZnVsbCBoLTEgYmctcmVkLTYwMC81MFwiIC8+XHJcbiAgICAgICAgICA8YnV0dG9uIFxyXG4gICAgICAgICAgICBvbkNsaWNrPXtyZXNldEVycm9yQm91bmRhcnl9IFxyXG4gICAgICAgICAgICBjbGFzc05hbWU9XCJhYnNvbHV0ZSB0b3AtNSByaWdodC01IHRleHQtZ3JheS01MDAgaG92ZXI6dGV4dC13aGl0ZSB0cmFuc2l0aW9uLWNvbG9yc1wiXHJcbiAgICAgICAgICA+XHJcbiAgICAgICAgICAgIDxYIGNsYXNzTmFtZT1cInctNiBoLTZcIiAvPlxyXG4gICAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgICBcclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidy0yMCBoLTIwIGJnLXJlZC05MDAvMjAgcm91bmRlZC1mdWxsIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIG14LWF1dG8gbWItOCBib3JkZXIgYm9yZGVyLXJlZC05MDAvMzBcIj5cclxuICAgICAgICAgICAgPEFsZXJ0VHJpYW5nbGUgY2xhc3NOYW1lPVwidy0xMCBoLTEwIHRleHQtcmVkLTUwMFwiIC8+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIFxyXG4gICAgICAgICAgPGgzIGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYmxhY2sgdGV4dC13aGl0ZSBtYi0zXCI+RmFpbGVkIHRvIGxvYWQgZGV0YWlsczwvaDM+XHJcbiAgICAgICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNDAwIHRleHQtc20gbWItOCBsZWFkaW5nLXJlbGF4ZWRcIj5cclxuICAgICAgICAgICAge2Vycm9yTWVzc2FnZSB8fCBcIlRoZSBtZWRpYSBtZXRhZGF0YSBjb3VsZCBub3QgYmUgZmV0Y2hlZCBzZWN1cmVseS4gVGhpcyBtaWdodCBiZSBhIHRlbXBvcmFyeSBuZXR3b3JrIGlzc3VlLlwifVxyXG4gICAgICAgICAgPC9wPlxyXG4gICAgICAgICAgXHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggZmxleC1jb2wgZ2FwLTNcIj5cclxuICAgICAgICAgICAgPGJ1dHRvbiBcclxuICAgICAgICAgICAgICBvbkNsaWNrPXtoYW5kbGVSZXRyeX1cclxuICAgICAgICAgICAgICBjbGFzc05hbWU9XCJ3LWZ1bGwgYmctd2hpdGUgdGV4dC1ibGFjayBweS0zIHJvdW5kZWQteGwgZm9udC1ib2xkIHRleHQtc20gaG92ZXI6YmctZ3JheS0yMDAgdHJhbnNpdGlvbi1hbGwgYWN0aXZlOnNjYWxlLTk1IGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0yXCJcclxuICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgIDxSZWZyZXNoQ2N3IGNsYXNzTmFtZT1cInctNCBoLTRcIiAvPlxyXG4gICAgICAgICAgICAgIFRyeSBBZ2FpblxyXG4gICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgICAgPGJ1dHRvbiBcclxuICAgICAgICAgICAgICBvbkNsaWNrPXtyZXNldEVycm9yQm91bmRhcnl9XHJcbiAgICAgICAgICAgICAgY2xhc3NOYW1lPVwidy1mdWxsIGJnLXRyYW5zcGFyZW50IHRleHQtZ3JheS01MDAgcHktMiB0ZXh0LXhzIGZvbnQtYm9sZCBob3Zlcjp0ZXh0LXdoaXRlIHRyYW5zaXRpb24tY29sb3JzXCJcclxuICAgICAgICAgICAgPlxyXG4gICAgICAgICAgICAgIENhbmNlbFxyXG4gICAgICAgICAgICA8L2J1dHRvbj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICA8L2Rpdj5cclxuICAgICk7XHJcbiAgfVxyXG5cclxuICByZXR1cm4gKFxyXG4gICAgPGRpdiBjbGFzc05hbWU9XCJtaW4taC1zY3JlZW4gYmctWyMwYTBhMGFdIHRleHQtd2hpdGUgZmxleCBmbGV4LWNvbCBpdGVtcy1jZW50ZXIganVzdGlmeS1jZW50ZXIgcC02IHRleHQtY2VudGVyIGFuaW1hdGUtaW4gZmFkZS1pbiBkdXJhdGlvbi03MDBcIj5cclxuICAgICAgPGRpdiBjbGFzc05hbWU9XCJyZWxhdGl2ZSBtYi0xMCBncm91cFwiPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiYWJzb2x1dGUgLWluc2V0LTQgYmctcmVkLTYwMC8yMCBibHVyLTJ4bCByb3VuZGVkLWZ1bGwgZ3JvdXAtaG92ZXI6YmctcmVkLTYwMC8zMCB0cmFuc2l0aW9uLWFsbCBkdXJhdGlvbi01MDBcIiAvPlxyXG4gICAgICAgIDxkaXYgY2xhc3NOYW1lPVwicmVsYXRpdmUgYmctYmxhY2sgYm9yZGVyIGJvcmRlci13aGl0ZS81IHAtOCByb3VuZGVkLWZ1bGwgc2hhZG93LTJ4bFwiPlxyXG4gICAgICAgICAgPEFsZXJ0VHJpYW5nbGUgY2xhc3NOYW1lPVwidy0yMCBoLTIwIHRleHQtcmVkLTYwMFwiIC8+XHJcbiAgICAgICAgPC9kaXY+XHJcbiAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgPGgxIGNsYXNzTmFtZT1cInRleHQtNHhsIG1kOnRleHQtNXhsIGZvbnQtYmxhY2sgbWItNiB0cmFja2luZy10aWdodCBiZy1jbGlwLXRleHQgdGV4dC10cmFuc3BhcmVudCBiZy1ncmFkaWVudC10by1iIGZyb20td2hpdGUgdG8tZ3JheS01MDBcIj5cclxuICAgICAgICBTeXN0ZW0gSW50ZXJydXB0aW9uXHJcbiAgICAgIDwvaDE+XHJcbiAgICAgIFxyXG4gICAgICA8cCBjbGFzc05hbWU9XCJ0ZXh0LWdyYXktNDAwIG1heC13LWxnIG1iLTEwIHRleHQtbGcgbGVhZGluZy1yZWxheGVkIGZvbnQtbWVkaXVtXCI+XHJcbiAgICAgICAgQW4gdW5leHBlY3RlZCBsb2dpYyBlcnJvciBvY2N1cnJlZC4gV2UndmUgbG9nZ2VkIHRoZSBpbmNpZGVudCBhbmQgYXJlIHJlYWR5IHRvIHJlY292ZXIuXHJcbiAgICAgIDwvcD5cclxuXHJcbiAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBmbGV4LWNvbCBzbTpmbGV4LXJvdyBnYXAtNSBpdGVtcy1jZW50ZXJcIj5cclxuICAgICAgICA8YnV0dG9uXHJcbiAgICAgICAgICBvbkNsaWNrPXsoKSA9PiB3aW5kb3cubG9jYXRpb24ucmVsb2FkKCl9XHJcbiAgICAgICAgICBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWNlbnRlciBnYXAtMyBweC0xMCBweS00IGJnLXdoaXRlIHRleHQtYmxhY2sgcm91bmRlZC0yeGwgZm9udC1ibGFjayBob3ZlcjpiZy1ncmF5LTIwMCB0cmFuc2l0aW9uLWFsbCBzaGFkb3cteGwgYWN0aXZlOnNjYWxlLTk1IHRleHQtc21cIlxyXG4gICAgICAgID5cclxuICAgICAgICAgIDxSZWZyZXNoQ2N3IGNsYXNzTmFtZT1cInctNCBoLTRcIiAvPlxyXG4gICAgICAgICAgSGFyZCBSZWZyZXNoXHJcbiAgICAgICAgPC9idXR0b24+XHJcbiAgICAgICAgPGJ1dHRvblxyXG4gICAgICAgICAgb25DbGljaz17KCkgPT4ge1xyXG4gICAgICAgICAgICBvblJlc2V0KCk7XHJcbiAgICAgICAgICAgIHdpbmRvdy5sb2NhdGlvbi5ocmVmID0gJy8nO1xyXG4gICAgICAgICAgfX1cclxuICAgICAgICAgIGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIGdhcC0zIHB4LTEwIHB5LTQgYmctd2hpdGUvNSB0ZXh0LXdoaXRlIHJvdW5kZWQtMnhsIGZvbnQtYmxhY2sgaG92ZXI6Ymctd2hpdGUvMTAgdHJhbnNpdGlvbi1hbGwgYm9yZGVyIGJvcmRlci13aGl0ZS8xMCBhY3RpdmU6c2NhbGUtOTUgdGV4dC1zbVwiXHJcbiAgICAgICAgPlxyXG4gICAgICAgICAgPEhvbWUgY2xhc3NOYW1lPVwidy00IGgtNFwiIC8+XHJcbiAgICAgICAgICBHbyBIb21lXHJcbiAgICAgICAgPC9idXR0b24+XHJcbiAgICAgIDwvZGl2PlxyXG5cclxuICAgICAge2lzRGV2ICYmIChcclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTE2IHAtOCBiZy1ibGFjay84MCByb3VuZGVkLTJ4bCBib3JkZXIgYm9yZGVyLXdoaXRlLzUgbWF4LXctNHhsIHctZnVsbCB0ZXh0LWxlZnQgb3ZlcmZsb3ctYXV0byBtYXgtaC04MCBzaGFkb3ctMnhsXCI+XHJcbiAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC0yIG1iLTQgdGV4dC1yZWQtNTAwIGJvcmRlci1iIGJvcmRlci13aGl0ZS81IHBiLTJcIj5cclxuICAgICAgICAgICAgPEJ1ZyBjbGFzc05hbWU9XCJ3LTQgaC00XCIgLz5cclxuICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC1bMTBweF0gZm9udC1ibGFjayB1cHBlcmNhc2UgdHJhY2tpbmctd2lkZXN0XCI+RGV2ZWxvcGVyIENvbnRleHQ8L3NwYW4+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDxwIGNsYXNzTmFtZT1cInRleHQtcmVkLTQwMC85MCBmb250LW1vbm8gdGV4dC1bMTFweF0gd2hpdGVzcGFjZS1wcmUtd3JhcCBsZWFkaW5nLXJlbGF4ZWRcIj5cclxuICAgICAgICAgICAge2Vycm9yU3RhY2sgfHwgZXJyb3JNZXNzYWdlfVxyXG4gICAgICAgICAgPC9wPlxyXG4gICAgICAgIDwvZGl2PlxyXG4gICAgICApfVxyXG4gICAgPC9kaXY+XHJcbiAgKTtcclxufTtcclxuXHJcbmV4cG9ydCBjb25zdCB3aXRoQXBwRXJyb3JCb3VuZGFyeSA9IDxQIGV4dGVuZHMgb2JqZWN0PihcclxuICBDb21wb25lbnQ6IFJlYWN0LkNvbXBvbmVudFR5cGU8UD4sXHJcbiAgZXJyb3JCb3VuZGFyeVByb3BzPzogT21pdDxBcHBFcnJvckJvdW5kYXJ5UHJvcHMsICdjaGlsZHJlbic+XHJcbikgPT4ge1xyXG4gIHJldHVybiAocHJvcHM6IFApID0+IChcclxuICAgIDxBcHBFcnJvckJvdW5kYXJ5IHsuLi5lcnJvckJvdW5kYXJ5UHJvcHN9PlxyXG4gICAgICA8Q29tcG9uZW50IHsuLi5wcm9wc30gLz5cclxuICAgIDwvQXBwRXJyb3JCb3VuZGFyeT5cclxuICApO1xyXG59OyJdLCJmaWxlIjoiQzovVXNlcnMvYWJoaS9PbmVEcml2ZS9EZXNrdG9wL0FWUyBCTC9zcmMvY29tcG9uZW50cy9FcnJvckJvdW5kYXJ5LnRzeCJ9

@@ -117,6 +117,7 @@ const Hero: React.FC<HeroProps> = ({
                 alt=""
                 aria-hidden
                 className="absolute inset-0 w-full h-full object-cover"
+                style={{ imageRendering: '-webkit-optimize-contrast' as any }}
               />
             )}
             {/* Current image layer — fades in on load */}
@@ -128,6 +129,7 @@ const Hero: React.FC<HeroProps> = ({
               fetchPriority={heroState.index === 0 ? 'high' : 'auto'}
               decoding="async"
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-700 ${bgLoaded ? 'opacity-100' : 'opacity-0'}`}
+              style={{ imageRendering: '-webkit-optimize-contrast' as any }}
               onLoad={handleBgLoad}
               onError={() => setHeroState(prev => ({ ...prev, imgError: true }))}
             />

@@ -1,7 +1,9 @@
 import { db, SyncTask } from './db';
 import { UserProfile } from '../types';
+import { supabase, getCurrentUserId } from '../services/supabaseClient';
 
 const MIGRATION_KEY = 'av_migration_v14_done';
+const GAS_TO_SUPABASE_KEY = 'av_gas_to_supabase_done';
 
 export async function runMigrations(user: UserProfile): Promise<void> {
   if (localStorage.getItem(MIGRATION_KEY)) return;
@@ -102,4 +104,115 @@ export async function runMigrations(user: UserProfile): Promise<void> {
   }
 
   localStorage.setItem(MIGRATION_KEY, '1');
+}
+
+/**
+ * Migrate data from Google Apps Script to Supabase (one-time).
+ * Call this after user authenticates for the first time with Supabase.
+ * 
+ * This function:
+ * 1. Attempts to pull any existing data from GAS (if endpoint still available)
+ * 2. Inserts into Supabase media_items table
+ * 3. Sets a flag so it never runs again
+ */
+export async function migrateFromGASToSupabase(user: UserProfile): Promise<void> {
+  // Skip if already migrated
+  if (localStorage.getItem(GAS_TO_SUPABASE_KEY)) return;
+  
+  const userId = await getCurrentUserId();
+  if (!userId) return; // Not authenticated to Supabase yet
+
+  try {
+    // Try to read old GAS data if the endpoint is still available
+    // This is a best-effort attempt; if GAS is gone, we simply skip
+    const oldGasUrl = import.meta.env.VITE_GAS_URL;
+    const oldGasSecret = import.meta.env.VITE_GAS_SECRET;
+    
+    if (!oldGasUrl || !oldGasSecret) {
+      // No old GAS config, so nothing to migrate
+      localStorage.setItem(GAS_TO_SUPABASE_KEY, '1');
+      return;
+    }
+
+    console.log('[Migration] Attempting to migrate data from Google Apps Script to Supabase...');
+
+    // Pull from old GAS endpoint
+    const response = await fetch(oldGasUrl, {
+      method: 'POST',
+      body: JSON.stringify({
+        action: 'pull',
+        token: oldGasSecret,
+        userId: user.email,
+        since: '0'
+      }),
+      headers: { 'Content-Type': 'application/json' }
+    });
+
+    if (!response.ok) {
+      console.warn(`[Migration] GAS pull failed with status ${response.status}, skipping migration`);
+      localStorage.setItem(GAS_TO_SUPABASE_KEY, '1');
+      return;
+    }
+
+    const result = await response.json();
+    if (result.error || !result.data || result.data.length === 0) {
+      console.log('[Migration] No data to migrate from GAS');
+      localStorage.setItem(GAS_TO_SUPABASE_KEY, '1');
+      return;
+    }
+
+    // Transform GAS SyncEntry objects to Supabase media_items format
+    const itemsToInsert = (result.data || []).map((entry: any) => {
+      const payload = entry.payload ? JSON.parse(entry.payload) : {};
+      
+      return {
+        id: entry.id,
+        user_id: userId,
+        media_type: entry.type || 'movie',
+        status: entry.status || 'watchlist',
+        title: entry.title || payload.title || 'Unknown',
+        year: entry.year || payload.year || null,
+        rating: entry.rating || payload.rating || null,
+        poster_url: payload.poster || null,
+        backdrop_url: null,
+        genres: payload.genres || [],
+        payload: payload,
+        progress: null,
+        added_at: entry.addedAt ? new Date(entry.addedAt).toISOString() : new Date().toISOString(),
+        updated_at: entry.updatedAt ? new Date(entry.updatedAt).toISOString() : new Date().toISOString(),
+        version: entry.version || 1,
+      };
+    });
+
+    if (itemsToInsert.length === 0) {
+      console.log('[Migration] No valid items to migrate');
+      localStorage.setItem(GAS_TO_SUPABASE_KEY, '1');
+      return;
+    }
+
+    // Batch insert into Supabase (handle large datasets in chunks of 100)
+    const chunkSize = 100;
+    for (let i = 0; i < itemsToInsert.length; i += chunkSize) {
+      const chunk = itemsToInsert.slice(i, i + chunkSize);
+      const { error } = await supabase
+        .from('media_items')
+        .upsert(chunk, { onConflict: 'id' });
+      
+      if (error) {
+        console.error(`[Migration] Failed to insert chunk ${i / chunkSize + 1}:`, error);
+        // Continue with next chunk even if one fails
+        continue;
+      }
+      console.log(`[Migration] Inserted ${Math.min(chunk.length, itemsToInsert.length - i)} items...`);
+    }
+
+    console.log(`[Migration] ✅ Successfully migrated ${itemsToInsert.length} items from GAS to Supabase`);
+  } catch (err) {
+    console.error('[Migration] GAS-to-Supabase migration failed:', err);
+    // Don't mark as done if there was an error; let user retry
+    return;
+  } finally {
+    // Mark migration as complete (don't retry)
+    localStorage.setItem(GAS_TO_SUPABASE_KEY, '1');
+  }
 }

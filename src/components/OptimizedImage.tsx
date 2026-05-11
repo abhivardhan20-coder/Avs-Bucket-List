@@ -51,10 +51,11 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             fetchPriority={priority ? 'high' : 'auto'}
             // ✅ Async decoding to avoid blocking main thread
             decoding="async"
-            sizes={sizes ?? '(max-width: 768px) 160px, 200px'}
+            sizes={sizes ?? (priority ? '100vw' : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 250px')}
             onLoad={() => setLoaded(true)}
             onError={() => setError(true)}
             className={`w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+            style={{ imageRendering: '-webkit-optimize-contrast' as any }}
           />
         </>
       )}

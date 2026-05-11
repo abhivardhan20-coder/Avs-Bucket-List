@@ -200,6 +200,9 @@ const ContentCard: React.FC<ContentCardProps> = ({
 export default React.memo(ContentCard, (prev, next) => {
   return (
     prev.item.id === next.item.id &&
+    prev.item.trailerId === next.item.trailerId && // Allow trailer updates
+    prev.item.rating === next.item.rating &&       // Allow rating updates
+    prev.item.totalEpisodes === next.item.totalEpisodes && // Allow hydration updates
     prev.isWatched === next.isWatched &&
     prev.isInWatchlist === next.isInWatchlist &&
     prev.progress === next.progress

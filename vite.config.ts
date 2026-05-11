@@ -9,18 +9,11 @@ export default defineConfig(() => {
       port: 3000,
       strictPort: true,
       host: '0.0.0.0',
-      proxy: {
-        '/api': {
-          target: 'http://127.0.0.1:8000',
-          changeOrigin: true,
-          secure: false,
-        },
-        '/health': {
-          target: 'http://127.0.0.1:8000',
-          changeOrigin: true,
-          secure: false,
-        },
+      watch: {
+        ignored: ['**/.pwa-profile/**', '**/.git/**', '**/venv/**'],
       },
+      // Note: FastAPI proxy removed in favor of Supabase
+      // If you still need a backend for TMDB key hiding, configure it separately
     },
     plugins: [
       react(),
@@ -33,7 +26,7 @@ export default defineConfig(() => {
         manifest: {
           name: 'AV’s Bucket List',
           short_name: 'BucketList',
-          description: 'Track your movies and series with enterprise-grade synchronization',
+          description: 'Track your movies and series with Supabase sync',
           theme_color: '#141414',
           background_color: '#141414',
           display: 'standalone',
@@ -77,6 +70,20 @@ export default defineConfig(() => {
                   maxAgeSeconds: 60 * 60 * 24 * 365 // 1 Year
                 }
               }
+            },
+            {
+              urlPattern: /^https:\/\/(cdn\.myanimelist\.net|s4\.anilist\.co|m\.media-amazon\.com)\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'anime-omdb-images',
+                expiration: {
+                  maxEntries: 200,
+                  maxAgeSeconds: 60 * 60 * 24 * 30 // 30 Days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200]
+                }
+              }
             }
           ]
         }
@@ -87,15 +94,14 @@ export default defineConfig(() => {
         output: {
           manualChunks: {
             'vendor-react': ['react', 'react-dom'],
-            'vendor-charts': ['recharts'],
             'vendor-icons': ['lucide-react'],
             'vendor-db': ['dexie', 'dexie-react-hooks'],
-            'vendor-ui': ['react-window', '@react-oauth/google', '@tanstack/react-query', 'react-error-boundary'],
-            'vendor-utils': ['clsx', 'tailwind-merge', 'jwt-decode']
+            'vendor-query': ['@tanstack/react-query'],
+            'vendor-ui': ['react-window', '@react-oauth/google', 'react-error-boundary'],
+            'vendor-utils': ['clsx', 'tailwind-merge', 'jwt-decode', '@supabase/supabase-js']
           }
         }
-      },
-      chunkSizeWarningLimit: 1000
+      }
     },
     resolve: {
       alias: {

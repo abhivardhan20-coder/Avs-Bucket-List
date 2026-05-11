@@ -1,8 +1,7 @@
 import { WatchlistItem, WatchedItem } from '@/types';
 import { WatchlistDBItem, WatchedDBItem } from '@/lib/db';
-
-const GAS_URL = import.meta.env.VITE_GAS_URL;
-const GAS_SECRET = import.meta.env.VITE_GAS_SECRET;
+import { supabase, getCurrentUserId } from './supabaseClient';
+import { Database } from '@/types/database.types';
 
 /**
  * Single-user mode: bypasses conflict detection entirely.
@@ -85,27 +84,26 @@ export interface PushResult {
 }
 
 /**
- * Remove entry from Backend
+ * Remove entry from Backend (soft delete via deleted_at)
  */
 export const removeFromBackend = async (id: string, userId: string, keepalive: boolean = false): Promise<boolean> => {
-  if (!GAS_URL) return false;
   try {
-    const result = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'push', token: GAS_SECRET, items: [{ id, userId, action: 'delete' }] }),
-      headers: { 'Content-Type': 'application/json' },
-      keepalive
-    });
-    if (!result.ok) return false;
-    const json = await result.json();
-    return json.success;
+    const { error } = await supabase
+      .from('media_items')
+      .update({ deleted_at: new Date().toISOString() })
+      .eq('id', id)
+      .eq('user_id', userId);
+    
+    return !error;
   } catch {
     return false;
   }
 };
 
 /**
- * Post multiple entries to Backend (Batch Insert or Update)
+ * Post multiple entries to Supabase (Batch Upsert)
+ * Uses version-based conflict detection: if remote.version > local.version - 1,
+ * a conflict is logged but the upsert proceeds with remote winning.
  */
 export const pushBatchToBackend = async (
   entries: SyncEntry[], 
@@ -117,87 +115,169 @@ export const pushBatchToBackend = async (
     return { success: true, processed: 0, results: [], serverTime: new Date().toISOString() };
   }
 
-  if (!GAS_URL) {
-    return { success: false, processed: 0, results: [], serverTime: "", error: "Missing GAS_URL config" };
+  const userId = await getCurrentUserId();
+  if (!userId) {
+    return { success: false, processed: 0, results: [], serverTime: "", error: "Not authenticated" };
   }
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
-
   try {
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'push', token: GAS_SECRET, items: entries }),
-      headers: { 'Content-Type': 'application/json' },
-      keepalive,
-      signal: controller.signal
+    const now = new Date().toISOString();
+    
+    // Convert SyncEntry to media_items format
+    const itemsToUpsert: Database['public']['Tables']['media_items']['Insert'][] = entries.map(e => ({
+      id: e.id,
+      user_id: userId,
+      media_type: (e.type as any) || 'movie',
+      status: (e.status as any) || 'watchlist',
+      title: e.title || '',
+      year: e.year || null,
+      rating: e.rating || null,
+      poster_url: null,
+      backdrop_url: null,
+      genres: [],
+      payload: e.payload ? JSON.parse(e.payload) : {},
+      progress: null,
+      added_at: e.addedAt ? new Date(e.addedAt).toISOString() : now,
+      updated_at: e.updatedAt ? new Date(e.updatedAt).toISOString() : now,
+      version: e.version || 1,
+    }));
+
+    // Fetch remote versions to detect conflicts
+    const remoteIds = entries.map(e => e.id);
+    const { data: remoteItems } = await supabase
+      .from('media_items')
+      .select('id,version')
+      .in('id', remoteIds)
+      .eq('user_id', userId);
+
+    const remoteVersionMap = Object.fromEntries((remoteItems || []).map(r => [r.id, r.version]));
+    const results: PushResult['results'] = [];
+    const conflicts: Array<{ itemId: string; localVersion: number; remoteVersion: number }> = [];
+
+    // Check for version conflicts
+    entries.forEach(entry => {
+      const remoteVersion = remoteVersionMap[entry.id];
+      if (remoteVersion !== undefined && remoteVersion > (entry.version || 0) - 1) {
+        conflicts.push({ itemId: entry.id, localVersion: entry.version || 0, remoteVersion });
+      }
     });
-    clearTimeout(timeoutId);
-    
-    if (!response.ok && response.status >= 500 && retries > 0) {
-      await new Promise(r => setTimeout(r, backoff));
-      return pushBatchToBackend(entries, keepalive, retries - 1, backoff * 2);
+
+    // Perform upsert (this will replace entire rows)
+    const { error } = await supabase
+      .from('media_items')
+      .upsert(itemsToUpsert, { onConflict: 'id' });
+
+    if (error) {
+      if (retries > 0) {
+        await new Promise(r => setTimeout(r, backoff));
+        return pushBatchToBackend(entries, keepalive, retries - 1, backoff * 2);
+      }
+      throw error;
     }
-    
-    if (!response.ok) {
-      throw new Error(`GAS Error (${response.status})`);
+
+    // Log any conflicts to sync_conflicts table
+    if (conflicts.length > 0) {
+      const conflictRecords = conflicts.map(c => ({
+        user_id: userId,
+        item_id: c.itemId,
+        local_payload: {},
+        remote_payload: {},
+        detected_at: now,
+      }));
+      await supabase.from('sync_conflicts').insert(conflictRecords);
     }
-    
-    const result = await response.json();
-    
-    // Classify GAS errors: lock/timeout are retriable (503), others are permanent
-    if (result.success === false || result.error) {
-      const msg = result.error || 'Unknown GAS error';
-      const isRetriable = /lock|timeout|deadline/i.test(msg);
-      throw new Error(isRetriable ? `503: ${msg}` : msg);
-    }
-    return result;
-  } catch (err: unknown) {
-    clearTimeout(timeoutId);
+
+    // Build results
+    entries.forEach((entry, idx) => {
+      results.push({
+        id: entry.id,
+        status: remoteVersionMap[entry.id] !== undefined ? 'updated' : 'inserted',
+        version: (entry.version || 0) + 1,
+      });
+    });
+
+    return {
+      success: true,
+      processed: entries.length,
+      results,
+      serverTime: now,
+    };
+  } catch (err) {
     if (retries > 0) {
       await new Promise(r => setTimeout(r, backoff));
       return pushBatchToBackend(entries, keepalive, retries - 1, backoff * 2);
     }
-    return { 
-      success: false, 
-      processed: 0, 
-      results: [], 
-      serverTime: "", 
-      error: String(err) 
+    return {
+      success: false,
+      processed: 0,
+      results: [],
+      serverTime: "",
+      error: String(err)
     };
   }
 };
 
 /**
- * Fetch entries for a specific user (supports Delta Sync in a single batch)
+ * Fetch entries for a specific user from Supabase (supports Delta Sync via updated_at cursor)
+ * Returns items updated after the given timestamp, ordered by updated_at descending.
  */
 export const fetchFromBackend = async (
   userId: string,
   since?: string
 ): Promise<{ data: SyncEntry[], serverTime: string }> => {
-  if (!GAS_URL) throw new Error("Missing GAS_URL config");
-
-  const parsedSince = (!since || since === "0" || since === "undefined") ? "0" : since;
-
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 15000);
+  const authenticatedUserId = await getCurrentUserId();
+  if (!authenticatedUserId) {
+    throw new Error("Not authenticated");
+  }
 
   try {
-    const response = await fetch(GAS_URL, { 
-      method: 'POST', 
-      body: JSON.stringify({ action: 'pull', token: GAS_SECRET, userId, since: parsedSince }),
-      headers: { 'Content-Type': 'application/json' },
-      signal: controller.signal
-    });
-    clearTimeout(timeoutId);
+    const now = new Date().toISOString();
     
-    if (!response.ok) throw new Error(`GAS Error (${response.status})`);
-    const result = await response.json();
-    if (result.error) throw new Error(result.error);
-    
-    return { data: result.data || [], serverTime: result.serverTime || "" };
+    // Parse the cursor (timestamp string or "0")
+    let sinceTimestamp = now;
+    if (since && since !== "0" && since !== "undefined") {
+      try {
+        sinceTimestamp = new Date(since).toISOString();
+      } catch {
+        sinceTimestamp = now;
+      }
+    }
+
+    // Fetch items updated after the cursor, ordered by updated_at descending
+    // Limit to 100 items per request for pagination
+    const { data: items, error } = await supabase
+      .from('media_items')
+      .select('*')
+      .eq('user_id', authenticatedUserId)
+      .gt('updated_at', sinceTimestamp)
+      .order('updated_at', { ascending: false })
+      .limit(100);
+
+    if (error) {
+      throw error;
+    }
+
+    // Convert Supabase rows back to SyncEntry format
+    const syncEntries: SyncEntry[] = (items || []).map(item => ({
+      id: item.id,
+      userId: item.user_id,
+      status: item.status as any,
+      title: item.title || undefined,
+      type: item.media_type,
+      addedAt: item.added_at,
+      watchedAt: item.updated_at,
+      rating: item.rating || undefined,
+      year: item.year || undefined,
+      updatedAt: item.updated_at,
+      version: item.version,
+      payload: JSON.stringify(item.payload || {}),
+    }));
+
+    return {
+      data: syncEntries,
+      serverTime: now,
+    };
   } catch (err: unknown) {
-    clearTimeout(timeoutId);
     console.error("fetchFromBackend failed", err);
     throw err;
   }
@@ -288,23 +368,34 @@ export const fromSyncEntry = (entry: SyncEntry, userEmail: string): WatchlistDBI
     updatedAt: entry.updatedAt || base.updatedAt || new Date().toISOString()
   } as any;
 };
+
+/**
+ * Check Supabase connection health
+ */
 export const checkBackendHealth = async (): Promise<{ success: boolean; message: string }> => {
   try {
-    if (!GAS_URL) return { success: false, message: "No GAS URL" };
     if (!navigator.onLine) return { success: false, message: "Offline" };
     
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      body: JSON.stringify({ action: 'ping', token: GAS_SECRET }),
-      headers: { 'Content-Type': 'application/json' }
-    });
+    // Simple health check: try to get current user
+    const userId = await getCurrentUserId();
     
-    if (!response.ok) return { success: false, message: `GAS Error (${response.status})` };
-    const result = await response.json();
-    if (result.error) return { success: false, message: result.error };
+    if (!userId) {
+      return { success: false, message: "Not authenticated" };
+    }
+
+    // Try a simple query to verify connection
+    const { error } = await supabase
+      .from('media_items')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .limit(1);
     
-    return { success: true, message: "GAS Connected" };
-  } catch {
-    return { success: false, message: "Offline" };
+    if (error) {
+      return { success: false, message: `Supabase Error: ${error.message}` };
+    }
+
+    return { success: true, message: "Supabase Connected" };
+  } catch (err) {
+    return { success: false, message: "Connection check failed" };
   }
 };

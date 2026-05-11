@@ -2,6 +2,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserProfile } from '../../types';
 import { jwtDecode } from 'jwt-decode';
+import { supabase } from '../../services/supabaseClient';
+import type { AuthSession } from '@supabase/supabase-js';
 
 /**
  * isTokenExpired - Checks if a JWT is expired with a 1-minute grace period.
@@ -17,65 +19,103 @@ export const isTokenExpired = (token: string): boolean => {
 };
 
 /**
- * useAuthSlice - Handles authentication state, login, and logout.
+ * useAuthSlice - Handles authentication state via Supabase Auth with Google OAuth.
+ * Stores Supabase session and syncs with user profile.
  */
 export const useAuthSlice = () => {
-  const sessionTokenRef = useRef<string | null>(null);
+  const sessionRef = useRef<AuthSession | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
 
-  const [user, setUser] = useState<UserProfile | null>(() => {
-    const sessionToken = sessionStorage.getItem("av_session_token");
-    if (!sessionToken) return null;
-
-    const stored = localStorage.getItem("av_user_profile") || localStorage.getItem("av_user");
-    if (stored && localStorage.getItem("av_user")) {
-      localStorage.setItem("av_user_profile", stored);
-      localStorage.removeItem("av_user");
-    }
-    return stored ? JSON.parse(stored) : null;
-  });
-
-  // Persist user state to localStorage without token
+  // Initialize from stored session on mount
   useEffect(() => {
-    if (user) {
-      // Create a clean profile without sensitive session fields if any
-      const profile: UserProfile = {
-        id: user.id,
-        email: user.email,
-        name: user.name,
-        picture: user.picture
-      };
-      localStorage.setItem("av_user_profile", JSON.stringify(profile));
-    } else {
-      localStorage.removeItem("av_user_profile");
-      localStorage.removeItem("av_user");
-    }
-  }, [user]);
+    const initAuth = async () => {
+      try {
+        // Get existing session from Supabase
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) {
+          console.error('[Auth] Failed to get session:', error);
+          return;
+        }
+
+        if (session?.user) {
+          sessionRef.current = session;
+          const profile: UserProfile = {
+            id: session.user.id, // Supabase UUID
+            email: session.user.email || '',
+            name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+            picture: session.user.user_metadata?.picture || undefined,
+          };
+          setUser(profile);
+          localStorage.setItem('av_user_profile', JSON.stringify(profile));
+        } else {
+          // Try to restore from localStorage fallback
+          const stored = localStorage.getItem("av_user_profile");
+          if (stored) {
+            setUser(JSON.parse(stored));
+          }
+        }
+      } catch (err) {
+        console.error('[Auth] Initialization error:', err);
+      }
+    };
+
+    initAuth();
+
+    // Subscribe to auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
+      sessionRef.current = session;
+      
+      if (session?.user) {
+        const profile: UserProfile = {
+          id: session.user.id,
+          email: session.user.email || '',
+          name: session.user.user_metadata?.full_name || session.user.email?.split('@')[0] || 'User',
+          picture: session.user.user_metadata?.picture || undefined,
+        };
+        setUser(profile);
+        localStorage.setItem('av_user_profile', JSON.stringify(profile));
+      } else {
+        setUser(null);
+        localStorage.removeItem('av_user_profile');
+      }
+    });
+
+    return () => {
+      subscription?.unsubscribe();
+    };
+  }, []);
 
   /**
-   * login - Authenticates a user. Enforces valid Google sub ID.
+   * login - Authenticates via Supabase Google OAuth.
+   * For backward compatibility, also accepts manual user data (for demo login).
    */
-  const SYNTHETIC_ID_PATTERN = /^user_(\d+|1)$/;
   const DEMO_USER_ID = 'demo_preview_account_001';
 
   const login = useCallback((data: Partial<UserProfile & { token?: string }>) => {
-    const isDemoLogin = data.id === DEMO_USER_ID;
-
-    // 1. Enforce that a real Google sub is always present and non-synthetic (bypass for demo)
-    if (!isDemoLogin && (!data.id || typeof data.id !== 'string' || SYNTHETIC_ID_PATTERN.test(data.id))) {
-      console.error('[Auth] login() rejected — missing or synthetic Google sub:', data.id);
-      return; // Do not authenticate with a fake ID
+    // Special case: demo login
+    if (data.id === DEMO_USER_ID) {
+      const email = (data.email || '').trim().toLowerCase();
+      const profile: UserProfile = {
+        id: data.id,
+        email: email || 'demo@avbucketlist.app',
+        name: data.name || 'Demo User',
+        picture: data.picture,
+      };
+      setUser(profile);
+      localStorage.setItem('av_user_profile', JSON.stringify(profile));
+      return;
     }
 
-    // 2. Enforce email presence for identity stability
+    // Standard login: validate email
     const email = (data.email || '').trim().toLowerCase();
     if (!email) {
       console.error('[Auth] login() rejected — email is missing.');
       return;
     }
 
-    const { token } = data;
     const profile: UserProfile = {
-      id: data.id,         // Google sub — verified non-synthetic
+      id: data.id || `user_${Date.now()}`,
       email,
       name: data.name || email.split('@')[0],
       picture: data.picture,
@@ -83,19 +123,49 @@ export const useAuthSlice = () => {
 
     setUser(profile);
     localStorage.setItem('av_user_profile', JSON.stringify(profile));
-    sessionTokenRef.current = token || null;
-    if (token) sessionStorage.setItem('av_session_token', token);
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    sessionStorage.removeItem('av_session_token');
+  /**
+   * logout - Signs out from Supabase and clears local state.
+   */
+  const logout = useCallback(async () => {
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      console.error('[Auth] Logout error:', err);
+    } finally {
+      setUser(null);
+      sessionRef.current = null;
+      localStorage.removeItem('av_user_profile');
+    }
+  }, []);
+
+  /**
+   * signInWithGoogle - Initiates Supabase Google OAuth flow.
+   */
+  const signInWithGoogle = useCallback(async () => {
+    try {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: window.location.origin,
+        },
+      });
+      if (error) {
+        throw error;
+      }
+    } catch (err) {
+      console.error('[Auth] Google sign-in error:', err);
+      throw err;
+    }
   }, []);
 
   return {
     user,
     setUser,
     login,
-    logout
+    logout,
+    signInWithGoogle,
+    session: sessionRef.current,
   };
 };

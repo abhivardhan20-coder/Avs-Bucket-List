@@ -44,71 +44,6 @@ interface WatchedProps {
     isDbLoaded: boolean;
 }
 
-/** Horizontal scroll section for a category */
-const CategoryRow: React.FC<{
-    title: string;
-    items: MediaItem[];
-    color: string;
-    glowColor: string;
-    isExpanded: boolean;
-    onToggle: () => void;
-    setSelectedContent: (item: MediaItem) => void;
-    isInWatchlist: (id: string) => boolean;
-    toggleWatchlist: (e: React.MouseEvent, id: string) => void;
-    toggleWatched: (e: React.MouseEvent, id: string) => void;
-}> = ({ title, items, color, glowColor, isExpanded, onToggle, setSelectedContent, isInWatchlist, toggleWatchlist, toggleWatched }) => {
-    const containerRef = React.useRef<HTMLDivElement>(null);
-    const [containerWidth, setContainerWidth] = React.useState(0);
-
-    React.useEffect(() => {
-        if (!isExpanded || !containerRef.current) return;
-        const observer = new ResizeObserver(entries => {
-            if (entries[0]) setContainerWidth(entries[0].contentRect.width);
-        });
-        observer.observe(containerRef.current);
-        return () => observer.disconnect();
-    }, [isExpanded]);
-
-    if (items.length === 0) return null;
-
-    return (
-        <div className="space-y-4">
-            <div className="flex items-center gap-6 px-4">
-                <div className={`h-10 w-2 ${color} rounded-full`} style={{ boxShadow: `0 0 20px ${glowColor}` }} />
-                <h3 className="text-2xl font-black text-white uppercase italic tracking-tighter">{title}</h3>
-                <span className="text-gray-600 font-bold">({items.length})</span>
-                <button onClick={onToggle} className="ml-auto px-4 py-2 bg-white/5 hover:bg-white/10 rounded-full text-xs font-black uppercase transition-all">
-                    {isExpanded ? 'COLLAPSE' : 'EXPAND'}
-                </button>
-            </div>
-            {isExpanded && (
-                <div ref={containerRef} className="min-h-[300px] md:min-h-[380px] w-full overflow-hidden">
-                    <List
-                        height={380}
-                        itemCount={items.length}
-                        itemSize={window.innerWidth < 768 ? 176 : 216} // card width + gap
-                        layout="horizontal"
-                        width={containerWidth || (window.innerWidth - 32)}
-                        className="no-scrollbar"
-                    >
-                        {({ index, style }) => (
-                            <div style={{ ...style, paddingRight: '16px' }} className="snap-start">
-                                <ContentCard
-                                    item={items[index]}
-                                    onClick={() => setSelectedContent(items[index])}
-                                    isWatched={true}
-                                    isInWatchlist={isInWatchlist(items[index].id)}
-                                    onToggleWatchlist={(e) => toggleWatchlist(e, items[index].id)}
-                                    onToggleWatched={(e) => toggleWatched(e, items[index].id)}
-                                />
-                            </div>
-                        )}
-                    </List>
-                </div>
-            )}
-        </div>
-    );
-};
 
 export const Watched: React.FC<WatchedProps> = React.memo(({
     watchedGroups,
@@ -255,24 +190,87 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
                     </p>
                 </div>
             ) : (
-                <div className="animate-in slide-in-from-bottom-5 duration-500 pb-32">
-                    <VirtualList
-                        items={watchedItems}
-                        itemHeight={320}
-                        containerHeight={Math.max(400, window.innerHeight - 140)}
-                        renderItem={(item) => (
-                            <div key={item.id} className="px-4">
-                                <ContentCard
-                                    item={item}
-                                    onClick={() => setSelectedContent(item)}
-                                    isWatched={true}
-                                    isInWatchlist={isInWatchlist(item.id)}
-                                    onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
-                                    onToggleWatched={(e) => toggleWatched(e, item.id)}
-                                />
+                <div className="space-y-24 animate-in slide-in-from-bottom-5 duration-500 pb-32">
+                    {/* MOVIES SECTION */}
+                    {watchedGroups.movies.length > 0 && (
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-6 px-4">
+                                <div className="h-10 w-2 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.6)]" />
+                                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">FEATURE FILMS</h3>
+                                <div className="h-[1px] flex-1 bg-gradient-to-r from-red-600/20 to-transparent" />
                             </div>
-                        )}
-                    />
+
+                            <HorizontalScrollContainer>
+                                {watchedGroups.movies.map((item) => (
+                                    <div key={item.id} className="snap-start">
+                                        <ContentCard
+                                            item={item}
+                                            onClick={() => setSelectedContent(item)}
+                                            isWatched={true}
+                                            isInWatchlist={isInWatchlist(item.id)}
+                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
+                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                        />
+                                    </div>
+                                ))}
+                                <div className="w-12 flex-shrink-0"></div>
+                            </HorizontalScrollContainer>
+                        </div>
+                    )}
+
+                    {/* SERIES SECTION */}
+                    {watchedGroups.series.length > 0 && (
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-6 px-4">
+                                <div className="h-10 w-2 bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.6)]" />
+                                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">SERIALIZED DRAMA</h3>
+                                <div className="h-[1px] flex-1 bg-gradient-to-r from-blue-600/20 to-transparent" />
+                            </div>
+
+                            <HorizontalScrollContainer>
+                                {watchedGroups.series.map((item) => (
+                                    <div key={item.id} className="snap-start">
+                                        <ContentCard
+                                            item={item}
+                                            onClick={() => setSelectedContent(item)}
+                                            isWatched={true}
+                                            isInWatchlist={isInWatchlist(item.id)}
+                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
+                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                        />
+                                    </div>
+                                ))}
+                                <div className="w-12 flex-shrink-0"></div>
+                            </HorizontalScrollContainer>
+                        </div>
+                    )}
+
+                    {/* ANIME SECTION */}
+                    {watchedGroups.anime.length > 0 && (
+                        <div className="space-y-8">
+                            <div className="flex items-center gap-6 px-4">
+                                <div className="h-10 w-2 bg-purple-600 rounded-full shadow-[0_0_20px_rgba(147,51,234,0.6)]" />
+                                <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">ANIMATED MASTERPIECES</h3>
+                                <div className="h-[1px] flex-1 bg-gradient-to-r from-purple-600/20 to-transparent" />
+                            </div>
+
+                            <HorizontalScrollContainer>
+                                {watchedGroups.anime.map((item) => (
+                                    <div key={item.id} className="snap-start">
+                                        <ContentCard
+                                            item={item}
+                                            onClick={() => setSelectedContent(item)}
+                                            isWatched={true}
+                                            isInWatchlist={isInWatchlist(item.id)}
+                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
+                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                        />
+                                    </div>
+                                ))}
+                                <div className="w-12 flex-shrink-0"></div>
+                            </HorizontalScrollContainer>
+                        </div>
+                    )}
                 </div>
             )}
         </div>

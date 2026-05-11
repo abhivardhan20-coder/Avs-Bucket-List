@@ -1,8 +1,31 @@
 # AV's Bucket List 🍿
 
-A premium, production-ready personal media tracker. Track movies, TV shows, and anime with a sleek, high-performance interface.
+<div align="center">
+  <img src="public/pwa-icon.png" width="128" height="128" alt="AV Logo" />
+  <h1>🚀 JUMPSTART CONTROL CENTER</h1>
+  <p><i>A premium, production-grade personal media tracker with enterprise-level sync.</i></p>
+  
+  <p>
+    <a href="#-quick-launch"><b>Quick Launch</b></a> •
+    <a href="#-features"><b>Features</b></a> •
+    <a href="#-development"><b>Tech Stack</b></a> •
+    <a href="#-security"><b>Security</b></a>
+  </p>
+</div>
 
-## ✨ Features
+---
+
+## ⚡ QUICK LAUNCH
+
+To start the entire application suite (Frontend, Backend, and PWA Window) with automatic cleanup on exit:
+
+1.  **Double-click `start_app.bat`** in the root directory.
+2.  The application will launch in a dedicated **App Window**.
+3.  **To Stop**: Simply close the App Window. The launcher will automatically kill all background processes (Vite & FastAPI).
+
+---
+
+## ✨ FEATURES
 
 - **Multi-Source Data**: Unified metadata from TMDB, OMDB, AniList, and Jikan.
 - **Smart Tracking**: Granular episode and season tracking for series and anime.

@@ -17,11 +17,11 @@ import { db } from '@/lib/db';
 import { useLiveQuery } from 'dexie-react-hooks';
 
 // Lazy Pages for better initial load performance
-const Home = lazyWithRetry(() => import('@/pages/Home').then(module => ({ default: module.Home })));
-const Upcoming = lazyWithRetry(() => import('@/pages/Upcoming').then(module => ({ default: module.Upcoming })));
-const Watchlist = lazyWithRetry(() => import('@/pages/Watchlist').then(module => ({ default: module.Watchlist })));
-const Watched = lazyWithRetry(() => import('@/pages/Watched').then(module => ({ default: module.Watched })));
-const StatsDashboard = lazyWithRetry(() => import('@/components/stats/StatsDashboard'));
+const Home = lazyWithRetry(() => import(/* webpackChunkName: "home" */ '@/pages/Home').then(module => ({ default: module.Home })));
+const Upcoming = lazyWithRetry(() => import(/* webpackChunkName: "upcoming" */ '@/pages/Upcoming').then(module => ({ default: module.Upcoming })));
+const Watchlist = lazyWithRetry(() => import(/* webpackChunkName: "watchlist" */ '@/pages/Watchlist').then(module => ({ default: module.Watchlist })));
+const Watched = lazyWithRetry(() => import(/* webpackChunkName: "watched" */ '@/pages/Watched').then(module => ({ default: module.Watched })));
+const StatsDashboard = lazyWithRetry(() => import(/* webpackChunkName: "stats" */ '@/components/stats/StatsDashboard'));
 
 function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'upcoming' | 'watchlist' | 'watched' | 'stats'>('home');
@@ -89,10 +89,10 @@ function App() {
   }, [activeTab]);
 
   const excludedIds = useMemo(() => {
-    const ids = new Set<string>();
-    for (let i = 0; i < watchlist.length; i++) ids.add(watchlist[i].id);
-    for (let i = 0; i < watched.length; i++) ids.add(watched[i].id);
-    return ids;
+    return new Set([
+      ...watchlist.map(w => w.id),
+      ...watched.map(w => w.id)
+    ]);
   }, [watchlist, watched]);
 
   // Handlers memoized for child component performance
@@ -118,11 +118,28 @@ function App() {
       setIsProcessing(true);
       try {
         let fullItem = item;
-        if (!item.runtime || !item.rating || (item.type !== MediaType.Movie && !item.seasons)) {
-          const fullItemData = await fetchMediaItem(item.id, item.type === MediaType.Movie ? 'movie' : 'tv', item.type === MediaType.Anime);
+        const needsHydration = 
+          (!item.runtime) || 
+          (!item.rating) || 
+          (item.type !== MediaType.Movie && (!item.seasons || item.seasons.length === 0));
+
+        if (needsHydration) {
+          const fullItemData = await fetchMediaItem(
+            item.id, 
+            item.type === MediaType.Movie ? 'movie' : 'tv', 
+            item.type === MediaType.Anime
+          );
+          
           if (fullItemData) {
-            fullItem = { ...item, ...fullItemData } as MediaItem;
-            await db.mediaCache.put(fullItem);
+            const merged = {
+              ...item,
+              runtime: item.runtime ?? fullItemData.runtime,
+              rating: item.rating ?? fullItemData.rating,
+              seasons: item.seasons ?? fullItemData.seasons
+            } as MediaItem;
+            
+            await db.mediaCache.put(merged);
+            fullItem = merged;
           }
         }
 

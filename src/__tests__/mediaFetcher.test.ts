@@ -3,6 +3,7 @@ import { fetchMediaItem } from '../lib/api/mediaFetcher';
 import { db } from '../lib/db';
 import { fetchDetails } from '../services/tmdb';
 import { fetchOmdbDetails, fetchJikanAnime } from '../services/fallbacks';
+import { clearDedupCache } from '../lib/requestDeduplicator';
 
 vi.mock('../lib/db', () => ({
   db: {
@@ -25,7 +26,8 @@ vi.mock('../services/fallbacks', () => ({
 
 describe('mediaFetcher', () => {
     beforeEach(() => {
-        vi.clearAllMocks();
+        vi.resetAllMocks();
+        clearDedupCache();
     });
 
     it('should return TMDB data if available and cache it', async () => {
@@ -109,7 +111,7 @@ describe('mediaFetcher', () => {
         const res = await fetchMediaItem('series_3572', 'tv');
 
         // Should have fetched fresh data from TMDB despite being cached < 48h
-        expect(fetchDetails).toHaveBeenCalledWith('series_3572');
+        expect(fetchDetails).toHaveBeenCalledWith('series_3572', undefined);
         expect(res?.nextEpisode).toBeDefined();
         expect(res?.nextEpisode?.airDate).toBe('2026-04-29');
         expect(db.mediaCache.put).toHaveBeenCalled();
@@ -139,7 +141,7 @@ describe('mediaFetcher', () => {
         const res = await fetchMediaItem('series_12345', 'tv');
 
         // Should fetch fresh data because show aired recently
-        expect(fetchDetails).toHaveBeenCalledWith('series_12345');
+        expect(fetchDetails).toHaveBeenCalledWith('series_12345', undefined);
         expect(res?.nextEpisode).toBeDefined();
         expect(db.mediaCache.put).toHaveBeenCalled();
     });

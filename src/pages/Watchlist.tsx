@@ -36,60 +36,6 @@ const isReleased = (item: MediaItem) => {
     return !isNaN(release.getTime()) && release <= now;
 };
 
-/** Horizontal scroll row for a sub-category */
-const SubRow: React.FC<{
-    label: string;
-    items: MediaItem[];
-    setSelectedContent: (item: MediaItem) => void;
-    isInWatchlist: boolean;
-    toggleWatchlist: (e: React.MouseEvent, id: string) => void;
-    isWatched: (id: string) => boolean;
-    toggleWatched: (e: React.MouseEvent, id: string) => void;
-}> = ({ label, items, setSelectedContent, isInWatchlist, toggleWatchlist, isWatched, toggleWatched }) => {
-    const containerRef = React.useRef<HTMLDivElement>(null);
-    const [containerWidth, setContainerWidth] = React.useState(0);
-
-    React.useEffect(() => {
-        if (!containerRef.current) return;
-        const observer = new ResizeObserver(entries => {
-            if (entries[0]) setContainerWidth(entries[0].contentRect.width);
-        });
-        observer.observe(containerRef.current);
-        return () => observer.disconnect();
-    }, []);
-
-    if (items.length === 0) return null;
-    return (
-        <div className="space-y-3">
-            <div className="flex items-center gap-4 px-4">
-                <h4 className="text-lg font-black text-white">{label} ({items.length})</h4>
-            </div>
-            <div ref={containerRef} className="min-h-[300px] md:min-h-[380px] w-full overflow-hidden">
-                <List
-                    height={380}
-                    itemCount={items.length}
-                    itemSize={window.innerWidth < 768 ? 176 : 216}
-                    layout="horizontal"
-                    width={containerWidth || (window.innerWidth - 32)}
-                    className="no-scrollbar"
-                >
-                    {({ index, style }) => (
-                        <div style={{ ...style, paddingRight: '16px' }} className="snap-start">
-                            <ContentCard
-                                item={items[index]}
-                                onClick={() => setSelectedContent(items[index])}
-                                isInWatchlist={isInWatchlist}
-                                onToggleWatchlist={(e) => toggleWatchlist(e, items[index].id)}
-                                isWatched={isWatched(items[index].id)}
-                                onToggleWatched={(e) => toggleWatched(e, items[index].id)}
-                            />
-                        </div>
-                    )}
-                </List>
-            </div>
-        </div>
-    );
-};
 
 export const Watchlist: React.FC<WatchlistProps> = React.memo(({
     watchlistGroups,
@@ -164,23 +110,19 @@ export const Watchlist: React.FC<WatchlistProps> = React.memo(({
                     </button>
                 </div>
             ) : (
-                <div className="space-y-20 animate-in slide-in-from-bottom-10 duration-1000 pb-32">
-
+                <div className="space-y-24 animate-in slide-in-from-bottom-5 duration-500 pb-32">
                     {/* RELEASED SECTION */}
                     {sections.released.length > 0 && (
                         <div className="space-y-8">
-                            <div className="flex items-center gap-6 mb-4 px-4">
+                            <div className="flex items-center gap-6 px-4">
                                 <div className="h-10 w-2 bg-red-600 rounded-full shadow-[0_0_20px_rgba(220,38,38,0.6)]" />
                                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">ALREADY RELEASED</h3>
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-red-600/20 to-transparent" />
                             </div>
 
-                            <VirtualList
-                                items={sections.released}
-                                itemHeight={320}
-                                containerHeight={sections.unreleased.length > 0 ? 500 : Math.max(400, window.innerHeight - 300)}
-                                renderItem={(item) => (
-                                    <div key={item.id} className="px-4">
+                            <HorizontalScrollContainer>
+                                {sections.released.map((item) => (
+                                    <div key={item.id} className="snap-start">
                                         <ContentCard
                                             item={item}
                                             onClick={() => setSelectedContent(item)}
@@ -190,26 +132,24 @@ export const Watchlist: React.FC<WatchlistProps> = React.memo(({
                                             onToggleWatched={(e) => toggleWatched(e, item.id)}
                                         />
                                     </div>
-                                )}
-                            />
+                                ))}
+                                <div className="w-12 flex-shrink-0"></div>
+                            </HorizontalScrollContainer>
                         </div>
                     )}
 
                     {/* UNRELEASED SECTION */}
                     {sections.unreleased.length > 0 && (
                         <div className="space-y-8">
-                            <div className="flex items-center gap-6 mb-4 px-4">
+                            <div className="flex items-center gap-6 px-4">
                                 <div className="h-10 w-2 bg-blue-600 rounded-full shadow-[0_0_20px_rgba(37,99,235,0.6)]" />
                                 <h3 className="text-3xl font-black text-white uppercase italic tracking-tighter">ORBITAL INCOMING</h3>
                                 <div className="h-[1px] flex-1 bg-gradient-to-r from-blue-600/20 to-transparent" />
                             </div>
 
-                            <VirtualList
-                                items={sections.unreleased}
-                                itemHeight={320}
-                                containerHeight={sections.released.length > 0 ? 500 : Math.max(400, window.innerHeight - 300)}
-                                renderItem={(item) => (
-                                    <div key={item.id} className="px-4">
+                            <HorizontalScrollContainer>
+                                {sections.unreleased.map((item) => (
+                                    <div key={item.id} className="snap-start">
                                         <ContentCard
                                             item={item}
                                             onClick={() => setSelectedContent(item)}
@@ -219,8 +159,9 @@ export const Watchlist: React.FC<WatchlistProps> = React.memo(({
                                             onToggleWatched={(e) => toggleWatched(e, item.id)}
                                         />
                                     </div>
-                                )}
-                            />
+                                ))}
+                                <div className="w-12 flex-shrink-0"></div>
+                            </HorizontalScrollContainer>
                         </div>
                     )}
                 </div>

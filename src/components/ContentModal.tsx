@@ -74,9 +74,18 @@ const ContentModal: React.FC<ContentModalProps> = ({ item: initialItem, isOpen, 
 
 
   useEffect(() => {
-    if (isOpen) document.body.style.overflow = 'hidden';
-    return () => { document.body.style.overflow = ''; };
-  }, [isOpen]);
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+      const handleEscape = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') onClose();
+      };
+      window.addEventListener('keydown', handleEscape);
+      return () => {
+        document.body.style.overflow = '';
+        window.removeEventListener('keydown', handleEscape);
+      };
+    }
+  }, [isOpen, onClose]);
 
   const loadDetails = async (baseItem: MediaItem) => {
     setLoadingDetails(true);
@@ -313,7 +322,12 @@ const ContentModal: React.FC<ContentModalProps> = ({ item: initialItem, isOpen, 
   if (!isOpen || !item) return null;
 
   return (
-    <div className="fixed inset-0 z-[150] bg-black overflow-y-auto no-scrollbar scroll-smooth animate-in fade-in duration-500">
+    <div 
+      className="fixed inset-0 z-[150] bg-black overflow-y-auto no-scrollbar scroll-smooth animate-in fade-in duration-500"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+    >
       <button 
         onClick={onClose} 
         className="fixed top-6 right-6 md:top-8 md:right-8 z-[200] p-3 bg-black/40 hover:bg-black/60 rounded-full text-white transition-all backdrop-blur-md border border-white/5 shadow-2xl group active:scale-90"

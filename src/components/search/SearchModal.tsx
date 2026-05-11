@@ -22,6 +22,7 @@ import SearchNoResults from './SearchNoResults';
 import HorizontalScrollContainer from '../HorizontalScrollContainer';
 import { useLibraryActions } from '../../contexts/AppContext';
 import { hydrateSeries } from '../../services/tmdb';
+import OptimizedImage from '../OptimizedImage';
 
 interface SearchModalProps {
   isOpen: boolean;
@@ -600,7 +601,11 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onResultClic
                           className="group cursor-pointer relative"
                         >
                           <div className="relative aspect-[2/3] rounded-xl overflow-hidden mb-2 bg-gray-800 shadow-lg border border-white/5 group-hover:border-white/20 transition-all">
-                            <img src={item.posterUrl || undefined} alt={item.title} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" />
+                            <OptimizedImage 
+                              src={item.posterUrl || ''} 
+                              alt={item.title} 
+                              className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-500" 
+                            />
 
                             {/* Rank Badge */}
                             <div className="absolute top-2 left-2 w-6 h-6 flex items-center justify-center bg-black/60 backdrop-blur-sm rounded-full border border-white/10 text-[10px] font-bold text-white">

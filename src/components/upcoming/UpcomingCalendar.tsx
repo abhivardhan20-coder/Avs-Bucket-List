@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useDebounce } from '../../hooks/useDebounce';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlertTriangle, RefreshCw, Film, Tv, Zap, ImageOff } from 'lucide-react';
 import { MediaItem, MediaType, Episode } from '../../types';
 import { useLibrary } from '../../contexts/AppContext';
 import { fetchItemsByIds, fetchSeasonDetails } from '../../services/tmdb';
 import { parseLocalDate } from '../../lib/dateUtils';
+import OptimizedImage from '../OptimizedImage';
 
 interface UpcomingCalendarProps {
   onItemClick: (item: MediaItem) => void;
@@ -65,8 +67,8 @@ const CalendarEntryRow: React.FC<{
             <ImageOff className="w-3 h-3 text-gray-600" />
           </div>
         ) : (
-          <img
-            src={entry.item.posterUrl || undefined}
+          <OptimizedImage
+            src={entry.item.posterUrl || ''}
             alt={entry.item.title}
             className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
             onError={() => setImgError(true)}
@@ -228,9 +230,15 @@ const UpcomingCalendar: React.FC<UpcomingCalendarProps> = ({ onItemClick }) => {
     }
   }, [watchlist, watched]);
 
+  // Fix 5: Debounce loadCalendarData and stabilize the dependency
+  const watchlistIds = useMemo(() => watchlist.map(w => w.id).sort().join(','), [watchlist]);
+  const watchedIds   = useMemo(() => watched.map(w => w.id).sort().join(','), [watched]);
+  const stableKey = `${watchlistIds}|${watchedIds}`;
+  const debouncedKey = useDebounce(stableKey, 800);
+
   useEffect(() => {
     loadCalendarData();
-  }, [loadCalendarData]);
+  }, [debouncedKey]); 
 
   // --- Watchlist / Watched handlers ---
   const handleToggleWatchlist = (e: React.MouseEvent, id: string) => {

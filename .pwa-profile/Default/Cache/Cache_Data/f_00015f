@@ -1,0 +1,297 @@
+import { createHotContext as __vite__createHotContext } from "/@vite/client";import.meta.hot = __vite__createHotContext("/src/components/stats/WatchBreakdownModal.tsx");import __vite__cjsImport0_react_jsxDevRuntime from "/node_modules/.vite/deps/react_jsx-dev-runtime.js?v=36fb4cf8"; const Fragment = __vite__cjsImport0_react_jsxDevRuntime["Fragment"]; const jsxDEV = __vite__cjsImport0_react_jsxDevRuntime["jsxDEV"];
+import { Clock, Film, Tv, Zap, X } from "/node_modules/.vite/deps/lucide-react.js?v=36fb4cf8";
+const WatchBreakdownModal = ({ isOpen, onClose, stats }) => {
+  if (!isOpen) return null;
+  return /* @__PURE__ */ jsxDEV(
+    "div",
+    {
+      className: "fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200",
+      onClick: onClose,
+      children: /* @__PURE__ */ jsxDEV(
+        "div",
+        {
+          className: "bg-[#1a1a1a] p-8 rounded-[32px] border border-white/10 shadow-2xl max-w-sm w-full relative animate-in zoom-in-95 duration-200",
+          onClick: (e) => e.stopPropagation(),
+          children: [
+            /* @__PURE__ */ jsxDEV(
+              "button",
+              {
+                onClick: onClose,
+                className: "absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 transition-colors",
+                children: /* @__PURE__ */ jsxDEV(X, { className: "w-5 h-5 text-gray-400" }, void 0, false, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                  lineNumber: 35,
+                  columnNumber: 11
+                }, this)
+              },
+              void 0,
+              false,
+              {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                lineNumber: 31,
+                columnNumber: 9
+              },
+              this
+            ),
+            /* @__PURE__ */ jsxDEV("h3", { className: "text-2xl font-bold mb-8 flex items-center gap-3 text-white", children: [
+              /* @__PURE__ */ jsxDEV(Clock, { className: "w-6 h-6 text-red-500" }, void 0, false, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                lineNumber: 39,
+                columnNumber: 11
+              }, this),
+              "Watch Breakdown"
+            ] }, void 0, true, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+              lineNumber: 38,
+              columnNumber: 9
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "space-y-4", children: [
+              /* @__PURE__ */ jsxDEV("div", { className: "flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group", children: [
+                /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-4", children: [
+                  /* @__PURE__ */ jsxDEV("div", { className: "p-3 rounded-xl bg-blue-500/20 text-blue-400 group-hover:scale-110 transition-transform", children: /* @__PURE__ */ jsxDEV(Film, { className: "w-5 h-5" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 47,
+                    columnNumber: 17
+                  }, this) }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 46,
+                    columnNumber: 15
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { className: "font-semibold text-gray-200", children: "Movies" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 49,
+                    columnNumber: 15
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                  lineNumber: 45,
+                  columnNumber: 13
+                }, this),
+                /* @__PURE__ */ jsxDEV("div", { className: "text-right", children: [
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-2xl font-bold text-white", children: stats.hoursMovies }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 52,
+                    columnNumber: 15
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-medium text-gray-500 ml-1 mr-2", children: "h" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 53,
+                    columnNumber: 15
+                  }, this),
+                  stats.minutesMovies !== void 0 && /* @__PURE__ */ jsxDEV(Fragment, { children: [
+                    /* @__PURE__ */ jsxDEV("span", { className: "text-2xl font-bold text-white", children: stats.minutesMovies }, void 0, false, {
+                      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                      lineNumber: 56,
+                      columnNumber: 19
+                    }, this),
+                    /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-medium text-gray-500 ml-1", children: "m" }, void 0, false, {
+                      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                      lineNumber: 57,
+                      columnNumber: 19
+                    }, this)
+                  ] }, void 0, true, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 55,
+                    columnNumber: 15
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                  lineNumber: 51,
+                  columnNumber: 13
+                }, this)
+              ] }, void 0, true, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                lineNumber: 44,
+                columnNumber: 11
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group", children: [
+                /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-4", children: [
+                  /* @__PURE__ */ jsxDEV("div", { className: "p-3 rounded-xl bg-purple-500/20 text-purple-400 group-hover:scale-110 transition-transform", children: /* @__PURE__ */ jsxDEV(Tv, { className: "w-5 h-5" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 66,
+                    columnNumber: 17
+                  }, this) }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 65,
+                    columnNumber: 15
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { className: "font-semibold text-gray-200", children: "Series" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 68,
+                    columnNumber: 15
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                  lineNumber: 64,
+                  columnNumber: 13
+                }, this),
+                /* @__PURE__ */ jsxDEV("div", { className: "text-right", children: [
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-2xl font-bold text-white", children: stats.hoursSeries }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 71,
+                    columnNumber: 15
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-medium text-gray-500 ml-1 mr-2", children: "h" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 72,
+                    columnNumber: 15
+                  }, this),
+                  stats.minutesSeries !== void 0 && /* @__PURE__ */ jsxDEV(Fragment, { children: [
+                    /* @__PURE__ */ jsxDEV("span", { className: "text-2xl font-bold text-white", children: stats.minutesSeries }, void 0, false, {
+                      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                      lineNumber: 75,
+                      columnNumber: 19
+                    }, this),
+                    /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-medium text-gray-500 ml-1", children: "m" }, void 0, false, {
+                      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                      lineNumber: 76,
+                      columnNumber: 19
+                    }, this)
+                  ] }, void 0, true, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 74,
+                    columnNumber: 15
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                  lineNumber: 70,
+                  columnNumber: 13
+                }, this)
+              ] }, void 0, true, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                lineNumber: 63,
+                columnNumber: 11
+              }, this),
+              /* @__PURE__ */ jsxDEV("div", { className: "flex items-center justify-between p-4 rounded-2xl bg-white/5 border border-white/5 hover:bg-white/10 transition-all group", children: [
+                /* @__PURE__ */ jsxDEV("div", { className: "flex items-center gap-4", children: [
+                  /* @__PURE__ */ jsxDEV("div", { className: "p-3 rounded-xl bg-pink-500/20 text-pink-400 group-hover:scale-110 transition-transform", children: /* @__PURE__ */ jsxDEV(Zap, { className: "w-5 h-5" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 85,
+                    columnNumber: 17
+                  }, this) }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 84,
+                    columnNumber: 15
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { className: "font-semibold text-gray-200", children: "Anime" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 87,
+                    columnNumber: 15
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                  lineNumber: 83,
+                  columnNumber: 13
+                }, this),
+                /* @__PURE__ */ jsxDEV("div", { className: "text-right", children: [
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-2xl font-bold text-white", children: stats.hoursAnime }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 90,
+                    columnNumber: 15
+                  }, this),
+                  /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-medium text-gray-500 ml-1 mr-2", children: "h" }, void 0, false, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 91,
+                    columnNumber: 15
+                  }, this),
+                  stats.minutesAnime !== void 0 && /* @__PURE__ */ jsxDEV(Fragment, { children: [
+                    /* @__PURE__ */ jsxDEV("span", { className: "text-2xl font-bold text-white", children: stats.minutesAnime }, void 0, false, {
+                      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                      lineNumber: 94,
+                      columnNumber: 19
+                    }, this),
+                    /* @__PURE__ */ jsxDEV("span", { className: "text-sm font-medium text-gray-500 ml-1", children: "m" }, void 0, false, {
+                      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                      lineNumber: 95,
+                      columnNumber: 19
+                    }, this)
+                  ] }, void 0, true, {
+                    fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                    lineNumber: 93,
+                    columnNumber: 15
+                  }, this)
+                ] }, void 0, true, {
+                  fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                  lineNumber: 89,
+                  columnNumber: 13
+                }, this)
+              ] }, void 0, true, {
+                fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+                lineNumber: 82,
+                columnNumber: 11
+              }, this)
+            ] }, void 0, true, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+              lineNumber: 43,
+              columnNumber: 9
+            }, this),
+            /* @__PURE__ */ jsxDEV("div", { className: "mt-8 text-center", children: /* @__PURE__ */ jsxDEV("div", { className: "inline-flex items-center gap-2 px-6 py-2 rounded-full bg-red-600/10 border border-red-600/20 text-sm font-bold text-red-500", children: /* @__PURE__ */ jsxDEV("span", { children: [
+              "Total: ",
+              stats.hours,
+              "h ",
+              stats.minutes || 0,
+              "m invested"
+            ] }, void 0, true, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+              lineNumber: 104,
+              columnNumber: 13
+            }, this) }, void 0, false, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+              lineNumber: 103,
+              columnNumber: 11
+            }, this) }, void 0, false, {
+              fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+              lineNumber: 102,
+              columnNumber: 9
+            }, this)
+          ]
+        },
+        void 0,
+        true,
+        {
+          fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+          lineNumber: 27,
+          columnNumber: 7
+        },
+        this
+      )
+    },
+    void 0,
+    false,
+    {
+      fileName: "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx",
+      lineNumber: 23,
+      columnNumber: 5
+    },
+    this
+  );
+};
+_c = WatchBreakdownModal;
+export default WatchBreakdownModal;
+var _c;
+$RefreshReg$(_c, "WatchBreakdownModal");
+import * as RefreshRuntime from "/@react-refresh";
+const inWebWorker = typeof WorkerGlobalScope !== "undefined" && self instanceof WorkerGlobalScope;
+if (import.meta.hot && !inWebWorker) {
+  if (!window.$RefreshReg$) {
+    throw new Error(
+      "@vitejs/plugin-react can't detect preamble. Something is wrong."
+    );
+  }
+  RefreshRuntime.__hmr_import(import.meta.url).then((currentExports) => {
+    RefreshRuntime.registerExportsForReactRefresh("C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx", currentExports);
+    import.meta.hot.accept((nextExports) => {
+      if (!nextExports) return;
+      const invalidateMessage = RefreshRuntime.validateRefreshBoundaryAndEnqueueUpdate("C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx", currentExports, nextExports);
+      if (invalidateMessage) import.meta.hot.invalidate(invalidateMessage);
+    });
+  });
+}
+function $RefreshReg$(type, id) {
+  return RefreshRuntime.register(type, "C:/Users/abhi/OneDrive/Desktop/AVS BL/src/components/stats/WatchBreakdownModal.tsx " + id);
+}
+function $RefreshSig$() {
+  return RefreshRuntime.createSignatureFunctionForTransform();
+}
+
+//# sourceMappingURL=data:application/json;base64,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QUF5QyxpQkFBekQ7QUFBQTtBQUFBO0FBQUE7QUFBQSwyQkFBMEQ7QUFBQSx1QkFGNUQ7QUFBQTtBQUFBO0FBQUE7QUFBQSx5QkFHQTtBQUFBLHFCQVBKO0FBQUE7QUFBQTtBQUFBO0FBQUEsdUJBU0E7QUFBQSxtQkFoQkY7QUFBQTtBQUFBO0FBQUE7QUFBQSxxQkFpQkE7QUFBQSxpQkF4REY7QUFBQTtBQUFBO0FBQUE7QUFBQSxtQkF5REE7QUFBQSxZQUVBLHVCQUFDLFNBQUksV0FBVSxvQkFDYixpQ0FBQyxTQUFJLFdBQVUsK0hBQ2IsaUNBQUMsVUFBSztBQUFBO0FBQUEsY0FBUVQsTUFBTVU7QUFBQUEsY0FBTTtBQUFBLGNBQUdWLE1BQU1XLFdBQVc7QUFBQSxjQUFFO0FBQUEsaUJBQWhEO0FBQUE7QUFBQTtBQUFBO0FBQUEsbUJBQTBELEtBRDVEO0FBQUE7QUFBQTtBQUFBO0FBQUEsbUJBRUEsS0FIRjtBQUFBO0FBQUE7QUFBQTtBQUFBLG1CQUlBO0FBQUE7QUFBQTtBQUFBLFFBL0VGO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQSxNQWdGQTtBQUFBO0FBQUEsSUFwRkY7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBO0FBQUE7QUFBQTtBQUFBLEVBcUZBO0FBRUo7QUFBRUMsS0EzRklmO0FBNkZOLGVBQWVBO0FBQW9CLElBQUFlO0FBQUEsYUFBQUEsSUFBQSIsIm5hbWVzIjpbIkNsb2NrIiwiRmlsbSIsIlR2IiwiWmFwIiwiWCIsIldhdGNoQnJlYWtkb3duTW9kYWwiLCJpc09wZW4iLCJvbkNsb3NlIiwic3RhdHMiLCJlIiwic3RvcFByb3BhZ2F0aW9uIiwiaG91cnNNb3ZpZXMiLCJtaW51dGVzTW92aWVzIiwidW5kZWZpbmVkIiwiaG91cnNTZXJpZXMiLCJtaW51dGVzU2VyaWVzIiwiaG91cnNBbmltZSIsIm1pbnV0ZXNBbmltZSIsImhvdXJzIiwibWludXRlcyIsIl9jIl0sImlnbm9yZUxpc3QiOltdLCJzb3VyY2VzIjpbIldhdGNoQnJlYWtkb3duTW9kYWwudHN4Il0sInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBSZWFjdCBmcm9tICdyZWFjdCc7XHJcbmltcG9ydCB7IENsb2NrLCBGaWxtLCBUdiwgWmFwLCBYIH0gZnJvbSAnbHVjaWRlLXJlYWN0JztcclxuXHJcbmludGVyZmFjZSBXYXRjaEJyZWFrZG93bk1vZGFsUHJvcHMge1xyXG4gIGlzT3BlbjogYm9vbGVhbjtcclxuICBvbkNsb3NlOiAoKSA9PiB2b2lkO1xyXG4gIHN0YXRzOiB7XHJcbiAgICBob3VyczogbnVtYmVyO1xyXG4gICAgbWludXRlcz86IG51bWJlcjtcclxuICAgIGhvdXJzTW92aWVzOiBudW1iZXI7XHJcbiAgICBtaW51dGVzTW92aWVzPzogbnVtYmVyO1xyXG4gICAgaG91cnNTZXJpZXM6IG51bWJlcjtcclxuICAgIG1pbnV0ZXNTZXJpZXM/OiBudW1iZXI7XHJcbiAgICBob3Vyc0FuaW1lOiBudW1iZXI7XHJcbiAgICBtaW51dGVzQW5pbWU/OiBudW1iZXI7XHJcbiAgfTtcclxufVxyXG5cclxuY29uc3QgV2F0Y2hCcmVha2Rvd25Nb2RhbDogUmVhY3QuRkM8V2F0Y2hCcmVha2Rvd25Nb2RhbFByb3BzPiA9ICh7IGlzT3Blbiwgb25DbG9zZSwgc3RhdHMgfSkgPT4ge1xyXG4gIGlmICghaXNPcGVuKSByZXR1cm4gbnVsbDtcclxuXHJcbiAgcmV0dXJuIChcclxuICAgIDxkaXZcclxuICAgICAgY2xhc3NOYW1lPVwiZml4ZWQgaW5zZXQtMCB6LVsxMDBdIGZsZXggaXRlbXMtY2VudGVyIGp1c3RpZnktY2VudGVyIHAtNCBiZy1ibGFjay84MCBiYWNrZHJvcC1ibHVyLXNtIGFuaW1hdGUtaW4gZmFkZS1pbiBkdXJhdGlvbi0yMDBcIlxyXG4gICAgICBvbkNsaWNrPXtvbkNsb3NlfVxyXG4gICAgPlxyXG4gICAgICA8ZGl2XHJcbiAgICAgICAgY2xhc3NOYW1lPVwiYmctWyMxYTFhMWFdIHAtOCByb3VuZGVkLVszMnB4XSBib3JkZXIgYm9yZGVyLXdoaXRlLzEwIHNoYWRvdy0yeGwgbWF4LXctc20gdy1mdWxsIHJlbGF0aXZlIGFuaW1hdGUtaW4gem9vbS1pbi05NSBkdXJhdGlvbi0yMDBcIlxyXG4gICAgICAgIG9uQ2xpY2s9e2UgPT4gZS5zdG9wUHJvcGFnYXRpb24oKX1cclxuICAgICAgPlxyXG4gICAgICAgIDxidXR0b25cclxuICAgICAgICAgIG9uQ2xpY2s9e29uQ2xvc2V9XHJcbiAgICAgICAgICBjbGFzc05hbWU9XCJhYnNvbHV0ZSB0b3AtNiByaWdodC02IHAtMiByb3VuZGVkLWZ1bGwgaG92ZXI6Ymctd2hpdGUvMTAgdHJhbnNpdGlvbi1jb2xvcnNcIlxyXG4gICAgICAgID5cclxuICAgICAgICAgIDxYIGNsYXNzTmFtZT1cInctNSBoLTUgdGV4dC1ncmF5LTQwMFwiIC8+XHJcbiAgICAgICAgPC9idXR0b24+XHJcblxyXG4gICAgICAgIDxoMyBjbGFzc05hbWU9XCJ0ZXh0LTJ4bCBmb250LWJvbGQgbWItOCBmbGV4IGl0ZW1zLWNlbnRlciBnYXAtMyB0ZXh0LXdoaXRlXCI+XHJcbiAgICAgICAgICA8Q2xvY2sgY2xhc3NOYW1lPVwidy02IGgtNiB0ZXh0LXJlZC01MDBcIiAvPlxyXG4gICAgICAgICAgV2F0Y2ggQnJlYWtkb3duXHJcbiAgICAgICAgPC9oMz5cclxuXHJcbiAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJzcGFjZS15LTRcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHAtNCByb3VuZGVkLTJ4bCBiZy13aGl0ZS81IGJvcmRlciBib3JkZXItd2hpdGUvNSBob3ZlcjpiZy13aGl0ZS8xMCB0cmFuc2l0aW9uLWFsbCBncm91cFwiPlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC00XCI+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwLTMgcm91bmRlZC14bCBiZy1ibHVlLTUwMC8yMCB0ZXh0LWJsdWUtNDAwIGdyb3VwLWhvdmVyOnNjYWxlLTExMCB0cmFuc2l0aW9uLXRyYW5zZm9ybVwiPlxyXG4gICAgICAgICAgICAgICAgPEZpbG0gY2xhc3NOYW1lPVwidy01IGgtNVwiIC8+XHJcbiAgICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwiZm9udC1zZW1pYm9sZCB0ZXh0LWdyYXktMjAwXCI+TW92aWVzPC9zcGFuPlxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJ0ZXh0LXJpZ2h0XCI+XHJcbiAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1ib2xkIHRleHQtd2hpdGVcIj57c3RhdHMuaG91cnNNb3ZpZXN9PC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1ncmF5LTUwMCBtbC0xIG1yLTJcIj5oPC9zcGFuPlxyXG4gICAgICAgICAgICAgIHtzdGF0cy5taW51dGVzTW92aWVzICE9PSB1bmRlZmluZWQgJiYgKFxyXG4gICAgICAgICAgICAgICAgPD5cclxuICAgICAgICAgICAgICAgICAgPHNwYW4gY2xhc3NOYW1lPVwidGV4dC0yeGwgZm9udC1ib2xkIHRleHQtd2hpdGVcIj57c3RhdHMubWludXRlc01vdmllc308L3NwYW4+XHJcbiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1ncmF5LTUwMCBtbC0xXCI+bTwvc3Bhbj5cclxuICAgICAgICAgICAgICAgIDwvPlxyXG4gICAgICAgICAgICAgICl9XHJcbiAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgPC9kaXY+XHJcblxyXG4gICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJmbGV4IGl0ZW1zLWNlbnRlciBqdXN0aWZ5LWJldHdlZW4gcC00IHJvdW5kZWQtMnhsIGJnLXdoaXRlLzUgYm9yZGVyIGJvcmRlci13aGl0ZS81IGhvdmVyOmJnLXdoaXRlLzEwIHRyYW5zaXRpb24tYWxsIGdyb3VwXCI+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIgZ2FwLTRcIj5cclxuICAgICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cInAtMyByb3VuZGVkLXhsIGJnLXB1cnBsZS01MDAvMjAgdGV4dC1wdXJwbGUtNDAwIGdyb3VwLWhvdmVyOnNjYWxlLTExMCB0cmFuc2l0aW9uLXRyYW5zZm9ybVwiPlxyXG4gICAgICAgICAgICAgICAgPFR2IGNsYXNzTmFtZT1cInctNSBoLTVcIiAvPlxyXG4gICAgICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cImZvbnQtc2VtaWJvbGQgdGV4dC1ncmF5LTIwMFwiPlNlcmllczwvc3Bhbj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1yaWdodFwiPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LXdoaXRlXCI+e3N0YXRzLmhvdXJzU2VyaWVzfTwvc3Bhbj5cclxuICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtZ3JheS01MDAgbWwtMSBtci0yXCI+aDwvc3Bhbj5cclxuICAgICAgICAgICAgICB7c3RhdHMubWludXRlc1NlcmllcyAhPT0gdW5kZWZpbmVkICYmIChcclxuICAgICAgICAgICAgICAgIDw+XHJcbiAgICAgICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LXdoaXRlXCI+e3N0YXRzLm1pbnV0ZXNTZXJpZXN9PC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtZ3JheS01MDAgbWwtMVwiPm08L3NwYW4+XHJcbiAgICAgICAgICAgICAgICA8Lz5cclxuICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiZmxleCBpdGVtcy1jZW50ZXIganVzdGlmeS1iZXR3ZWVuIHAtNCByb3VuZGVkLTJ4bCBiZy13aGl0ZS81IGJvcmRlciBib3JkZXItd2hpdGUvNSBob3ZlcjpiZy13aGl0ZS8xMCB0cmFuc2l0aW9uLWFsbCBncm91cFwiPlxyXG4gICAgICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cImZsZXggaXRlbXMtY2VudGVyIGdhcC00XCI+XHJcbiAgICAgICAgICAgICAgPGRpdiBjbGFzc05hbWU9XCJwLTMgcm91bmRlZC14bCBiZy1waW5rLTUwMC8yMCB0ZXh0LXBpbmstNDAwIGdyb3VwLWhvdmVyOnNjYWxlLTExMCB0cmFuc2l0aW9uLXRyYW5zZm9ybVwiPlxyXG4gICAgICAgICAgICAgICAgPFphcCBjbGFzc05hbWU9XCJ3LTUgaC01XCIgLz5cclxuICAgICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJmb250LXNlbWlib2xkIHRleHQtZ3JheS0yMDBcIj5BbmltZTwvc3Bhbj5cclxuICAgICAgICAgICAgPC9kaXY+XHJcbiAgICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwidGV4dC1yaWdodFwiPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtMnhsIGZvbnQtYm9sZCB0ZXh0LXdoaXRlXCI+e3N0YXRzLmhvdXJzQW5pbWV9PC9zcGFuPlxyXG4gICAgICAgICAgICAgIDxzcGFuIGNsYXNzTmFtZT1cInRleHQtc20gZm9udC1tZWRpdW0gdGV4dC1ncmF5LTUwMCBtbC0xIG1yLTJcIj5oPC9zcGFuPlxyXG4gICAgICAgICAgICAgIHtzdGF0cy5taW51dGVzQW5pbWUgIT09IHVuZGVmaW5lZCAmJiAoXHJcbiAgICAgICAgICAgICAgICA8PlxyXG4gICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LTJ4bCBmb250LWJvbGQgdGV4dC13aGl0ZVwiPntzdGF0cy5taW51dGVzQW5pbWV9PC9zcGFuPlxyXG4gICAgICAgICAgICAgICAgICA8c3BhbiBjbGFzc05hbWU9XCJ0ZXh0LXNtIGZvbnQtbWVkaXVtIHRleHQtZ3JheS01MDAgbWwtMVwiPm08L3NwYW4+XHJcbiAgICAgICAgICAgICAgICA8Lz5cclxuICAgICAgICAgICAgICApfVxyXG4gICAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICAgIDwvZGl2PlxyXG4gICAgICAgIDwvZGl2PlxyXG5cclxuICAgICAgICA8ZGl2IGNsYXNzTmFtZT1cIm10LTggdGV4dC1jZW50ZXJcIj5cclxuICAgICAgICAgIDxkaXYgY2xhc3NOYW1lPVwiaW5saW5lLWZsZXggaXRlbXMtY2VudGVyIGdhcC0yIHB4LTYgcHktMiByb3VuZGVkLWZ1bGwgYmctcmVkLTYwMC8xMCBib3JkZXIgYm9yZGVyLXJlZC02MDAvMjAgdGV4dC1zbSBmb250LWJvbGQgdGV4dC1yZWQtNTAwXCI+XHJcbiAgICAgICAgICAgIDxzcGFuPlRvdGFsOiB7c3RhdHMuaG91cnN9aCB7c3RhdHMubWludXRlcyB8fCAwfW0gaW52ZXN0ZWQ8L3NwYW4+XHJcbiAgICAgICAgICA8L2Rpdj5cclxuICAgICAgICA8L2Rpdj5cclxuICAgICAgPC9kaXY+XHJcbiAgICA8L2Rpdj5cclxuICApO1xyXG59O1xyXG5cclxuZXhwb3J0IGRlZmF1bHQgV2F0Y2hCcmVha2Rvd25Nb2RhbDsiXSwiZmlsZSI6IkM6L1VzZXJzL2FiaGkvT25lRHJpdmUvRGVza3RvcC9BVlMgQkwvc3JjL2NvbXBvbmVudHMvc3RhdHMvV2F0Y2hCcmVha2Rvd25Nb2RhbC50c3gifQ==

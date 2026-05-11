@@ -533,3 +533,6 @@ export const useShared = (): SharedContextValue => {
 export const useLibrary = () => {
   return { ...useWatchlist(), ...useWatched(), ...useShared() };
 };
+
+export const useLibraryActions = useLibrary;
+export const useLibraryData = useLibrary;

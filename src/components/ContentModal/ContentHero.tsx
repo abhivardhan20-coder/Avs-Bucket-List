@@ -73,7 +73,7 @@ const ContentHero: React.FC<ContentHeroProps> = ({
       )}
 
       <div className="absolute bottom-0 left-0 p-6 md:p-12 w-full">
-        <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-6 drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]">{item.title}</h1>
+        <h1 id="modal-title" className="text-3xl md:text-5xl lg:text-6xl font-black text-white mb-6 drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)]">{item.title}</h1>
         <div className="flex flex-wrap items-center gap-4">
           <button
             onClick={onPlayTrailer}

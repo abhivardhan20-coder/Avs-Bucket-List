@@ -9,7 +9,7 @@ export interface SettingsContextType {
   updateSettings: (settings: Partial<UserSettings>) => void;
   exportData: () => void;
   importData: (jsonString: string) => Promise<ActionResponse>;
-  clearData: () => ActionResponse;
+  clearData: () => Promise<ActionResponse>;
 }
 
 export const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -105,13 +105,18 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
     }
   }, [user]);
 
-  const clearData = useCallback((): ActionResponse => {
+  const clearData = useCallback(async (): Promise<ActionResponse> => {
     if (!user) return { success: false, message: "Not logged in" };
-    db.transaction('rw', db.watchlist, db.watched, async () => {
-      await db.watchlist.where('userEmail').equals(user.email).delete();
-      await db.watched.where('userEmail').equals(user.email).delete();
-    });
-    return { success: true, message: "Data cleared" };
+    try {
+      await db.transaction('rw', db.watchlist, db.watched, async () => {
+        await db.watchlist.where('userEmail').equals(user.email).delete();
+        await db.watched.where('userEmail').equals(user.email).delete();
+      });
+      return { success: true, message: "Data cleared" };
+    } catch (err) {
+      console.error('[SettingsProvider] clearData failed', err);
+      return { success: false, message: "Clear failed" };
+    }
   }, [user]);
 
   const settingsValue = useMemo(() => ({ settings, updateSettings, exportData, importData, clearData }), [settings, updateSettings, exportData, importData, clearData]);

@@ -1,6 +1,7 @@
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { debounce } from '../lib/debounce';
 
 interface HorizontalScrollContainerProps {
   children: React.ReactNode;
@@ -30,22 +31,27 @@ const HorizontalScrollContainer: React.FC<HorizontalScrollContainerProps> = ({
   useEffect(() => {
     updateArrows();
 
-    // Mutation observer to catch dynamically loaded content
-    const observer = new MutationObserver(updateArrows);
+    // Debounce the observer callback to prevent layout thrashing (50ms is enough)
+    let timeout: NodeJS.Timeout;
+    const debouncedUpdate = () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(updateArrows, 50);
+    };
+
+    const observer = new MutationObserver(debouncedUpdate);
     if (scrollRef.current) {
-      observer.observe(scrollRef.current, { childList: true, subtree: true });
+      // Changed subtree to false to only watch direct children (cards), not inner card changes
+      observer.observe(scrollRef.current, { childList: true, subtree: false }); 
     }
 
-    // Resize observer for container dimension changes (handles window resize too)
     let resizeObserver: ResizeObserver | null = null;
     if (scrollRef.current) {
-      resizeObserver = new ResizeObserver(() => {
-        updateArrows();
-      });
+      resizeObserver = new ResizeObserver(debouncedUpdate);
       resizeObserver.observe(scrollRef.current);
     }
 
     return () => {
+      clearTimeout(timeout);
       observer.disconnect();
       if (resizeObserver) resizeObserver.disconnect();
     };

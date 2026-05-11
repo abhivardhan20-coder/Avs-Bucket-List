@@ -1,5 +1,6 @@
 import { SyncEntry } from '@/services/syncService';
 import { ConflictStrategy } from '@/types';
+import { supabase, getCurrentUserId } from '@/services/supabaseClient';
 
 export interface ConflictLog {
   id: string; // appId
@@ -32,7 +33,35 @@ const flushAuditLog = () => {
 };
 
 /**
+ * Log conflict to Supabase sync_conflicts table for persistent audit trail.
+ * This is async and non-blocking to avoid slowing down sync operations.
+ */
+const logConflictToSupabase = async (
+  itemId: string,
+  localPayload: SyncEntry,
+  remotePayload: SyncEntry
+) => {
+  try {
+    const userId = await getCurrentUserId();
+    if (!userId) return; // Not authenticated yet
+
+    await supabase
+      .from('sync_conflicts')
+      .insert({
+        user_id: userId,
+        item_id: itemId,
+        local_payload: localPayload,
+        remote_payload: remotePayload,
+        detected_at: new Date().toISOString(),
+      });
+  } catch (err) {
+    console.warn('[ConflictResolver] Failed to log conflict to Supabase:', err);
+  }
+};
+
+/**
  * Conflict Detection Logic (Hierarchy: Version -> updatedAt)
+ * Logs conflicts to both localStorage (for debug) and Supabase (for audit trail).
  */
 export const resolveConflict = (
   local: SyncEntry, 
@@ -62,6 +91,11 @@ export const resolveConflict = (
   } else if (!_auditTimer) {
     _auditTimer = setTimeout(flushAuditLog, 2000);
   }
+
+  // Also log to Supabase for persistent audit trail (async, non-blocking)
+  logConflictToSupabase(local.id, local, cloud).catch(err => 
+    console.error('[ConflictResolver] Failed to log to Supabase:', err)
+  );
 
   return resolved;
 };
