@@ -50,9 +50,11 @@ const logConflictToSupabase = async (
       .insert({
         user_id: userId,
         item_id: itemId,
-        local_payload: localPayload,
-        remote_payload: remotePayload,
+        local_payload: localPayload as unknown as Record<string, unknown>,
+        remote_payload: remotePayload as unknown as Record<string, unknown>,
         detected_at: new Date().toISOString(),
+        resolved_at: null,
+        resolution: null,
       });
   } catch (err) {
     console.warn('[ConflictResolver] Failed to log conflict to Supabase:', err);

@@ -140,6 +140,7 @@ export const pushBatchToBackend = async (
       added_at: e.addedAt ? new Date(e.addedAt).toISOString() : now,
       updated_at: e.updatedAt ? new Date(e.updatedAt).toISOString() : now,
       version: e.version || 1,
+      deleted_at: null,
     }));
 
     // Fetch remote versions to detect conflicts
@@ -183,6 +184,8 @@ export const pushBatchToBackend = async (
         local_payload: {},
         remote_payload: {},
         detected_at: now,
+        resolved_at: null,
+        resolution: null,
       }));
       await supabase.from('sync_conflicts').insert(conflictRecords);
     }

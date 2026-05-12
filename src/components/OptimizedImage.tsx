@@ -9,11 +9,12 @@ interface OptimizedImageProps {
   sizes?: string;
   width?: number;
   height?: number;
+  onError?: () => void;
 }
 
 // ✅ PERFORMANCE OPTIMIZED: Responsive image sizes with lazy loading and fetchPriority
 const OptimizedImage: React.FC<OptimizedImageProps> = ({ 
-  src, alt, className = "", priority = false, sizes, width, height
+  src, alt, className = "", priority = false, sizes, width, height, onError: onErrorProp
 }) => {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState(false);
@@ -53,7 +54,10 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             decoding="async"
             sizes={sizes ?? (priority ? '100vw' : '(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 250px')}
             onLoad={() => setLoaded(true)}
-            onError={() => setError(true)}
+            onError={() => {
+              setError(true);
+              onErrorProp?.();
+            }}
             className={`w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
             style={{ imageRendering: '-webkit-optimize-contrast' as any }}
           />
