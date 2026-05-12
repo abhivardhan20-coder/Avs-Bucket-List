@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useLibrary } from '@/contexts/AppContext';
 import { MediaItem, MediaType } from '@/types';
 import { resolveUpcomingContent } from '@/lib/dateUtils';
 import { ContentService } from '@/services/contentService';
@@ -59,7 +58,6 @@ const NewSeasonsRow: React.FC<NewSeasonsRowProps> = ({
             // Filter to only items with upcoming episodes within ±14 day window
             const now = new Date();
             now.setHours(0, 0, 0, 0);
-            const window = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
 
             const newSeasonItems = freshItems.filter(item => {
                 const upcoming = resolveUpcomingContent(item);
