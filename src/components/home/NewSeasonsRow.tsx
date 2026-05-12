@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useLibrary } from '@/contexts/AppContext';
 import { MediaItem, MediaType } from '@/types';
 import { resolveUpcomingContent } from '@/lib/dateUtils';
-import { fetchItemsByIds } from '@/services/tmdb';
+import { ContentService } from '@/services/contentService';
 import UpcomingCard from '@/components/upcoming/UpcomingCard';
 import HorizontalScrollContainer from '@/components/HorizontalScrollContainer';
 import { Loader } from 'lucide-react';
@@ -29,33 +29,32 @@ const NewSeasonsRow: React.FC<NewSeasonsRowProps> = ({
     const [items, setItems] = useState<MediaItem[]>([]);
     const [loading, setLoading] = useState(false);
 
+    // ✅ PERFORMANCE OPTIMIZATION: Memoize the series IDs to prevent redundant re-fetches
+    // when unrelated items (like movies) are updated in the library.
+    const seriesIdsKey = useMemo(() => {
+        const ids = new Set<string>();
+        watched?.forEach(item => {
+            if (item.type === MediaType.Series || item.type === MediaType.Anime) ids.add(item.id);
+        });
+        watchlist?.forEach(item => {
+            if (item.type === MediaType.Series || item.type === MediaType.Anime) ids.add(item.id);
+        });
+        return Array.from(ids).sort().join(',');
+    }, [watched, watchlist]);
+
     // Load schedule: combine watched + watchlist series/anime with upcoming episodes within ±14 days
     const loadSchedule = useCallback(async () => {
-        const uniqueIds = new Set<string>();
-        
-        // Collect series and anime from watched
-        watched?.forEach((item: any) => {
-            if (item.type === MediaType.Series || item.type === MediaType.Anime) {
-                uniqueIds.add(item.id);
-            }
-        });
-        
-        // Collect series and anime from watchlist
-        watchlist?.forEach((item: any) => {
-            if (item.type === MediaType.Series || item.type === MediaType.Anime) {
-                uniqueIds.add(item.id);
-            }
-        });
-
-        if (uniqueIds.size === 0) {
+        if (!seriesIdsKey) {
             setItems([]);
             return;
         }
 
         try {
             setLoading(true);
-            const ids = Array.from(uniqueIds);
-            const freshItems = await fetchItemsByIds(ids);
+            const ids = seriesIdsKey.split(',');
+            // ✅ PERFORMANCE OPTIMIZATION: Use ContentService to leverage local Dexie cache
+            // and drastically reduce unnecessary TMDB API calls.
+            const freshItems = await ContentService.getItemsByIds(ids);
 
             // Filter to only items with upcoming episodes within ±14 day window
             const now = new Date();
@@ -88,7 +87,7 @@ const NewSeasonsRow: React.FC<NewSeasonsRowProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [watched, watchlist]);
+    }, [seriesIdsKey]);
 
     useEffect(() => {
         loadSchedule();
