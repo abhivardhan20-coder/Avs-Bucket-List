@@ -1,1 +1,2 @@
 - [react-window v1 Vite cache gotcha](react-window-vite-cache.md) — after downgrading react-window, must clear node_modules/.vite or old bundle serves wrong exports
+- [React Query unstable array default](react-query-array-default.md) — `= []` in destructuring creates new ref every render when data=undefined; use useMemo to stabilize.

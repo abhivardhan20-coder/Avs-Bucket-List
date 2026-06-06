@@ -24,7 +24,7 @@ export function useWatchedSlice(db: AppDatabase, watchlistMap: Map<string, Watch
   const isDemo = user?.isDemo || user?.id === 'demo_preview_account_001';
 
   // React Query fetch for Watched (Loads exclusively from Dexie)
-  const { data: watched = [], isLoading: wdLoading } = useQuery<WatchedItem[]>({
+  const { data: watchedData, isLoading: wdLoading } = useQuery<WatchedItem[]>({
     queryKey: ['watched', user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -33,6 +33,9 @@ export function useWatchedSlice(db: AppDatabase, watchlistMap: Map<string, Watch
     },
     enabled: !!user,
   });
+  // Stabilize reference: `= []` in destructuring creates a new array every render
+  // when data is undefined (query disabled), causing useEffect dep loops.
+  const watched = useMemo(() => watchedData ?? [], [watchedData]);
 
   const [continueWatching, setContinueWatching] = useState<WatchedItem[]>([]);
 

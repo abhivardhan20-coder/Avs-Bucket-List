@@ -22,7 +22,7 @@ export function useWatchlistSlice(db: AppDatabase) {
   const isDemo = user?.isDemo || user?.id === 'demo_preview_account_001';
 
   // React Query fetch for Watchlist (Loads exclusively from Dexie)
-  const { data: watchlist = [], isLoading: wlLoading } = useQuery<WatchlistItem[]>({
+  const { data: watchlistData, isLoading: wlLoading } = useQuery<WatchlistItem[]>({
     queryKey: ['watchlist', user?.id],
     queryFn: async () => {
       if (!user) return [];
@@ -31,6 +31,9 @@ export function useWatchlistSlice(db: AppDatabase) {
     },
     enabled: !!user,
   });
+  // Stabilize reference: `= []` in destructuring creates a new array every render
+  // when data is undefined (query disabled), causing cascading re-renders.
+  const watchlist = useMemo(() => watchlistData ?? [], [watchlistData]);
 
   const watchlistMap = useMemo(() => new Map(watchlist.map(w => [w.id, w])), [watchlist]);
 
