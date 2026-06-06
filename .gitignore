@@ -39,6 +39,12 @@ __pycache__/
 .vscode/
 .idea/
 
+# PWA profile directory
+.pwa-profile/
+
 # Database
 *.db
 *.sqlite
+
+# Generated audit snapshots
+sync_history/

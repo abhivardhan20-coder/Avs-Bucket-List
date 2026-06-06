@@ -49,6 +49,11 @@ export const calculateTimeStats = (watched: WatchedItem[]) => {
   };
 };
 
+const GENRE_ALIASES: Record<string, string> = {
+  'Sci-Fi': 'Science Fiction',
+  'Science Fiction': 'Science Fiction',
+};
+
 export const getGenreBreakdown = (watched: WatchedItem[]) => {
   const genreCounts = new Map<string, number>();
 
@@ -56,7 +61,7 @@ export const getGenreBreakdown = (watched: WatchedItem[]) => {
     const genres = watched[i].genres;
     if (genres) {
       for (let j = 0; j < genres.length; j++) {
-        const genre = genres[j];
+        const genre = GENRE_ALIASES[genres[j]] || genres[j];
         genreCounts.set(genre, (genreCounts.get(genre) || 0) + 1);
       }
     }
@@ -166,7 +171,7 @@ export const checkAchievements = (watched: WatchedItem[]) => {
   // 3. Time Awards
   const daysTotal = parseFloat(stats.days);
   if (daysTotal >= 30) {
-    achievements.push({ id: 'month_long', title: 'Couch Potato', desc: 'Spent 1 month watching content', icon: ' potatoes' });
+    achievements.push({ id: 'month_long', title: 'Couch Potato', desc: 'Spent 1 month watching content', icon: '🥔' });
   } else if (daysTotal >= 7) {
     achievements.push({ id: 'time_lord', title: 'Time Lord', desc: 'Spent 1 week watching content', icon: '⏳' });
   }

@@ -3,7 +3,7 @@
  * Provides lightweight alternative to html2canvas for exporting statistics
  */
 
-import { WatchedItem, MediaType } from '@/types';
+
 
 export interface StatsExportData {
   title: string;

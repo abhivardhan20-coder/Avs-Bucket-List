@@ -1,3 +1,5 @@
+import { log } from '@/lib/logger';
+
 export enum ApiErrorType {
   NETWORK = 'NETWORK',
   TIMEOUT = 'TIMEOUT',
@@ -79,9 +81,7 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
 
     try {
       if (attempt > 0) {
-        if (import.meta.env.DEV) {
-          console.log(`[API] Retrying (${attempt}/${retries}) for ${sanitizeUrl(url)}...`);
-        }
+        log(`[API] Retrying (${attempt}/${retries}) for ${sanitizeUrl(url)}...`, 'info', 'apiClient');
         // Exponential backoff with jitter
         const baseDelay = retryDelay * Math.pow(2, attempt - 1);
         const jitter = baseDelay * 0.2 * Math.random(); // 20% jitter
@@ -106,8 +106,6 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
           ...(userToken ? { 'X-User-Token': userToken } : {})
         }
       });
-
-      clearTimeout(id);
 
       if (!response.ok) {
         // Retry 5xx server errors and 429 rate-limit responses
@@ -147,12 +145,9 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
         );
       }
 
-      if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
       return await response.json() as T;
 
     } catch (err: unknown) {
-      clearTimeout(id);
-      if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
       
       if (err instanceof Error && err.name === 'AbortError') {
         lastError = new ApiError(ApiErrorType.TIMEOUT, `Request timed out after ${timeout}ms`);
@@ -172,6 +167,9 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
         console.error(`[API] Permanent failure [${lastError.type}] on ${sanitizeUrl(url)}: ${lastError.message}`, lastError);
         throw lastError;
       }
+    } finally {
+      clearTimeout(id);
+      if (externalSignal) externalSignal.removeEventListener('abort', onExternalAbort);
     }
   }
 

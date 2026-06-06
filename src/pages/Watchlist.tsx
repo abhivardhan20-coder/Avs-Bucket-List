@@ -4,7 +4,6 @@ import { FilterBar } from '@/components/FilterBar';
 import HorizontalScrollContainer from '@/components/HorizontalScrollContainer';
 import ContentCard from '@/components/ContentCard';
 import { MediaItem, MediaType } from '@/types';
-import { VirtualList } from '@/lib/virtualization';
 
 interface WatchlistProps {
     watchlistGroups: {

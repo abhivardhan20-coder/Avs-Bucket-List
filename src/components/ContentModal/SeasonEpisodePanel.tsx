@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronDown, ChevronUp, Bookmark, Check, WifiOff, Loader, RefreshCw, Tv, Zap, Clock, Plus } from 'lucide-react';
+import React, { useState, useRef, useCallback } from 'react';
+import { ChevronDown, ChevronUp, Bookmark, Check, WifiOff, Loader, RefreshCw, Zap } from 'lucide-react';
 import { MediaItem, Season, Episode } from '../../types';
 import { useLibraryActions } from '../../contexts/LibraryProvider';
 import { parseLocalDate } from '../../lib/dateUtils';
@@ -45,7 +45,11 @@ const SeasonEpisodePanel: React.FC<SeasonEpisodePanelProps> = ({
 
   const handleSeasonToggleWatched = async (e: React.MouseEvent, season: Season) => {
     e.stopPropagation();
-    const airedEps = season.episodes?.filter(ep => !ep.airDate || new Date(ep.airDate) <= now) || [];
+    const airedEps = season.episodes?.filter(ep => {
+      if (!ep.airDate) return true;
+      const airDate = parseLocalDate(ep.airDate);
+      return airDate ? airDate <= now : true;
+    }) || [];
 
     if (airedEps.length === 0) return;
 
@@ -60,6 +64,18 @@ const SeasonEpisodePanel: React.FC<SeasonEpisodePanelProps> = ({
     }));
   };
 
+  const observer = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useCallback((node: HTMLDivElement | null) => {
+    if (observer.current) observer.current.disconnect();
+    observer.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting) {
+        const seasonId = entries[0].target.getAttribute('data-season-id');
+        if (seasonId) showMoreEpisodes(seasonId);
+      }
+    });
+    if (node) observer.current.observe(node);
+  }, []);
+
   return (
     <div className="pt-2 animate-in fade-in duration-500">
       <div className="flex items-center justify-between mb-8 border-b border-gray-800 pb-4">
@@ -73,7 +89,11 @@ const SeasonEpisodePanel: React.FC<SeasonEpisodePanelProps> = ({
           item.seasons?.map(season => {
             const seasonEpCount = season.episodeCount || season.episodes?.length || 0;
             const seasonWatchedCount = season.episodes?.filter(ep => isEpisodeWatched(item.id, ep.id)).length || 0;
-            const airedEps = season.episodes?.filter(ep => !ep.airDate || new Date(ep.airDate) <= now) || [];
+            const airedEps = season.episodes?.filter(ep => {
+              if (!ep.airDate) return true;
+              const airDate = parseLocalDate(ep.airDate);
+              return airDate ? airDate <= now : true;
+            }) || [];
             const airedCount = airedEps.length;
             const isSeasonFull = airedCount > 0 && airedEps.every(ep => isEpisodeWatched(item.id, ep.id));
             const isSInWatchlist = isSeasonInWatchlist(item.id, season.id);
@@ -150,7 +170,8 @@ const SeasonEpisodePanel: React.FC<SeasonEpisodePanelProps> = ({
                           {visibleEpisodes.map(ep => {
                             const isEpWatched = isEpisodeWatched(item.id, ep.id);
                             const isEpInWL = isEpisodeInWatchlist(item.id, ep.id);
-                            const epAired = !ep.airDate || new Date(ep.airDate) <= now;
+                            const epAirDate = ep.airDate ? parseLocalDate(ep.airDate) : null;
+                            const epAired = !epAirDate || epAirDate <= now;
                             const isNextUp = userNextUp?.episodeId === ep.id;
 
                             return (
@@ -198,7 +219,7 @@ const SeasonEpisodePanel: React.FC<SeasonEpisodePanelProps> = ({
                                     </div>
                                     <div className="flex gap-2">
                                       <button onClick={(e) => { e.stopPropagation(); toggleEpisodeInWatchlist(item, season, ep); }} className={`p-2 rounded-full border-2 transition-all ${isEpInWL ? 'bg-blue-600 border-blue-600 text-white' : 'border-gray-700 text-gray-500 hover:border-white hover:text-white'}`}><Bookmark className={`w-3.5 h-3.5 ${isEpInWL ? 'fill-current' : ''}`} /></button>
-                                      <button onClick={(e) => handleEpisodeToggleWatched(e, ep, season)} disabled={!epAired} className={`p-2 rounded-full border-2 transition-all ${isEpWatched ? 'bg-green-600 border-green-600 text-white' : 'border-gray-700 text-gray-500 hover:border-white hover:text-white disabled:opacity-0'}`}><Check className="w-3.5 h-3.5" /></button>
+                                      <button onClick={(e) => handleEpisodeToggleWatched(e, ep, season)} disabled={!epAired} className={`p-2 rounded-full border-2 transition-all ${isEpWatched ? 'bg-green-600 border-green-600 text-white' : 'border-gray-700 text-gray-500 hover:border-white hover:text-white disabled:opacity-30'}`}><Check className="w-3.5 h-3.5" /></button>
                                     </div>
                                   </div>
                                   <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed font-medium">{ep.overview || 'No description available for this episode.'}</p>
@@ -209,14 +230,11 @@ const SeasonEpisodePanel: React.FC<SeasonEpisodePanelProps> = ({
                         </div>
                         
                         {season.episodes && season.episodes.length > currentLimit && (
-                          <div className="flex justify-center pt-4">
-                            <button
-                              onClick={() => showMoreEpisodes(season.id)}
-                              className="group flex items-center gap-2 px-6 py-3 bg-white/5 hover:bg-white/10 text-white rounded-full transition-all border border-white/5 hover:border-white/20 font-black uppercase tracking-widest text-[10px]"
-                            >
-                              <Plus className="w-4 h-4 group-hover:rotate-90 transition-transform" />
-                              Show More Episodes ({season.episodes.length - currentLimit} remaining)
-                            </button>
+                          <div ref={loadMoreRef} data-season-id={season.id} className="flex justify-center pt-4">
+                            <div className="flex items-center gap-2 text-gray-500 text-xs font-bold animate-pulse">
+                              <Loader className="w-4 h-4 animate-spin" />
+                              Loading more episodes...
+                            </div>
                           </div>
                         )}
                       </>

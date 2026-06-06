@@ -72,7 +72,7 @@ const StatsDashboard: React.FC = () => {
     setTimeout(() => setToast(null), 3000);
   }, []);
 
-  const handleDownload = async () => {
+  const handleDownload = useCallback(async () => {
     if (!downloading) {
       setDownloading(true);
       try {
@@ -101,9 +101,9 @@ const StatsDashboard: React.FC = () => {
         setDownloading(false);
       }
     }
-  };
+  }, [downloading, deferredWatched.length, timeStats, categoryCounts, genreData, personaStats, timelineData, showToast]);
 
-  const handlePersonClick = async (name: string, role: 'actor' | 'director') => {
+  const handlePersonClick = useCallback(async (name: string, role: 'actor' | 'director') => {
     // Start transition for UI responsiveness
     startTransition(() => {
       setSelectedPerson({ name, role });
@@ -128,7 +128,7 @@ const StatsDashboard: React.FC = () => {
       setLoadingCredits(false);
       showToast("Radar failed to lock onto filmography.", "error");
     }
-  };
+  }, [showToast]);
 
   const loadMoreCredits = useCallback(() => {
     if (loadingCredits || visiblePersonCredits.length >= allPersonCredits.length) return;
@@ -174,7 +174,7 @@ const StatsDashboard: React.FC = () => {
             const details = await fetchMediaItem(
               item.id,
               item.type === MediaType.Movie ? 'movie' : 'tv',
-              (item.type as any) === MediaType.Anime
+              item.type === MediaType.Anime
             );
             if (details) fullItem = { ...item, ...details } as MediaItem;
           } catch (e) {
@@ -311,6 +311,7 @@ const StatsDashboard: React.FC = () => {
       {/* Person Filmography Overlay */}
       {selectedPerson && (
         <div className="fixed inset-0 z-[250] flex items-center justify-center p-4 md:p-8 animate-in fade-in duration-500">
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <div className="absolute inset-0 bg-black/95 backdrop-blur-3xl" onClick={() => setSelectedPerson(null)} />
           
           <div className="relative w-full max-w-7xl h-full max-h-[90vh] bg-[#0a0a0a] rounded-[4rem] border border-white/10 shadow-[0_0_120px_-30px_rgba(255,0,0,0.3)] overflow-hidden flex flex-col animate-in slide-in-from-bottom-20 duration-700">

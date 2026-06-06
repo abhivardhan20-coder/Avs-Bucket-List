@@ -7,9 +7,10 @@ import HorizontalScrollContainer from '../HorizontalScrollContainer';
 import {
   fetchUpcomingMovies,
   fetchAiringSeries,
-  fetchItemsByIds,
   fetchUpcomingAnime
 } from '../../services/tmdb';
+import { ContentService } from '../../services/contentService';
+import { resolveUpcomingContent } from '../../lib/dateUtils';
 
 type TabType = 'schedule' | 'movies' | 'series' | 'anime';
 type DateFilter = 'all' | 'week' | 'month';
@@ -35,10 +36,10 @@ const UpcomingDashboard: React.FC<{ onResultClick: (item: MediaItem) => void }> 
   const loadSchedule = useCallback(async () => {
     const uniqueIds = new Set<string>();
     watchlist.forEach(item => {
-      if (item.type === MediaType.Series || item.type === MediaType.Anime) uniqueIds.add(item.id);
+      uniqueIds.add(item.id);
     });
     watched.forEach(item => {
-      if (item.type === MediaType.Series || item.type === MediaType.Anime) uniqueIds.add(item.id);
+      uniqueIds.add(item.id);
     });
 
     const ids = Array.from(uniqueIds);
@@ -48,14 +49,15 @@ const UpcomingDashboard: React.FC<{ onResultClick: (item: MediaItem) => void }> 
     }
 
     try {
-      const freshItems = await fetchItemsByIds(ids);
-      const withUpcoming = freshItems.filter(item =>
-        item.nextEpisode && new Date(item.nextEpisode.airDate).getTime() >= new Date().setHours(0, 0, 0, 0)
-      );
+      const freshItems = await ContentService.getItemsByIds(ids);
+
+      const withUpcoming = freshItems.filter(item => resolveUpcomingContent(item) !== null);
 
       withUpcoming.sort((a, b) => {
-        const dateA = a.nextEpisode?.airDate ? new Date(a.nextEpisode.airDate).getTime() : 0;
-        const dateB = b.nextEpisode?.airDate ? new Date(b.nextEpisode.airDate).getTime() : 0;
+        const resA = resolveUpcomingContent(a);
+        const resB = resolveUpcomingContent(b);
+        const dateA = resA?.airDate?.getTime() ?? 0;
+        const dateB = resB?.airDate?.getTime() ?? 0;
         return dateA - dateB;
       });
 
@@ -107,7 +109,7 @@ const UpcomingDashboard: React.FC<{ onResultClick: (item: MediaItem) => void }> 
     }
   };
 
-  const getFilteredData = (data: MediaItem[]) => {
+  const getFilteredData = useCallback((data: MediaItem[]) => {
     if (dateFilter === 'all') return data;
     const now = new Date();
     now.setHours(0, 0, 0, 0);
@@ -116,13 +118,11 @@ const UpcomingDashboard: React.FC<{ onResultClick: (item: MediaItem) => void }> 
     if (dateFilter === 'month') limit.setDate(now.getDate() + 30);
 
     return data.filter(item => {
-      const dateStr = item.nextEpisode?.airDate || item.releaseDate;
-      if (!dateStr) return false;
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const itemDate = new Date(y, m - 1, d);
-      return itemDate >= now && itemDate <= limit;
+      const res = resolveUpcomingContent(item);
+      if (!res || !res.airDate) return false;
+      return res.airDate >= now && res.airDate <= limit;
     });
-  };
+  }, [dateFilter]);
 
   const currentData = useMemo(() => {
     switch (activeTab) {
@@ -131,7 +131,7 @@ const UpcomingDashboard: React.FC<{ onResultClick: (item: MediaItem) => void }> 
       case 'series': return getFilteredData(series);
       case 'anime': return getFilteredData(anime);
     }
-  }, [activeTab, scheduleItems, movies, series, anime, dateFilter, getFilteredData]);
+  }, [activeTab, scheduleItems, movies, series, anime, getFilteredData]);
 
   const handleToggleWatchlist = (e: React.MouseEvent, id: string) => {
     e.stopPropagation();
@@ -167,9 +167,17 @@ const UpcomingDashboard: React.FC<{ onResultClick: (item: MediaItem) => void }> 
     
     const groups: Record<string, MediaItem[]> = {};
     currentData.forEach(item => {
-      const d = item.nextEpisode?.daysUntil ?? 999;
+      let d = 999;
+      const res = resolveUpcomingContent(item);
+      if (res && res.airDate) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const diffTime = res.airDate.getTime() - today.getTime();
+        d = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      }
+
       let label = "Later";
-      if (d === 0) label = "Airing Today";
+      if (d <= 0) label = "Airing Today";
       else if (d === 1) label = "Tomorrow";
       else if (d < 7) label = "This Week";
       else if (d < 30) label = "This Month";

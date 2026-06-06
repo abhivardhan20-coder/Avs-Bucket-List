@@ -32,8 +32,13 @@ export default defineConfig(() => {
           display: 'standalone',
           icons: [
             {
+              src: 'pwa-icon-192.png',
+              sizes: '192x192',
+              type: 'image/png'
+            },
+            {
               src: 'pwa-icon.png',
-              sizes: '192x192 512x512',
+              sizes: '512x512',
               type: 'image/png'
             },
             {
@@ -52,7 +57,7 @@ export default defineConfig(() => {
               options: {
                 cacheName: 'tmdb-images',
                 expiration: {
-                  maxEntries: 200,
+                  maxEntries: 500,
                   maxAgeSeconds: 60 * 60 * 24 * 30 // 30 Days
                 },
                 cacheableResponse: {
@@ -97,6 +102,8 @@ export default defineConfig(() => {
             'vendor-icons': ['lucide-react'],
             'vendor-db': ['dexie', 'dexie-react-hooks'],
             'vendor-query': ['@tanstack/react-query'],
+            'vendor-charts': ['recharts'],
+            'vendor-sentry': ['@sentry/react'],
             'vendor-ui': ['react-window', '@react-oauth/google', 'react-error-boundary'],
             'vendor-utils': ['clsx', 'tailwind-merge', 'jwt-decode', '@supabase/supabase-js']
           }

@@ -3,10 +3,12 @@ import { X, User, Film, Loader, AlertCircle } from 'lucide-react';
 import { MediaItem, MediaType } from '../../types';
 import ContentCard from '../ContentCard';
 import HorizontalScrollContainer from '../HorizontalScrollContainer';
+import Modal from '../ui/Modal';
 
 interface PersonCreditsModalProps {
   selectedPerson: { name: string; role: 'actor' | 'director' } | null;
   onClose: () => void;
+  onRetry: (name: string, role: 'actor' | 'director') => void;
   loadingCredits: boolean;
   creditsError: boolean;
   visiblePersonCredits: MediaItem[];
@@ -28,6 +30,7 @@ interface PersonCreditsModalProps {
 const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
   selectedPerson,
   onClose,
+  onRetry,
   loadingCredits,
   creditsError,
   visiblePersonCredits,
@@ -48,12 +51,20 @@ const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
   if (!selectedPerson) return null;
 
   return (
-    <div className="fixed inset-0 z-[250] flex items-end justify-center px-4 pb-12 animate-in fade-in duration-300">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-5xl bg-[#141414] rounded-t-[40px] border-t border-x border-gray-800 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-20 duration-500">
+    <Modal
+      isOpen={!!selectedPerson}
+      onClose={onClose}
+      ariaLabel={`${selectedPerson.name} — ${selectedPerson.role === 'actor' ? 'Starring Roles' : 'Directed Works'}`}
+      overlayClassName="bg-black/90 backdrop-blur-md"
+      className="w-full max-w-5xl mx-4 flex items-end justify-center"
+      zIndex={250}
+      lockBodyScroll={false}
+    >
+      <div className="relative w-full bg-[#141414] rounded-t-[40px] border-t border-x border-gray-800 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-20 duration-500">
         <button
           onClick={onClose}
           className="absolute top-8 right-8 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all z-10 border border-white/5"
+          aria-label={`Close ${selectedPerson.name} filmography`}
         >
           <X className="w-6 h-6" />
         </button>
@@ -82,7 +93,7 @@ const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
                 <AlertCircle className="w-10 h-10 text-red-500 opacity-50" />
                 <p className="font-bold text-red-400">Failed to load details</p>
                 <button
-                  onClick={() => onClose()} // Or retry logic
+                  onClick={() => onRetry(selectedPerson!.name, selectedPerson!.role)}
                   className="text-xs bg-white/10 hover:bg-white/20 px-4 py-2 rounded-full text-white transition-colors"
                 >
                   Try Again
@@ -119,8 +130,8 @@ const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
                               try {
                                 const details = await fetchMediaItem(
                                   creditItem.id, 
-                                  creditItem.type === MediaType.Movie ? 'movie' : 'tv', 
-                                  creditItem.type as any === MediaType.Anime
+                                  'movie', 
+                                  false
                                 );
                                 if (details) fullItem = { ...creditItem, ...details } as MediaItem;
                               } catch (err) {
@@ -129,8 +140,12 @@ const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
                             }
                             await markMovieAsWatched(fullItem);
                           } else {
+                          try {
                             const hyd = await hydrateSeries(creditItem);
                             await markSeriesAsWatched(hyd);
+                          } catch (err) {
+                            console.error("Failed to hydrate series", err);
+                          }
                           }
                         }
                       }}
@@ -148,7 +163,7 @@ const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

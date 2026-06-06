@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
 import { ContentService } from '../services/contentService';
-import { MediaItem, MediaType } from '@/types';
+import { MediaType } from '@/types';
 
 export function useTrending(type: MediaType, page: number = 1) {
   return useQuery({

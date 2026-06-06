@@ -76,10 +76,10 @@ export const HydrateAniListToTmdb = async (info: AniListAiringInfo): Promise<Med
         
         // Calculate days until
         const today = new Date();
-        today.setUTCHours(0, 0, 0, 0);
+        today.setHours(0, 0, 0, 0);
         const target = new Date(info.airingAt * 1000);
-        target.setUTCHours(0, 0, 0, 0);
-        const daysUntil = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+        target.setHours(0, 0, 0, 0);
+        const daysUntil = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
         // Calculate Seasonal Numbering
         let currentSeason = 1;
@@ -173,10 +173,10 @@ export const HydrateTmdbToAniList = async (tmdbItem: MediaItem): Promise<MediaIt
             
             // Calculate days until
             const today = new Date();
-            today.setUTCHours(0, 0, 0, 0);
+            today.setHours(0, 0, 0, 0);
             const target = new Date(next.airingAt * 1000);
-            target.setUTCHours(0, 0, 0, 0);
-            const daysUntil = Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            target.setHours(0, 0, 0, 0);
+            const daysUntil = Math.round((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 
             return {
                 ...tmdbItem,

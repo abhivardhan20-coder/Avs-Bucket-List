@@ -29,8 +29,16 @@ const SearchHistory: React.FC<SearchHistoryProps> = ({ history, onSelect, onRemo
         {history.map((term) => (
           <div 
             key={term}
+            role="button"
+            tabIndex={0}
             onClick={() => onSelect(term)}
-            className="group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-full text-sm text-gray-200 cursor-pointer transition-all duration-300"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                onSelect(term);
+              }
+            }}
+            className="group flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 border border-white/5 hover:border-white/20 rounded-full text-sm text-gray-200 cursor-pointer transition-all duration-300 outline-none focus:bg-white/10 focus:border-white/20"
           >
             <span>{term}</span>
             <button 

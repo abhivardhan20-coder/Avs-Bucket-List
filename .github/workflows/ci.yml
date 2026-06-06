@@ -1,0 +1,38 @@
+name: CI
+on: [push, pull_request]
+
+jobs:
+  test-and-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - run: npm ci
+
+      # Lint (includes a11y rules once eslint-plugin-jsx-a11y is installed)
+      - run: npm run lint
+
+      # Type-check
+      - run: npm run typecheck
+
+      # Unit tests (single run, no watch)
+      - run: npm run test:ci
+
+      # Production build
+      - run: npm run build
+
+      # Dependency audit (non-blocking — report only)
+      - name: Security audit
+        run: npm audit --omit=dev || true
+
+      - name: Upload build artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+          retention-days: 7

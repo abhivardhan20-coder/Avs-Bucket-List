@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { log } from '@/lib/logger';
 
 export function usePWAInstall() {
   const [installPrompt, setInstallPrompt] = useState<any>(null);
@@ -20,7 +21,7 @@ export function usePWAInstall() {
     const handleAppInstalled = () => {
       setInstallPrompt(null);
       setIsInstalled(true);
-      console.log('PWA was installed');
+      log('PWA was installed', 'success', 'PWAInstall');
     };
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
@@ -39,7 +40,7 @@ export function usePWAInstall() {
     
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
-    console.log(`User response to the install prompt: ${outcome}`);
+    log(`User response to the install prompt: ${outcome}`, 'info', 'PWAInstall');
     
     setInstallPrompt(null);
   };

@@ -3,6 +3,7 @@ import { X, Tags, Loader, AlertCircle, RefreshCw } from 'lucide-react';
 import { MediaItem, MediaType } from '../../types';
 import ContentCard from '../ContentCard';
 import HorizontalScrollContainer from '../HorizontalScrollContainer';
+import Modal from '../ui/Modal';
 
 interface GenreResultsModalProps {
   selectedGenre: string | null;
@@ -50,12 +51,20 @@ const GenreResultsModal: React.FC<GenreResultsModalProps> = ({
   if (!selectedGenre) return null;
 
   return (
-    <div className="fixed inset-0 z-[250] flex items-end justify-center px-4 pb-12 animate-in fade-in duration-300">
-      <div className="absolute inset-0 bg-black/90 backdrop-blur-md" onClick={onClose} />
-      <div className="relative w-full max-w-5xl bg-[#141414] rounded-t-[40px] border-t border-x border-gray-800 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-20 duration-500">
+    <Modal
+      isOpen={!!selectedGenre}
+      onClose={onClose}
+      ariaLabel={`${selectedGenre} — Genre Results`}
+      overlayClassName="bg-black/90 backdrop-blur-md"
+      className="w-full max-w-5xl mx-4 flex items-end justify-center"
+      zIndex={250}
+      lockBodyScroll={false}
+    >
+      <div className="relative w-full bg-[#141414] rounded-t-[40px] border-t border-x border-gray-800 shadow-2xl overflow-hidden animate-in slide-in-from-bottom-20 duration-500">
         <button
           onClick={onClose}
           className="absolute top-8 right-8 p-3 bg-white/5 hover:bg-white/10 rounded-full text-white transition-all z-10 border border-white/5"
+          aria-label="Close genre results"
         >
           <X className="w-6 h-6" />
         </button>
@@ -122,8 +131,8 @@ const GenreResultsModal: React.FC<GenreResultsModalProps> = ({
                               try {
                                 const details = await fetchMediaItem(
                                   genreItem.id, 
-                                  genreItem.type === MediaType.Movie ? 'movie' : 'tv', 
-                                  genreItem.type as any === MediaType.Anime
+                                  'movie', 
+                                  false
                                 );
                                 if (details) fullItem = { ...genreItem, ...details } as MediaItem;
                               } catch (err) {
@@ -132,8 +141,13 @@ const GenreResultsModal: React.FC<GenreResultsModalProps> = ({
                             }
                             await markMovieAsWatched(fullItem);
                           } else {
+                          try {
                             const hyd = await hydrateSeries(genreItem);
                             await markSeriesAsWatched(hyd);
+                          } catch (err) {
+                            console.error("Failed to hydrate series", err);
+                            // Optional: Dispatch a toast notification here if connected to context
+                          }
                           }
                         }
                       }}
@@ -157,7 +171,7 @@ const GenreResultsModal: React.FC<GenreResultsModalProps> = ({
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

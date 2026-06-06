@@ -1,5 +1,6 @@
 import { MediaItem, MediaType, Season, Episode, NextEpisodeInfo } from '@/types';
-const BASE_URL = 'https://api.themoviedb.org/3';
+import { supabase } from './supabaseClient';
+import { dedupe } from '../lib/requestDeduplicator';
 
 // ✅ PERFORMANCE OPTIMIZED: Use optimized image sizes
 const getImageUrl = (path: string | null, size: 'original' | 'w1280' | 'w780' | 'w500' | 'w342' | 'w300' = 'original') => {
@@ -22,12 +23,29 @@ const getHeaders = () => ({
   accept: 'application/json'
 });
 
-async function fetchWithRetry(url: string, options: RequestInit, retries = 5, backoff = 1000): Promise<Response> {
+async function fetchWithRetry(
+  url: string, 
+  options: RequestInit, 
+  retries = 3, 
+  backoff = 800, 
+  timeoutMs = 5000
+): Promise<Response> {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  if (options.signal) {
+    options.signal.addEventListener('abort', () => controller.abort());
+  }
+
   try {
-    const response = await fetch(url, options);
+    const response = await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+    clearTimeout(timer);
+
     // Retry on 5xx server errors or 429 rate-limit responses
     if (!response.ok && (response.status >= 500 || response.status === 429) && retries > 0) {
-      // Respect Retry-After header if present (in seconds), otherwise use exponential backoff
       const retryAfter = response.headers.get('Retry-After');
       const delay = retryAfter 
         ? Math.min(parseInt(retryAfter, 10) * 1000, 15000) 
@@ -35,36 +53,87 @@ async function fetchWithRetry(url: string, options: RequestInit, retries = 5, ba
       
       console.warn(`[TMDB] Retrying ${url.split('api_key')[0]} due to ${response.status}... (${retries} left, delay: ${delay}ms)`);
       await new Promise(r => setTimeout(r, delay));
-      return fetchWithRetry(url, options, retries - 1, backoff * 2);
+      return fetchWithRetry(url, options, retries - 1, backoff * 2, timeoutMs);
     }
     return response;
-  } catch (error) {
+  } catch (error: any) {
+    clearTimeout(timer);
+
+    if (options.signal?.aborted) {
+      throw error;
+    }
+
     if (retries > 0) {
-      console.warn(`[TMDB] Retrying ${url.split('api_key')[0]} due to network error... (${retries} left)`);
+      const isTimeout = error.name === 'AbortError';
+      console.warn(`[TMDB] Retrying ${url.split('api_key')[0]} due to ${isTimeout ? 'timeout' : 'network error'}... (${retries} left)`);
       await new Promise(r => setTimeout(r, backoff));
-      return fetchWithRetry(url, options, retries - 1, backoff * 2);
+      return fetchWithRetry(url, options, retries - 1, backoff * 2, timeoutMs);
     }
     throw error;
   }
 }
 
 /**
- * Robust fetch wrapper for TMDB (via Backend Proxy)
+ * Robust fetch wrapper for TMDB (via Backend Proxy) with local fallback to TMDB API if proxy fails/times out
  */
 async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise<T | null> {
-  const apiKey = import.meta.env.VITE_TMDB_API_KEY;
-  const separator = endpoint.includes('?') ? '&' : '?';
-  const url = `${BASE_URL}${endpoint}${separator}api_key=${apiKey}`;
+  return dedupe(`tmdb:${endpoint}`, async () => {
+    try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const token = sessionData.session?.access_token;
 
-  try {
-    const response = await fetchWithRetry(url, { headers: getHeaders(), signal }, 5);
-    if (!response.ok) {
-      if (response.status !== 404) {
-        throw new Error(`TMDB_API_ERROR_${response.status}: ${response.statusText}`);
-      }
-      return null;
+    const edgeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb?path=${encodeURIComponent(endpoint)}`;
+    const headers: Record<string, string> = { ...getHeaders() };
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
-    return await response.json();
+
+    try {
+      // First attempt: Supabase Edge Function with a 5s timeout and 1 retry
+      const response = await fetchWithRetry(
+        edgeUrl,
+        {
+          headers,
+          signal
+        },
+        1,
+        500,
+        5000
+      );
+
+      if (response && response.ok) {
+        return await response.json();
+      }
+
+      if (response && response.status === 404) {
+        return null;
+      }
+
+      throw new Error(`Edge function returned status ${response?.status}`);
+    } catch (edgeError) {
+      // Fallback: fetch directly from TMDB API if key is available
+      const tmdbKey = import.meta.env.VITE_TMDB_API_KEY;
+      if (tmdbKey) {
+        if (import.meta.env.DEV) {
+          console.warn("[TMDB] Edge function failed or timed out. Falling back to direct TMDB API...", edgeError);
+        }
+        const separator = endpoint.includes('?') ? '&' : '?';
+        const directUrl = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${tmdbKey}`;
+        
+        const directResponse = await fetchWithRetry(
+          directUrl,
+          { signal },
+          2,
+          800,
+          6000
+        );
+
+        if (directResponse && directResponse.ok) {
+          return await directResponse.json();
+        }
+      }
+      throw edgeError;
+    }
   } catch (error) {
     if (error instanceof Error && error.message.startsWith('TMDB_API_ERROR')) {
       throw error;
@@ -72,6 +141,7 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
     console.error(`TMDB Fetch Failure for ${endpoint}:`, error);
     throw error;
   }
+  });
 }
 
 export const toAppId = (type: 'movie' | 'tv', id: number) => `${type === 'movie' ? 'movie' : 'series'}_${id}`;
@@ -155,7 +225,7 @@ const mapResultToItem = (item: TmdbResult, type: MediaType): MediaItem => {
     id: toAppId(tmdbType, item.id),
     title: item.title || item.name,
     type: finalType,
-    backdropUrl: getImageUrl(item.backdrop_path, 'original'),
+    backdropUrl: getImageUrl(item.backdrop_path, 'w1280'),
     posterUrl: getImageUrl(item.poster_path || item.backdrop_path, 'original'),
     overview: item.overview || '',
     rating: (item.vote_average !== undefined && item.vote_average !== null) ? Number(Number(item.vote_average).toFixed(1)) : 0,
@@ -212,7 +282,7 @@ export const fetchSeasonDetails = async (appId: string, seasonNumber: number): P
     runtime: Number(e.runtime) || 0,
     watched: false,
     overview: e.overview,
-    stillUrl: getImageUrl(e.still_path, 'original'),
+    stillUrl: getImageUrl(e.still_path, 'w300'),
     airDate: e.air_date
   })) || [];
 };
@@ -306,7 +376,8 @@ export const fetchAiringSeries = async (page: number = 1) => {
 };
 
 export const fetchUpcomingAnime = async (page: number = 1) => {
-  const today = new Date().toISOString().split('T')[0];
+  const now = new Date();
+  const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const data = await safeTmdbFetch<any>(`/discover/tv?with_genres=16&with_original_language=ja&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`);
   return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Anime)) || []).filter(i => i.posterUrl);
 };
@@ -321,7 +392,7 @@ export const searchAnime = async (query: string, page: number = 1): Promise<Medi
 };
 
 export const fetchItemsByIds = async (ids: string[]): Promise<MediaItem[]> => {
-  const results = await Promise.all(ids.map(id => fetchDetails(id)));
+  const results = await limitConcurrency(ids, 3, (id) => fetchDetails(id));
   return results.filter((item): item is MediaItem => item !== null);
 };
 

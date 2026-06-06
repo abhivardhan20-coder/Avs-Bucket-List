@@ -1,3 +1,4 @@
+import { dedupe } from './requestDeduplicator';
 import {
   searchTmdb,
   fetchTrendingMovies,
@@ -15,35 +16,46 @@ export interface SearchResults {
   anime: MediaItem[];
 }
 
-// Cache for unified search
-// ✅ OPTIMIZATION: In-memory cache with TTL to avoid repeated API calls
+export class LRUCache<K, V> {
+  private cache = new Map<K, V>();
+
+  constructor(private readonly maxSize = 500) {}
+
+  get(key: K): V | undefined {
+    const value = this.cache.get(key);
+    if (value === undefined) return undefined;
+    this.cache.delete(key);
+    this.cache.set(key, value);
+    return value;
+  }
+
+  set(key: K, value: V) {
+    if (this.cache.has(key)) {
+      this.cache.delete(key);
+    }
+    this.cache.set(key, value);
+    if (this.cache.size > this.maxSize) {
+      const oldest = this.cache.keys().next().value;
+      this.cache.delete(oldest as K);
+    }
+  }
+}
+
 interface CacheEntry {
   data: SearchResults;
   timestamp: number;
 }
-const searchCache: Record<string, CacheEntry> = {};
 
-// ✅ OPTIMIZATION: Memoized similarity scores to avoid recalculating for same queries
-const similarityMemo: Record<string, number> = {};
-
-// Keep memo size bounded to prevent memory bloat — use key-count-based logic to avoid counter drift
-const MAX_MEMO_SIZE = 500;
+const searchCache = new LRUCache<string, CacheEntry>(500);
+const similarityMemo = new LRUCache<string, number>(500);
 
 const getCachedSimilarity = (title: string, query: string): number => {
   const key = `${title}||${query}`;
-  if (key in similarityMemo) {
-    return similarityMemo[key];
-  }
-
-  // Prune by actual key count, not a drifting counter — prevents cache bloat
-  const keys = Object.keys(similarityMemo);
-  if (keys.length >= MAX_MEMO_SIZE) {
-    // Remove oldest 20% of entries to make room
-    keys.slice(0, Math.floor(MAX_MEMO_SIZE * 0.2)).forEach(k => delete similarityMemo[k]);
-  }
+  const cached = similarityMemo.get(key);
+  if (cached !== undefined) return cached;
 
   const score = calculateSimilarityScore(title, query);
-  similarityMemo[key] = score;
+  similarityMemo.set(key, score);
   return score;
 };
 
@@ -185,14 +197,15 @@ export const searchAnime = async (query: string, page: number = 1): Promise<Medi
 
 // --- MAIN UNIFIED SEARCH ---
 
-export const unifiedSearch = async (query: string): Promise<SearchResults> => {
+const executeUnifiedSearch = async (query: string): Promise<SearchResults> => {
   const trimmedQuery = query.trim();
   if (!trimmedQuery) return { movies: [], series: [], anime: [] };
 
   // ✅ OPTIMIZATION #1: Check cache first (12-minute TTL)
   const now = Date.now();
-  if (searchCache[trimmedQuery] && (now - searchCache[trimmedQuery].timestamp < 12 * 60 * 1000)) {
-    return searchCache[trimmedQuery].data;
+  const cached = searchCache.get(trimmedQuery);
+  if (cached && (now - cached.timestamp < 12 * 60 * 1000)) {
+    return cached.data;
   }
 
   try {
@@ -235,17 +248,7 @@ export const unifiedSearch = async (query: string): Promise<SearchResults> => {
     };
 
     // ✅ OPTIMIZATION #4: Cache the result with LRU eviction
-    searchCache[trimmedQuery] = { data: results, timestamp: now };
-
-    // Manage Cache Size: Remove oldest entry when cache is full
-    const MAX_CACHE = 25;
-    const cacheKeys = Object.keys(searchCache);
-    if (cacheKeys.length > MAX_CACHE) {
-      const oldest = cacheKeys.sort(
-        (a, b) => (searchCache[a]?.timestamp ?? 0) - (searchCache[b]?.timestamp ?? 0)
-      )[0];
-      delete searchCache[oldest];
-    }
+    searchCache.set(trimmedQuery, { data: results, timestamp: now });
 
 
     return results;
@@ -254,6 +257,22 @@ export const unifiedSearch = async (query: string): Promise<SearchResults> => {
     return { movies: [], series: [], anime: [] };
   }
 };
+
+const debounce = <T extends (...args: any[]) => Promise<any>>(func: T, waitFor: number) => {
+  let timeout: ReturnType<typeof setTimeout> | null = null;
+  return (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>> => {
+    return new Promise((resolve, reject) => {
+      if (timeout) clearTimeout(timeout);
+      timeout = setTimeout(() => {
+        func(...args).then(resolve).catch(reject);
+      }, waitFor);
+    });
+  };
+};
+
+export const unifiedSearch = debounce(async (query: string): Promise<SearchResults> => {
+  return dedupe(`search:${query}`, () => executeUnifiedSearch(query));
+}, 300);
 
 // Helper
 const mergeUnique = (base: MediaItem[], extra: MediaItem[]) => {
@@ -270,7 +289,7 @@ export const getRecentSearches = (): string[] => {
   try {
     const saved = localStorage.getItem(HISTORY_KEY);
     return saved ? JSON.parse(saved) : [];
-  } catch (e) {
+  } catch {
     return [];
   }
 };

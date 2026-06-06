@@ -47,7 +47,7 @@ const UpNextRow: React.FC<UpNextRowProps> = ({
             id: item.showId,
             title: item.showTitle,
             posterUrl: item.showPoster,
-            type: (item.showId.startsWith('movie') ? 'movie' : 'series' as any), // This is a heuristic, better to have type in UpNextItem
+            type: item.type,
           };
 
           const subtitle = `S${item.seasonNumber} - E${item.nextEpisode.number}: ${item.nextEpisode.title}`;

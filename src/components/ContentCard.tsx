@@ -107,8 +107,16 @@ const ContentCard: React.FC<ContentCardProps> = ({
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       className="relative group w-[160px] md:w-[200px] aspect-[2/3] bg-[#1a1a1a] rounded-2xl cursor-pointer transition-all duration-500 hover:scale-[1.05] hover:z-20 shadow-2xl hover:shadow-red-900/30 border border-transparent hover:border-white/10 overflow-hidden"
       onClick={() => onClick(item)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(item);
+        }
+      }}
       onMouseEnter={handlePrefetchDetails}
     >
       <OptimizedImage

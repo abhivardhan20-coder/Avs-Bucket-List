@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useLibraryData } from '../contexts/LibraryProvider';
 import { MediaItem } from '../types';
 import { fetchItemsByIds } from '../services/tmdb';
@@ -17,7 +17,9 @@ export const useNotifications = () => {
   const { watchlist, watched } = useLibraryData();
   const [notifications, setNotifications] = useState<NotificationItem[]>([]);
   const [loading, setLoading] = useState(true);
-  
+
+  const serializedWatchlist = useMemo(() => JSON.stringify(watchlist.map(w => ({ id: w.id }))), [watchlist]);
+  const serializedWatched = useMemo(() => JSON.stringify(watched.map(w => ({ id: w.id, watchedEpisodes: w.watchedEpisodes, totalEpisodes: w.totalEpisodes }))), [watched]);
   const lastFetchedAt = useRef<number>(0);
   const cachedNotifs = useRef<MediaItem[]>([]);
   const libraryMapRef = useRef<Map<string, { type: 'Watchlist' | 'Watched', watchedEpisodes: number, totalEpisodes: number }>>(new Map());
@@ -36,11 +38,7 @@ export const useNotifications = () => {
 
         for (const cachedItem of cachedNotifs.current) {
           const progress = libraryMap.get(cachedItem.id);
-          const resolution = resolveUpcomingContent(cachedItem, progress ? {
-            type: progress.type,
-            watchedEpisodes: progress.watchedEpisodes,
-            totalEpisodes: cachedItem.totalEpisodes || progress.totalEpisodes || 0
-          } : undefined);
+          const resolution = resolveUpcomingContent(cachedItem);
 
           if (resolution) {
             resolved.push({
@@ -69,14 +67,17 @@ export const useNotifications = () => {
       try {
         const libraryMap = new Map<string, { type: 'Watchlist' | 'Watched', watchedEpisodes: number, totalEpisodes: number }>();
 
+        const currentWatchlist = JSON.parse(serializedWatchlist) as { id: string }[];
+        const currentWatched = JSON.parse(serializedWatched) as { id: string, watchedEpisodes: number, totalEpisodes: number }[];
+
         // 1. Aggregate Tracking Data
-        watched.forEach(i => libraryMap.set(i.id, {
+        currentWatched.forEach(i => libraryMap.set(i.id, {
           type: 'Watched',
           watchedEpisodes: i.watchedEpisodes,
           totalEpisodes: i.totalEpisodes
         }));
 
-        watchlist.forEach(i => {
+        currentWatchlist.forEach(i => {
           if (!libraryMap.has(i.id)) {
             libraryMap.set(i.id, {
               type: 'Watchlist',
@@ -112,26 +113,40 @@ export const useNotifications = () => {
           return true;
         });
 
-        // Check cache first — only fetch what's missing
+        // Check cache first — only fetch what's missing or stale
         const cachedItems: MediaItem[] = [];
         const idsToActuallyFetch: string[] = [];
         for (const id of idsToFetch) {
-          // For notifications, we want fresh data for series/anime to ensure nextEpisode is current.
-          // Skip cache and always fetch fresh data to catch upcoming episodes.
+          const cached = await db.mediaCache.get(id);
           const isMovie = id.startsWith('movie_');
-          if (!isMovie) {
-            // Series/Anime: Always fetch fresh to get latest nextEpisode
-            idsToActuallyFetch.push(id);
-          } else {
-            // Movies: Can use cache
-            const cached = await db.mediaCache.get(id);
-            if (cached) cachedItems.push(cached as MediaItem);
-            else idsToActuallyFetch.push(id);
+
+          if (cached) {
+            const cacheAge = Date.now() - (cached.lastRefreshedAt || 0);
+            // Movies can use 48 hours cached data, series/anime check within 12 hours freshness
+            const isFresh = isMovie 
+              ? cacheAge < 48 * 60 * 60 * 1000 
+              : cacheAge < 12 * 60 * 60 * 1000;
+
+            if (isFresh) {
+              cachedItems.push(cached as MediaItem);
+              continue;
+            }
           }
+          idsToActuallyFetch.push(id);
         }
+        
         const freshItems = idsToActuallyFetch.length > 0 
           ? await fetchItemsByIds(idsToActuallyFetch) 
           : [];
+
+        if (freshItems.length > 0) {
+          // Cache the newly fetched items so subsequent loads are extremely fast
+          await db.mediaCache.bulkPut(freshItems.map(item => ({
+            ...item,
+            lastRefreshedAt: Date.now()
+          })));
+        }
+
         const allItems = [...cachedItems, ...freshItems];
 
         const resolved: NotificationItem[] = [];
@@ -140,11 +155,7 @@ export const useNotifications = () => {
           const progress = libraryMap.get(item.id);
 
           // Pass context to resolver
-          const resolution = resolveUpcomingContent(item, progress ? {
-            type: progress.type,
-            watchedEpisodes: progress.watchedEpisodes,
-            totalEpisodes: item.totalEpisodes || progress.totalEpisodes || 0
-          } : undefined);
+          const resolution = resolveUpcomingContent(item);
 
           if (resolution) {
             resolved.push({
@@ -182,7 +193,7 @@ export const useNotifications = () => {
       isMounted = false;
       clearTimeout(timeout);
     };
-  }, [watchlist.length, watched.length]); // depend on LENGTH not reference
+  }, [serializedWatchlist, serializedWatched]);
 
   return { notifications, loading };
 };

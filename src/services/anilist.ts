@@ -1,5 +1,5 @@
-import { MediaType } from '@/types';
 import { db } from '@/lib/db';
+import { dedupe } from '../lib/requestDeduplicator';
 
 const ANILIST_URL = 'https://graphql.anilist.co';
 const SCHEDULE_CACHE_TTL = 60 * 60 * 1000; // 1 hour
@@ -101,12 +101,13 @@ interface AniListSchedule {
  * Checks mediaCache for a synthetic key; only hits AniList if missing or stale (>1hr).
  */
 export const fetchAiringAnime = async (startSeconds: number, endSeconds: number): Promise<AniListAiringInfo[]> => {
-    // Check Dexie cache first
+    return dedupe(`anilist:airing:${startSeconds}:${endSeconds}`, async () => {
+        // Check Dexie cache first
     const cacheKey = `anilist_schedule_${new Date(startSeconds * 1000).toISOString().slice(0, 10)}`;
     try {
-        const cached = await db.mediaCache.get(cacheKey);
+        const cached = await db.scheduleCache.get(cacheKey);
         if (cached && cached.lastRefreshedAt && Date.now() - cached.lastRefreshedAt < SCHEDULE_CACHE_TTL) {
-            return JSON.parse((cached as any).payload || '[]');
+            return JSON.parse(cached.payload || '[]');
         }
     } catch { /* cache miss, proceed to fetch */ }
 
@@ -157,13 +158,11 @@ export const fetchAiringAnime = async (startSeconds: number, endSeconds: number)
 
         // Write to Dexie cache
         try {
-            await db.mediaCache.put({
+            await db.scheduleCache.put({
                 id: cacheKey,
-                title: 'AniList Schedule Cache',
-                type: MediaType.Anime,
                 payload: JSON.stringify(results),
                 lastRefreshedAt: Date.now(),
-            } as any);
+            });
         } catch { /* cache write failure is non-fatal */ }
 
         return results;
@@ -172,4 +171,5 @@ export const fetchAiringAnime = async (startSeconds: number, endSeconds: number)
         console.error("Error fetching AniList schedule:", error);
         return [];
     }
+    });
 };

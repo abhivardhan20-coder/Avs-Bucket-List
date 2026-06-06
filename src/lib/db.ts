@@ -103,6 +103,7 @@ export class AppDatabase extends Dexie {
   syncQueue!: Table<SyncTask, string>;
   conflicts!: Table<ConflictRecord, [string, string]>;
   logs!: Table<LogEntry, number>;
+  scheduleCache!: Table<{ id: string; payload: string; lastRefreshedAt: number }, string>;
 
   constructor() {
     super('AVBucketList_v2');
@@ -138,6 +139,11 @@ export class AppDatabase extends Dexie {
     // v16: Add conflicts table
     this.version(16).stores({
       conflicts: '[userEmail+id], userEmail, status'
+    });
+
+    // v17: Add scheduleCache table
+    this.version(17).stores({
+      scheduleCache: 'id, lastRefreshedAt'
     });
   }
 }

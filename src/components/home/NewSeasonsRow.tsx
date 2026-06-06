@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
-import { useLibrary } from '@/contexts/AppContext';
 import { MediaItem, MediaType } from '@/types';
-import { resolveUpcomingContent } from '@/lib/dateUtils';
+import { calculateShowActivity } from '@/utils/showActivity';
 import { ContentService } from '@/services/contentService';
 import UpcomingCard from '@/components/upcoming/UpcomingCard';
 import HorizontalScrollContainer from '@/components/HorizontalScrollContainer';
@@ -59,25 +58,18 @@ const NewSeasonsRow: React.FC<NewSeasonsRowProps> = ({
             // Filter to only items with upcoming episodes within ±14 day window
             const now = new Date();
             now.setHours(0, 0, 0, 0);
-            const window = 14 * 24 * 60 * 60 * 1000; // 14 days in milliseconds
 
             const newSeasonItems = freshItems.filter(item => {
-                const upcoming = resolveUpcomingContent(item);
-                if (!upcoming) return false;
-                
-                // Check if within ±14 day window
-                const itemTime = upcoming.airDate.getTime();
-                const nowTime = now.getTime();
-                const daysDiff = (itemTime - nowTime) / (24 * 60 * 60 * 1000);
-                
-                return daysDiff >= -14 && daysDiff <= 14;
+                const watchedItem = watched.find(w => w.id === item.id) || { id: item.id, type: item.type, watchedEpisodes: 0 };
+                const activity = calculateShowActivity(item, watchedItem, now);
+                return activity.isActive;
             });
 
-            // Sort by air date (ascending)
+            // Sort by activity score (highest first)
             newSeasonItems.sort((a, b) => {
-                const aDate = resolveUpcomingContent(a)?.airDate || new Date(0);
-                const bDate = resolveUpcomingContent(b)?.airDate || new Date(0);
-                return aDate.getTime() - bDate.getTime();
+                const aActivity = calculateShowActivity(a, watched.find(w => w.id === a.id) || { id: a.id, type: a.type, watchedEpisodes: 0 }, now);
+                const bActivity = calculateShowActivity(b, watched.find(w => w.id === b.id) || { id: b.id, type: b.type, watchedEpisodes: 0 }, now);
+                return bActivity.score - aActivity.score;
             });
 
             setItems(newSeasonItems);
@@ -87,7 +79,7 @@ const NewSeasonsRow: React.FC<NewSeasonsRowProps> = ({
         } finally {
             setLoading(false);
         }
-    }, [seriesIdsKey]);
+    }, [seriesIdsKey, watched]);
 
     useEffect(() => {
         loadSchedule();

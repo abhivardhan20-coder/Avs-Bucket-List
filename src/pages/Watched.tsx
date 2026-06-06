@@ -4,7 +4,6 @@ import { FilterBar } from '@/components/FilterBar';
 import HorizontalScrollContainer from '@/components/HorizontalScrollContainer';
 import ContentCard from '@/components/ContentCard';
 import { MediaItem, MediaType } from '@/types';
-import { VirtualList } from '@/lib/virtualization';
 import WatchBreakdownModal from '@/components/stats/WatchBreakdownModal';
 
 interface WatchedProps {
@@ -54,8 +53,6 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
     setFilterYear,
     filterGenre,
     setFilterGenre,
-    expandedSections,
-    toggleSection,
     setSelectedContent,
     isInWatchlist,
     toggleWatchlist,
@@ -65,11 +62,7 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
 }) => {
     const [showTimePopup, setShowTimePopup] = useState(false);
 
-    const watchedItems = React.useMemo(() => [
-        ...watchedGroups.movies,
-        ...watchedGroups.series,
-        ...watchedGroups.anime
-    ], [watchedGroups]);
+
 
     return (
         <div className="pt-32 px-4 md:px-12 min-h-screen max-w-[1600px] mx-auto animate-in fade-in duration-300">
@@ -87,8 +80,16 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-16">
                 {/* Total watch time card */}
                 <div
-                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-white/20 transition-all duration-500 cursor-pointer shadow-2xl"
+                    role="button"
+                    tabIndex={0}
+                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-white/20 transition-all duration-500 cursor-pointer shadow-2xl outline-none focus:ring-2 focus:ring-red-500"
                     onClick={() => setShowTimePopup(true)}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            setShowTimePopup(true);
+                        }
+                    }}
                 >
                     <div className="flex justify-between items-start mb-6">
                         <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em]">Total Watch Time</h3>
@@ -123,8 +124,16 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
                 />
 
                 <div
-                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-red-600/30 hover:bg-red-900/5 transition-all duration-500 cursor-pointer shadow-2xl"
+                    role="button"
+                    tabIndex={0}
+                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-red-600/30 hover:bg-red-900/5 transition-all duration-500 cursor-pointer shadow-2xl outline-none focus:ring-2 focus:ring-red-500"
                     onClick={() => openStatsModal('movies')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            openStatsModal('movies');
+                        }
+                    }}
                 >
                     <div className="flex justify-between items-start mb-6">
                         <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] group-hover:text-red-400">Movies Watched</h3>
@@ -138,8 +147,16 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
                 </div>
 
                 <div
-                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-blue-600/30 hover:bg-blue-900/5 transition-all duration-500 cursor-pointer shadow-2xl"
+                    role="button"
+                    tabIndex={0}
+                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-blue-600/30 hover:bg-blue-900/5 transition-all duration-500 cursor-pointer shadow-2xl outline-none focus:ring-2 focus:ring-blue-500"
                     onClick={() => openStatsModal('series')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            openStatsModal('series');
+                        }
+                    }}
                 >
                     <div className="flex justify-between items-start mb-6">
                         <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] group-hover:text-blue-400">Series Watched</h3>
@@ -153,8 +170,16 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
                 </div>
 
                 <div
-                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-purple-600/30 hover:bg-purple-900/5 transition-all duration-500 cursor-pointer shadow-2xl"
+                    role="button"
+                    tabIndex={0}
+                    className="bg-[#0f0f0f] border-2 border-white/5 rounded-[2.5rem] p-8 relative overflow-hidden group hover:border-purple-600/30 hover:bg-purple-900/5 transition-all duration-500 cursor-pointer shadow-2xl outline-none focus:ring-2 focus:ring-purple-500"
                     onClick={() => openStatsModal('anime')}
+                    onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                            e.preventDefault();
+                            openStatsModal('anime');
+                        }
+                    }}
                 >
                     <div className="flex justify-between items-start mb-6">
                         <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.3em] group-hover:text-purple-400">Animes Watched</h3>

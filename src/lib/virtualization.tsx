@@ -7,7 +7,8 @@
  * of large datasets using virtualization (windowing) techniques.
  */
 
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+/* eslint-disable react-refresh/only-export-components */
+import React, { useState, useCallback, useRef } from 'react';
 
 export interface VirtualizationConfig {
   itemHeight: number;

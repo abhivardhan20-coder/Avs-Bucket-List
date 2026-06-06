@@ -1,10 +1,12 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { X, Download, Upload, Database, CheckCircle, AlertCircle, Trash2, Cloud, CloudUpload, RefreshCw, History, FileText } from 'lucide-react';
-import { useLibraryData, useSettings, useSync } from '../contexts/AppContext';
+import { X, Download, Upload, Database, CheckCircle, Trash2, Cloud, RefreshCw, FileText, Puzzle, ExternalLink } from 'lucide-react';
+import Modal from './ui/Modal';
+import { useLibraryData, useSettings } from '../contexts/AppContext';
 import { usePWAInstall } from '../hooks/usePWAInstall';
 import { useToast } from '../contexts/ToastProvider';
 import { db } from '../lib/db';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface SettingsModalProps {
   isOpen: boolean;
@@ -12,7 +14,7 @@ interface SettingsModalProps {
 }
 
 const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
-  const { performBackupToVault } = useSync();
+  const queryClient = useQueryClient();
   const { exportData, importData, clearData } = useSettings();
   const { watchlist, watched } = useLibraryData();
   const { isInstallable, isInstalled, showInstallPrompt } = usePWAInstall();
@@ -20,24 +22,32 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [lastBackup, setLastBackup] = useState<string | null>(localStorage.getItem('av_last_backup'));
-  const [conflictLogs, setConflictLogs] = useState<any[]>([]);
+  const [isExtensionInstalled, setIsExtensionInstalled] = useState<boolean | null>(null);
 
-  // Load conflict logs on mount and when isOpen changes
   useEffect(() => {
-    if (isOpen) {
-      const logs = JSON.parse(localStorage.getItem('av_conflict_audit') || '[]');
-      setConflictLogs(logs);
+    if (!isOpen) return;
+    const extensionId = "eeijfnjmjelapkebgockoeaadonbchdd";
+    const chrome = (window as any).chrome;
+    if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
+      try {
+        chrome.runtime.sendMessage(
+          extensionId,
+          { type: "ping" },
+          () => {
+            if (chrome.runtime.lastError) {
+              setIsExtensionInstalled(false);
+            } else {
+              setIsExtensionInstalled(true);
+            }
+          }
+        );
+      } catch {
+        setIsExtensionInstalled(false);
+      }
+    } else {
+      setIsExtensionInstalled(false);
     }
   }, [isOpen]);
-
-  const clearConflictLogs = () => {
-    localStorage.removeItem('av_conflict_audit');
-    setConflictLogs([]);
-    showToast("Conflict history cleared", "success");
-  };
-
-  if (!isOpen) return null;
 
   const handleExport = () => {
     exportData();
@@ -94,31 +104,35 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
-  const handleBackupNow = async () => {
+  const handleRefreshSync = async () => {
     setIsSaving(true);
     try {
-      const res = await performBackupToVault();
-      showToast(res.message, res.success ? 'success' : 'error');
-      if (res.success) {
-        setLastBackup(localStorage.getItem('av_last_backup'));
-      }
+      await queryClient.invalidateQueries({ queryKey: ['watchlist'] });
+      await queryClient.invalidateQueries({ queryKey: ['watched'] });
+      showToast("Data refreshed from Supabase!", "success");
     } catch {
-      showToast('Backup failed — check your connection', 'error');
+      showToast('Refresh failed — check your connection', 'error');
     } finally {
       setIsSaving(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[150] bg-black/70 backdrop-blur-sm flex items-center justify-center p-4 animate-in fade-in duration-200">
-
-      <div className="bg-[#1a1a1a] w-full max-w-md rounded-2xl border border-gray-800 shadow-2xl overflow-y-auto max-h-[90vh] relative custom-scrollbar">
-        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-1">
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabelledBy="settings-modal-title"
+      overlayClassName="bg-black/70 backdrop-blur-sm"
+      className="w-full max-w-md mx-4"
+      zIndex={150}
+    >
+      <div className="bg-[#1a1a1a] w-full rounded-2xl border border-gray-800 shadow-2xl overflow-y-auto max-h-[90vh] relative custom-scrollbar">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors p-1" aria-label="Close settings">
           <X className="w-6 h-6" />
         </button>
 
         <div className="p-8">
-          <h2 className="text-2xl font-bold text-white mb-2">Settings</h2>
+          <h2 id="settings-modal-title" className="text-2xl font-bold text-white mb-2">Settings</h2>
           <p className="text-gray-400 mb-8">Manage your data and preferences.</p>
 
           <div className="space-y-6">
@@ -183,21 +197,52 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
             <div className="space-y-4 pt-6 border-t border-white/5">
               <div className="flex items-center justify-between">
                 <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                  <Cloud className="w-4 h-4" /> Cloud Backup
+                  <Cloud className="w-4 h-4" /> Cloud Sync
                 </h3>
-                {lastBackup && (
-                  <div className="flex items-center gap-2">
-                    {Math.round((Date.now() - new Date(lastBackup).getTime()) / 3600000) < 24 ? (
-                      <div className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-1">
-                        <CheckCircle className="w-3 h-3 text-green-500" />
-                        <span className="text-[10px] font-black text-green-500 uppercase tracking-tighter">Safe</span>
-                      </div>
-                    ) : (
-                      <div className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center gap-1">
-                        <AlertCircle className="w-3 h-3 text-yellow-500" />
-                        <span className="text-[10px] font-black text-yellow-500 uppercase tracking-tighter">Stale</span>
-                      </div>
-                    )}
+                <div className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-1">
+                  <CheckCircle className="w-3 h-3 text-green-500" />
+                  <span className="text-[10px] font-black text-green-500 uppercase tracking-tighter">Live</span>
+                </div>
+              </div>
+
+              <div className="bg-[#0f0f0f] border border-gray-800 rounded-2xl p-5 space-y-4">
+                <div className="flex items-start justify-between">
+                  <div className="space-y-1">
+                    <p className="text-white font-bold text-sm">Supabase Real-time</p>
+                    <p className="text-[11px] text-gray-500 leading-tight">Your watchlist and history are secured in Supabase.</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Sync Status</span>
+                  <button onClick={handleRefreshSync} disabled={isSaving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-white/5 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/20">
+                    {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <RefreshCw className="w-3.5 h-3.5" />}
+                    Refresh Cloud
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Antigravity Browser Extension Promotion */}
+            <div className="space-y-4 pt-6 border-t border-white/5">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                  <Puzzle className="w-4 h-4 text-purple-400" /> Browser Extension
+                </h3>
+                {isExtensionInstalled === true ? (
+                  <div className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-1">
+                    <CheckCircle className="w-3.5 h-3.5 text-green-500" />
+                    <span className="text-[10px] font-black text-green-500 uppercase tracking-tighter">Active</span>
+                  </div>
+                ) : isExtensionInstalled === false ? (
+                  <div className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
+                    <span className="text-[10px] font-black text-yellow-500 uppercase tracking-tighter">Not Installed</span>
+                  </div>
+                ) : (
+                  <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5">
+                    <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-pulse"></span>
+                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">Checking...</span>
                   </div>
                 )}
               </div>
@@ -205,51 +250,37 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               <div className="bg-[#0f0f0f] border border-gray-800 rounded-2xl p-5 space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1">
-                    <p className="text-white font-bold text-sm">Vault Sync</p>
-                    <p className="text-[11px] text-gray-500 leading-tight">Snaphot backup of your local database.</p>
-                  </div>
-                  <div className="p-2 bg-blue-500/10 rounded-lg">
-                    <CloudUpload className="w-5 h-5 text-blue-400" />
+                    <p className="text-white font-bold text-sm">Antigravity Tracker Companion</p>
+                    <p className="text-[11px] text-gray-500 leading-tight">
+                      Automatically sync watching progress from Netflix, YouTube, AniList, Crunchyroll, and others.
+                    </p>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between pt-2">
-                  <div className="space-y-0.5">
-                    <p className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Last Backup</p>
-                    <p className="text-xs text-gray-300 font-medium">
-                      {lastBackup ? new Date(lastBackup).toLocaleString([], { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Never'}
-                    </p>
-                  </div>
-                  <button onClick={handleBackupNow} disabled={isSaving} className="bg-blue-600 hover:bg-blue-500 disabled:bg-white/5 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 active:scale-95 shadow-lg shadow-blue-900/20">
-                    {isSaving ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <CloudUpload className="w-3.5 h-3.5" />}
-                    Back up now
-                  </button>
+                <div className="flex items-center justify-between pt-2 border-t border-white/5">
+                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Chrome Web Store</span>
+                  {isExtensionInstalled === true ? (
+                    <span className="text-xs text-green-400 font-bold flex items-center gap-1.5 py-2">
+                      <CheckCircle className="w-4 h-4 text-green-500" /> Connected
+                    </span>
+                  ) : (
+                    <a
+                      href="https://chromewebstore.google.com/detail/antigravity-browser-exten/eeijfnjmjelapkebgockoeaadonbchdd"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 active:scale-95 shadow-lg shadow-purple-900/20"
+                    >
+                      Add to Chrome
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </a>
+                  )}
                 </div>
               </div>
             </div>
-
-            {conflictLogs.length > 0 && (
-              <div className="space-y-4 pt-6 border-t border-white/5">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                    <History className="w-4 h-4" /> Conflict History
-                  </h3>
-                  <button onClick={clearConflictLogs} className="text-[10px] font-bold text-red-500/50 hover:text-red-500 transition-colors uppercase">Clear</button>
-                </div>
-                <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
-                  {conflictLogs.slice(0, 10).map((log, i) => (
-                    <div key={i} className="bg-[#0f0f0f] border border-gray-800/50 rounded-lg p-3 text-xs flex justify-between">
-                      <span className="text-gray-300 truncate max-w-[150px]">{log.id}</span>
-                      <span className="text-yellow-500 font-bold uppercase text-[10px]">{log.strategy}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

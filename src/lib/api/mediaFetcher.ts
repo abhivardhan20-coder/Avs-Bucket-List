@@ -2,7 +2,7 @@ import { db } from '../../lib/db';
 import { MediaItem, MediaType } from '../../types';
 import { fetchDetails } from '../../services/tmdb';
 import { fetchOmdbDetails, fetchJikanAnime, fetchKitsuAnime } from '../../services/fallbacks';
-import { dedupedFetch } from '../requestDeduplicator';
+import { dedupe } from '../requestDeduplicator';
 import { HydrateTmdbToAniList } from '../../utils/animeMapper';
 import { parseLocalDate } from '../dateUtils';
 import { MEDIA_FRESHNESS_MS, ACTIVE_SHOW_REFRESH_MS } from '../../services/config';
@@ -23,7 +23,7 @@ export async function fetchMediaItem(
   isAnime = false,
   signal?: AbortSignal
 ): Promise<MediaItem | null> {
-  return dedupedFetch(`media:${appId}`, async () => {
+  return dedupe(`media:${appId}`, async () => {
     const isActuallyAnime = isAnime || type === 'anime' || appId.startsWith('series_') || appId.startsWith('anime_');
     
     try {
@@ -130,4 +130,33 @@ export async function fetchMediaItem(
       return null;
     }
   });
+}
+
+/**
+ * Concurrently fetches multiple media items by their IDs, with a concurrency limit.
+ */
+export async function fetchItemsByIdsBatched(ids: string[], concurrency = 6): Promise<MediaItem[]> {
+  const results: MediaItem[] = [];
+  const queue = [...ids];
+  
+  const workers = Array.from({ length: concurrency }, async () => {
+    while (queue.length) {
+      const id = queue.shift()!;
+      try {
+        const isMovie = id.startsWith('movie_');
+        const isAnime = id.startsWith('anime_');
+        const type = isMovie ? 'movie' : 'tv';
+        
+        const item = await fetchMediaItem(id, type, isAnime);
+        if (item) {
+          results.push(item);
+        }
+      } catch (e) {
+        console.warn(`[mediaFetcher] batch fetch failed for ${id}:`, e);
+      }
+    }
+  });
+
+  await Promise.all(workers);
+  return results;
 }

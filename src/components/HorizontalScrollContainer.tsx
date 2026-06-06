@@ -1,7 +1,6 @@
 
 import React, { useRef, useState, useEffect, useCallback } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { debounce } from '../lib/debounce';
 
 interface HorizontalScrollContainerProps {
   children: React.ReactNode;
@@ -32,7 +31,7 @@ const HorizontalScrollContainer: React.FC<HorizontalScrollContainerProps> = ({
     updateArrows();
 
     // Debounce the observer callback to prevent layout thrashing (50ms is enough)
-    let timeout: NodeJS.Timeout;
+    let timeout: ReturnType<typeof setTimeout>;
     const debouncedUpdate = () => {
       clearTimeout(timeout);
       timeout = setTimeout(updateArrows, 50);
@@ -108,16 +107,20 @@ const HorizontalScrollContainer: React.FC<HorizontalScrollContainerProps> = ({
       <div className={`absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#141414] to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showRightArrow ? 'opacity-100' : 'opacity-0'}`} />
 
       {/* Scrollable Area */}
+      {/* eslint-disable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
       <div
         ref={scrollRef}
         onScroll={onScroll}
         onKeyDown={handleKeyDown}
         tabIndex={0}
+        role="region"
+        aria-label="Scrollable list"
         className={`flex overflow-x-auto no-scrollbar scroll-smooth outline-none snap-x snap-mandatory touch-pan-x py-6`}
         style={itemGap ? { gap: `${itemGap}px` } : { gap: '1rem' }}
       >
         {children}
       </div>
+      {/* eslint-enable jsx-a11y/no-noninteractive-element-interactions, jsx-a11y/no-noninteractive-tabindex */}
     </div>
   );
 };

@@ -49,6 +49,9 @@ create index if not exists media_items_user_updated
 create index if not exists media_items_user_status 
   on public.media_items (user_id, status);
 
+create index if not exists media_items_user_media_type
+  on public.media_items (user_id, media_type);
+
 create index if not exists media_items_payload_gin 
   on public.media_items using gin (payload jsonb_path_ops);
 
@@ -143,6 +146,11 @@ create policy "own conflicts delete"
 -- ============================================================================
 -- GRANTS (optional but recommended)
 -- ============================================================================
+-- SECURITY NOTE: While `anon` has `all privileges` here, Row-Level Security (RLS)
+-- is the true authorization boundary — anon users cannot read/write any rows because
+-- all policies require `auth.uid() = user_id`. If you later add any table that needs
+-- unauthenticated public reads (e.g., a public feed), restrict anon to SELECT only
+-- on that table, never INSERT/UPDATE/DELETE.
 
 grant usage on schema public to anon, authenticated;
 grant all privileges on public.media_items to anon, authenticated;

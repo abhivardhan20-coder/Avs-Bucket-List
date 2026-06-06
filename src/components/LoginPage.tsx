@@ -2,82 +2,36 @@
 import React, { useState } from 'react';
 import { Tv, Loader, Play } from 'lucide-react';
 import { useAuth } from '../contexts/AppContext';
-import { GoogleLogin } from '@react-oauth/google';
-import { jwtDecode } from 'jwt-decode';
 
 const LoginPage: React.FC = () => {
-  const { login } = useAuth();
+  const { signInWithGoogle, login } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const handleGoogleSuccess = async (credentialResponse: any) => {
-    if (!credentialResponse.credential) return;
-    
+  const handleGoogleSignIn = async () => {
     setIsLoading(true);
     setError('');
-    
     try {
-      // Client-side decoding (backend is eliminated)
-      // Note: jwtDecode() only decodes the JWT payload without verifying the signature.
-      // For a personal single-user app this is acceptable since the Google OAuth flow 
-      // itself validates the token, but we still verify the aud claim matches our GOOGLE_CLIENT_ID
-      // to prevent token reuse from other apps.
-      const decoded: any = jwtDecode(credentialResponse.credential);
-      
-      // Validate aud matches our app to prevent token reuse
-      if (decoded.aud !== import.meta.env.VITE_GOOGLE_CLIENT_ID) {
-        setError("Token audience mismatch. Possible replay attack.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Validate expiry
-      if (!decoded.exp || (Date.now() / 1000) > decoded.exp) {
-        setError("Token has expired. Please sign in again.");
-        setIsLoading(false);
-        return;
-      }
-
-      // Validate issuer
-      const VALID_ISSUERS = ['accounts.google.com', 'https://accounts.google.com'];
-      if (!VALID_ISSUERS.includes(decoded.iss)) {
-        setError("Token issuer is invalid.");
-        setIsLoading(false);
-        return;
-      }
-
-      const userData = {
-        id: decoded.sub,
-        email: decoded.email,
-        name: decoded.name,
-        picture: decoded.picture,
-      };
-      
-      login({ ...userData, token: credentialResponse.credential });
+      await signInWithGoogle(); // Supabase handles the redirect
     } catch (e: any) {
-      console.error("Google Login Decoding Error", e);
-      setError(e.message || "Failed to verify Google account. Please try again.");
-    } finally {
+      setError(e.message || 'Google Sign-In failed. Please try again.');
       setIsLoading(false);
     }
   };
 
-  const handleGoogleError = () => {
-    setError("Google Sign-In failed. Please try again.");
-  };
-
   const handleDemoLogin = () => {
+    if (import.meta.env.PROD) {
+      setError('Demo preview mode is disabled in production.');
+      return;
+    }
     setIsLoading(true);
-    setError('');
-    // Use a fixed demo profile that bypasses the synthetic-ID guard
     const demoProfile = {
       id: 'demo_preview_account_001',
       email: 'demo@avbucketlist.app',
       name: 'Demo User',
       picture: undefined,
-      token: 'demo-session-token',
+      isDemo: true,
     };
-    // Small delay to feel intentional
     setTimeout(() => {
       login(demoProfile);
       setIsLoading(false);
@@ -89,72 +43,76 @@ const LoginPage: React.FC = () => {
       {/* Dynamic Background */}
       <div className="absolute inset-0 overflow-hidden">
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat opacity-[0.45] scale-110 animate-subtle-zoom"
-          style={{ backgroundImage: `url(https://images.unsplash.com/photo-1574267431647-c82aba213af5?q=80&w=2000&auto=format&fit=crop)` }}
-        ></div>
-        {/* Animated Gradient Grids */}
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,transparent_0%,rgba(10,10,10,1)_100%)]"></div>
-        <div className="absolute inset-0 bg-gradient-to-b from-[#0a0a0a]/90 via-transparent to-[#0a0a0a]"></div>
+          className="absolute inset-0 bg-cover bg-center opacity-[0.12] scale-105 filter blur-[2px]"
+          style={{
+            backgroundImage: `url('https://images.unsplash.com/photo-1574267431629-2b5709b8f5f8?q=80&w=2000')`
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#0a0a0a] via-[#0a0a0a]/80 to-transparent"></div>
+        <div className="absolute inset-0 bg-radial-gradient"></div>
       </div>
 
-      {/* Navbar / Logo */}
-      <header className="relative z-20 px-6 py-6 md:px-12 flex justify-between items-center">
-        <div className="flex items-center gap-3 cursor-pointer select-none">
-          <Tv className="w-8 h-8 md:w-10 md:h-10 text-red-600 drop-shadow-[0_0_15px_rgba(229,9,20,0.5)]" />
-          <h1 className="text-white text-2xl md:text-3xl font-extrabold tracking-tight shadow-black drop-shadow-md">
-            AV's Bucket List
-          </h1>
-        </div>
-      </header>
+      <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
+        {/* Auth Card Container */}
+        <div className="w-full max-w-[440px] bg-black/60 backdrop-blur-xl border border-white/5 rounded-2xl p-8 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.5)]">
+          {/* Logo & Header */}
+          <div className="flex flex-col items-center mb-8">
+            <div className="w-14 h-14 bg-gradient-to-br from-red-600 to-amber-600 rounded-xl flex items-center justify-center shadow-[0_0_20px_rgba(220,38,38,0.3)] mb-4">
+              <Tv className="w-7 h-7 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight bg-gradient-to-r from-white via-gray-200 to-gray-400 bg-clip-text text-transparent">
+              AV's Bucket List
+            </h1>
+            <p className="text-[#a3a3a3] text-sm text-center mt-2">
+              Track and discover your favorite media in one place.
+            </p>
+          </div>
 
-      {/* Login Card */}
-      <div className="relative z-20 flex justify-center items-center min-h-[80vh] px-4">
-        <div
-          className="w-full max-w-[450px] p-8 md:p-16 bg-black/75 backdrop-blur-md rounded-xl shadow-2xl border border-white/10"
-        >
-          <h2 className="text-3xl font-bold mb-8 text-white">Sign In</h2>
-
-          <div className="flex flex-col gap-6">
-            {/* Google Login Button */}
-            <div className="w-full flex flex-col items-center gap-4">
-              <div className="w-full h-px bg-white/10 mb-2"></div>
-              <div className="w-full flex justify-center scale-110 origin-center transition-transform hover:scale-[1.12]">
-                <GoogleLogin
-                  onSuccess={handleGoogleSuccess}
-                  onError={handleGoogleError}
-                  theme="filled_blue"
-                  size="large"
-                  width="100%"
-                  shape="rectangular"
-                  text="continue_with"
-                />
+          <div className="space-y-6">
+            {/* Google Sign-in Section */}
+            <div className="bg-white/[0.03] border border-white/5 p-5 rounded-xl hover:border-white/10 transition-colors">
+              <h2 className="text-sm font-semibold text-white/90 mb-3 text-center">
+                Sign in to Sync
+              </h2>
+              <div className="flex justify-center">
+                <button
+                  onClick={handleGoogleSignIn}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded bg-white text-gray-900 font-medium hover:bg-gray-100 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? <Loader className="animate-spin w-5 h-5" /> : 'Continue with Google'}
+                </button>
               </div>
               <p className="text-gray-500 text-xs text-center mt-2">
                 Securely sign in with your Google account.
               </p>
             </div>
 
-            {/* Divider */}
-            <div className="flex items-center gap-3">
-              <div className="flex-1 h-px bg-white/10"></div>
-              <span className="text-xs text-gray-500 uppercase tracking-widest">or</span>
-              <div className="flex-1 h-px bg-white/10"></div>
-            </div>
+            {import.meta.env.DEV && (
+              <>
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-white/10"></div>
+                  <span className="text-xs text-gray-500 uppercase tracking-widest">or</span>
+                  <div className="flex-1 h-px bg-white/10"></div>
+                </div>
 
-            {/* Demo Login Button */}
-            <button
-              type="button"
-              onClick={handleDemoLogin}
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-lg bg-gradient-to-r from-purple-600/80 to-indigo-600/80 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm transition-all duration-300 border border-white/10 hover:border-white/20 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {isLoading ? (
-                <Loader className="w-5 h-5 animate-spin" />
-              ) : (
-                <Play className="w-5 h-5" />
-              )}
-              {isLoading ? 'Entering Demo...' : 'Try Demo Preview'}
-            </button>
+                {/* Demo Login Button */}
+                <button
+                  type="button"
+                  onClick={handleDemoLogin}
+                  disabled={isLoading}
+                  className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-lg bg-gradient-to-r from-purple-600/80 to-indigo-600/80 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm transition-all duration-300 border border-white/10 hover:border-white/20 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoading ? (
+                    <Loader className="w-5 h-5 animate-spin" />
+                  ) : (
+                    <Play className="w-5 h-5" />
+                  )}
+                  {isLoading ? 'Entering Demo...' : 'Try Demo Preview'}
+                </button>
+              </>
+            )}
 
             {/* Error Message */}
             {error && (

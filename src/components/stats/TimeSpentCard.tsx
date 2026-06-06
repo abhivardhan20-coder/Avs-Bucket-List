@@ -20,8 +20,16 @@ const TimeSpentCard: React.FC<TimeSpentCardProps> = ({ stats }) => {
   return (
     <>
       <div
+        role="button"
+        tabIndex={0}
         onClick={() => setShowPopup(true)}
-        className="bg-gradient-to-br from-[#7f1d1d] to-[#450a0a] p-8 rounded-2xl border border-red-900/50 shadow-xl text-white relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.01] hover:shadow-2xl hover:border-red-500/50"
+        onKeyDown={(e) => {
+          if (e.key === 'Enter' || e.key === ' ') {
+            e.preventDefault();
+            setShowPopup(true);
+          }
+        }}
+        className="bg-gradient-to-br from-[#7f1d1d] to-[#450a0a] p-8 rounded-2xl border border-red-900/50 shadow-xl text-white relative overflow-hidden group cursor-pointer transition-all hover:scale-[1.01] hover:shadow-2xl hover:border-red-500/50 outline-none focus:ring-2 focus:ring-red-500"
       >
         <h3 className="text-2xl font-bold mb-8 flex items-center gap-2 relative z-10">
           <Clock className="w-6 h-6" /> Time Invested

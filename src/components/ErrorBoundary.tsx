@@ -1,4 +1,6 @@
+/* eslint-disable react-refresh/only-export-components */
 import React, { useCallback } from 'react';
+import { log } from '@/lib/logger';
 import { ErrorBoundary as ReactErrorBoundary, FallbackProps } from 'react-error-boundary';
 import { useQueryErrorResetBoundary } from '@tanstack/react-query';
 import { AlertTriangle, RefreshCcw, Home, X, Bug } from 'lucide-react';
@@ -22,7 +24,7 @@ const reportError = (error: Error, info: { componentStack: string }, variant: Er
   console.group(`%c Error Boundary Caught [${variant}] `, 'background: #991b1b; color: #fff; font-weight: bold;');
   console.error('Error:', error.message);
   console.error('Component Stack:', info.componentStack);
-  console.log('Timestamp:', new Date().toISOString());
+  log(`Error Boundary Caught [${variant}]: ${error.message}\nStack: ${info.componentStack}`, 'error', 'ErrorBoundary');
   console.groupEnd();
 };
 

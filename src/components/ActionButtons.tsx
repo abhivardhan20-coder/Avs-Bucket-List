@@ -100,12 +100,17 @@ export const MarkSeasonButton: React.FC<SeasonActionButtonProps> = ({ item, seas
       // Unmark requires episodes to be present to calculate runtime removal correctly
       if (!season.episodes || season.episodes.length === 0) {
         setLoading(true);
-        const hydrated = await hydrateSeason(item, season);
-        if (onEpisodesLoaded && hydrated.episodes) onEpisodesLoaded(hydrated.episodes);
-        const res = await unmarkSeason(item, hydrated);
-        setLoading(false);
-        if (res.success && onSuccess) onSuccess(res.message);
-        else if (onError) onError(res.message);
+        try {
+          const hydrated = await hydrateSeason(item, season);
+          if (onEpisodesLoaded && hydrated.episodes) onEpisodesLoaded(hydrated.episodes);
+          const res = await unmarkSeason(item, hydrated);
+          if (res.success && onSuccess) onSuccess(res.message);
+          else if (onError) onError(res.message);
+        } catch {
+          if (onError) onError("Failed to unmark season. Please try again.");
+        } finally {
+          setLoading(false);
+        }
       } else {
         const res = await unmarkSeason(item, season);
         if (res.success && onSuccess) onSuccess(res.message);
@@ -115,12 +120,17 @@ export const MarkSeasonButton: React.FC<SeasonActionButtonProps> = ({ item, seas
       // Mark requires hydration
       if (!season.episodes || season.episodes.length === 0) {
         setLoading(true);
-        const hydrated = await hydrateSeason(item, season);
-        if (onEpisodesLoaded && hydrated.episodes) onEpisodesLoaded(hydrated.episodes);
-        const res = await markSeasonAsWatched(item, hydrated);
-        setLoading(false);
-        if (res.success && onSuccess) onSuccess(res.message);
-        else if (onError) onError(res.message);
+        try {
+          const hydrated = await hydrateSeason(item, season);
+          if (onEpisodesLoaded && hydrated.episodes) onEpisodesLoaded(hydrated.episodes);
+          const res = await markSeasonAsWatched(item, hydrated);
+          if (res.success && onSuccess) onSuccess(res.message);
+          else if (onError) onError(res.message);
+        } catch {
+          if (onError) onError("Failed to load season data. Please try again.");
+        } finally {
+          setLoading(false);
+        }
       } else {
         const res = await markSeasonAsWatched(item, season);
         if (res.success && onSuccess) onSuccess(res.message);

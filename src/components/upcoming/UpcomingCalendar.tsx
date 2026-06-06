@@ -1,234 +1,32 @@
+/* eslint-disable react-refresh/only-export-components */
 
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { withAppErrorBoundary } from '../ErrorBoundary';
 import { useDebounce } from '../../hooks/useDebounce';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlertTriangle, RefreshCw, Film, Tv, Zap, ImageOff } from 'lucide-react';
-import { MediaItem, MediaType, Episode } from '../../types';
+import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, AlertTriangle, RefreshCw } from 'lucide-react';
+import { MediaItem, MediaType } from '../../types';
 import { useLibrary } from '../../contexts/AppContext';
-import { fetchItemsByIds, fetchSeasonDetails } from '../../services/tmdb';
-import { parseLocalDate } from '../../lib/dateUtils';
-import OptimizedImage from '../OptimizedImage';
+import { useCalendarData } from '../../hooks/useCalendarData';
+import { CalendarEntry, DOT_COLORS, TYPE_ICON, CalendarEntryRow } from './CalendarConstants';
 
 interface UpcomingCalendarProps {
   onItemClick: (item: MediaItem) => void;
-}
-
-/**
- * A single calendar entry representing one date-specific event
- * tied to a media item in the user's library.
- */
-interface CalendarEntry {
-  item: MediaItem;
-  date: string;           // YYYY-MM-DD
-  label: string;          // e.g. "S3 E5 – Episode Title" or "Movie Release"
-  type: MediaType;
-  episodeInfo?: { season: number; episode: number; name: string };
 }
 
 /** Helper: YYYY-MM-DD key from a Date using local time */
 const getDateKey = (date: Date): string =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-const DOT_COLORS: Record<MediaType, { normal: string; selected: string; glow: string }> = {
-  [MediaType.Movie]:  { normal: 'bg-red-500',    selected: 'bg-red-400',    glow: 'shadow-red-500/60' },
-  [MediaType.Series]: { normal: 'bg-blue-500',   selected: 'bg-blue-400',   glow: 'shadow-blue-500/60' },
-  [MediaType.Anime]:  { normal: 'bg-violet-500', selected: 'bg-violet-400', glow: 'shadow-violet-500/60' },
-  [MediaType.Other]:  { normal: 'bg-gray-500',   selected: 'bg-gray-400',   glow: '' },
-};
-
-const TYPE_ICON: Record<string, React.ReactNode> = {
-  [MediaType.Movie]:  <Film className="w-3 h-3" />,
-  [MediaType.Series]: <Tv className="w-3 h-3" />,
-  [MediaType.Anime]:  <Zap className="w-3 h-3" />,
-};
-
-const TYPE_BADGE_COLOR: Record<string, string> = {
-  [MediaType.Movie]:  'bg-red-500/10 text-red-400 border-red-500/20',
-  [MediaType.Series]: 'bg-blue-500/10 text-blue-400 border-blue-500/20',
-  [MediaType.Anime]:  'bg-violet-500/10 text-violet-400 border-violet-500/20',
-};
-
-// ── Inline detail row for the selected-day panel ──────────────────────
-const CalendarEntryRow: React.FC<{
-  entry: CalendarEntry;
-  onClick: () => void;
-}> = ({ entry, onClick }) => {
-  const [imgError, setImgError] = useState(false);
-  const colors = TYPE_BADGE_COLOR[entry.type] || '';
-
-  return (
-    <div
-      onClick={onClick}
-      className="flex items-center gap-3 p-2.5 hover:bg-white/[0.04] cursor-pointer group transition-all rounded-xl border border-transparent hover:border-white/5"
-    >
-      {/* Poster thumbnail */}
-      <div className="relative w-9 h-12 rounded-lg overflow-hidden flex-shrink-0 bg-[#1a1a1a] border border-white/5">
-        {imgError ? (
-          <div className="w-full h-full flex items-center justify-center">
-            <ImageOff className="w-3 h-3 text-gray-600" />
-          </div>
-        ) : (
-          <OptimizedImage
-            src={entry.item.posterUrl || ''}
-            alt={entry.item.title}
-            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
-            onError={() => setImgError(true)}
-          />
-        )}
-      </div>
-
-      {/* Info */}
-      <div className="flex-1 min-w-0">
-        <h5 className="text-xs font-bold text-white truncate group-hover:text-red-400 transition-colors leading-tight">
-          {entry.item.title}
-        </h5>
-        <p className="text-[10px] text-gray-500 font-medium truncate mt-0.5">
-          {entry.label}
-        </p>
-      </div>
-
-      {/* Type badge */}
-      <div className={`flex items-center gap-1 px-2 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-widest flex-shrink-0 ${colors}`}>
-        {TYPE_ICON[entry.type]}
-      </div>
-    </div>
-  );
-};
-
 
 const UpcomingCalendar: React.FC<UpcomingCalendarProps> = ({ onItemClick }) => {
-  const { watchlist, watched, isInWatchlist, addToWatchlist, removeFromWatchlist, isWatched, markMovieAsWatched, unmarkMovie, markSeriesAsWatched, unmarkSeries } = useLibrary();
+  const { watchlist, watched } = useLibrary();
 
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [entries, setEntries] = useState<CalendarEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
-  // Keep the hydrated items for watchlist/watched toggle actions
-  const [itemMap, setItemMap] = useState<Map<string, MediaItem>>(new Map());
-
-  /**
-   * Load calendar data exclusively from the user's watchlist + watched items.
-   * For series/anime, fetches the current airing season's episode list so that
-   * weekly episodes each get their own calendar dot.
-   */
-  const loadCalendarData = useCallback(async () => {
-    setLoading(true);
-    setError(false);
-    try {
-      // 1. Collect unique IDs from watchlist + watched
-      const uniqueIds = new Set<string>();
-      watchlist.forEach(item => uniqueIds.add(item.id));
-      watched.forEach(item => uniqueIds.add(item.id));
-
-      const ids = Array.from(uniqueIds);
-      if (ids.length === 0) {
-        setEntries([]);
-        setItemMap(new Map());
-        return;
-      }
-
-      // 2. Fetch full details for all items
-      const freshItems = await fetchItemsByIds(ids);
-      const map = new Map<string, MediaItem>();
-      freshItems.forEach(item => map.set(item.id, item));
-      setItemMap(map);
-
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const calEntries: CalendarEntry[] = [];
-
-      // 3. Process each item
-      const seasonFetchPromises: Promise<void>[] = [];
-
-      for (const item of freshItems) {
-        if (item.type === MediaType.Movie) {
-          // Movies: add release date if future
-          if (item.releaseDate) {
-            const d = parseLocalDate(item.releaseDate);
-            if (d && d >= today) {
-              calEntries.push({
-                item,
-                date: item.releaseDate,
-                label: 'Movie Release',
-                type: MediaType.Movie,
-              });
-            }
-          }
-        } else {
-          // Series / Anime — we need individual episode air dates
-          // If there's a nextEpisode, fetch that season to get all episode dates
-          if (item.nextEpisode) {
-            const seasonNum = item.nextEpisode.seasonNumber;
-            seasonFetchPromises.push(
-              fetchSeasonDetails(item.id, seasonNum)
-                .then((episodes: Episode[] | null) => {
-                  if (!episodes) return;
-                  for (const ep of episodes) {
-                    if (!ep.airDate) continue;
-                    const epDate = parseLocalDate(ep.airDate);
-                    if (!epDate || epDate < today) continue;
-
-                    calEntries.push({
-                      item,
-                      date: ep.airDate,
-                      label: `S${seasonNum} E${ep.number}${ep.title ? ` – ${ep.title}` : ''}`,
-                      type: item.type,
-                      episodeInfo: { season: seasonNum, episode: ep.number, name: ep.title || '' },
-                    });
-                  }
-                })
-                .catch(err => {
-                  console.warn(`Failed to fetch S${seasonNum} for ${item.title}:`, err);
-                  // Fallback: just use nextEpisode date
-                  if (item.nextEpisode!.airDate) {
-                    const nd = parseLocalDate(item.nextEpisode!.airDate);
-                    if (nd && nd >= today) {
-                      calEntries.push({
-                        item,
-                        date: item.nextEpisode!.airDate,
-                        label: `S${item.nextEpisode!.seasonNumber} E${item.nextEpisode!.episodeNumber}${item.nextEpisode!.name ? ` – ${item.nextEpisode!.name}` : ''}`,
-                        type: item.type,
-                        episodeInfo: {
-                          season: item.nextEpisode!.seasonNumber,
-                          episode: item.nextEpisode!.episodeNumber,
-                          name: item.nextEpisode!.name || '',
-                        },
-                      });
-                    }
-                  }
-                })
-            );
-          }
-          // Also check for future season premieres (seasons whose airDate is future but don't have nextEpisode pointing to them)
-          if (item.seasons) {
-            for (const season of item.seasons) {
-              // Skip the season we're already fetching episodes for
-              if (item.nextEpisode && season.number === item.nextEpisode.seasonNumber) continue;
-              if (!season.airDate) continue;
-              const sd = parseLocalDate(season.airDate);
-              if (!sd || sd < today) continue;
-              calEntries.push({
-                item,
-                date: season.airDate,
-                label: `${season.title || `Season ${season.number}`} Premiere`,
-                type: item.type,
-              });
-            }
-          }
-        }
-      }
-
-      // Wait for all season episode fetches to complete
-      await Promise.all(seasonFetchPromises);
-
-      setEntries(calEntries);
-    } catch (err) {
-      console.error('Calendar load error:', err);
-      setError(true);
-    } finally {
-      setLoading(false);
-    }
-  }, [watchlist, watched]);
+  const { entries, loading, error, loadCalendarData } = useCalendarData(
+    watchlist as unknown as MediaItem[], 
+    watched as unknown as MediaItem[]
+  );
 
   // Fix 5: Debounce loadCalendarData and stabilize the dependency
   const watchlistIds = useMemo(() => watchlist.map(w => w.id).sort().join(','), [watchlist]);
@@ -238,29 +36,10 @@ const UpcomingCalendar: React.FC<UpcomingCalendarProps> = ({ onItemClick }) => {
 
   useEffect(() => {
     loadCalendarData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedKey]); 
 
-  // --- Watchlist / Watched handlers ---
-  const handleToggleWatchlist = (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    const item = itemMap.get(id);
-    if (!item) return;
-    if (isInWatchlist(id)) removeFromWatchlist(id);
-    else addToWatchlist(item);
-  };
 
-  const handleToggleWatched = async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    const item = itemMap.get(id);
-    if (!item) return;
-    if (isWatched(id)) {
-      if (item.type === MediaType.Movie) await unmarkMovie(item);
-      else await unmarkSeries(item);
-    } else {
-      if (item.type === MediaType.Movie) await markMovieAsWatched(item);
-      else await markSeriesAsWatched(item);
-    }
-  };
 
   // --- Group entries by date ---
   const entriesByDate = useMemo(() => {
@@ -333,7 +112,9 @@ const UpcomingCalendar: React.FC<UpcomingCalendarProps> = ({ onItemClick }) => {
     return cells;
   }, [year, month, daysInMonth, firstDay, entriesByDate, todayKey, selectedKey]);
 
-  const selectedEntries = entriesByDate.get(selectedKey) || [];
+  const selectedEntries = useMemo(() => {
+    return entriesByDate.get(selectedKey) || [];
+  }, [entriesByDate, selectedKey]);
 
   // Group selected entries by type for the detail panel
   const groupedSelected = useMemo(() => {
@@ -467,4 +248,4 @@ const UpcomingCalendar: React.FC<UpcomingCalendarProps> = ({ onItemClick }) => {
   );
 };
 
-export default UpcomingCalendar;
+export default withAppErrorBoundary(UpcomingCalendar);

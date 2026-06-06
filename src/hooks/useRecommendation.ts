@@ -15,7 +15,7 @@ export function useRecommendation(watched: any[], watchlist: any[]) {
     const updateTaste = async () => {
       setLoading(true);
       try {
-        const newTaste = await buildUserTaste(user.email);
+        const newTaste = await buildUserTaste(watched);
         if (isMounted) setTaste(newTaste);
       } catch (err) {
         console.error("Failed to build user taste", err);
@@ -26,7 +26,7 @@ export function useRecommendation(watched: any[], watchlist: any[]) {
 
     updateTaste();
     return () => { isMounted = false; };
-  }, [user?.email, watched.length]);
+  }, [user?.email, watched]);
 
   const getRecommendations = useMemo(() => {
     return (pool: MediaItem[]) => {

@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
 
-export const DebugOverlay: React.FC = () => {
+export default function DebugOverlay() {
     const [logs, setLogs] = useState<string[]>([]);
 
     useEffect(() => {
+        if (!import.meta.env.DEV) return;
+
         const originalConsoleError = console.error;
         console.error = (...args) => {
             // Use setTimeout to avoid 'Cannot update a component while rendering another component' warning
@@ -38,9 +40,6 @@ export const DebugOverlay: React.FC = () => {
 
         window.addEventListener('error', errorHandler);
 
-        // Test log
-        console.log("Debug Overlay Initialized");
-
         return () => {
             console.error = originalConsoleError;
             console.warn = originalConsoleWarn;
@@ -48,6 +47,7 @@ export const DebugOverlay: React.FC = () => {
         };
     }, []);
 
+    if (!import.meta.env.DEV) return null;
     if (logs.length === 0) return null;
 
     return (
@@ -78,4 +78,4 @@ export const DebugOverlay: React.FC = () => {
             </div>
         </div>
     );
-};
+}

@@ -1,8 +1,7 @@
-
-import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
+import { FixedSizeList } from 'react-window';
 import ContentCard from './ContentCard';
 import SkeletonCard from './SkeletonCard';
-import HorizontalScrollContainer from './HorizontalScrollContainer';
 import { MediaItem } from '../types';
 import { AlertCircle, RefreshCw } from 'lucide-react';
 
@@ -37,6 +36,20 @@ const ContentRow: React.FC<ContentRowProps> = ({
   const [hasMore, setHasMore] = useState(true);
   const [error, setError] = useState(false);
 
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [width, setWidth] = useState(1000); // Default fallback width
+
+  useLayoutEffect(() => {
+    if (!containerRef.current) return;
+    const observer = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        setWidth(entry.contentRect.width);
+      }
+    });
+    observer.observe(containerRef.current);
+    return () => observer.disconnect();
+  }, []);
+
   const visibleItems = useMemo(() => {
     return items.filter(item => !excludedIds.has(item.id));
   }, [items, excludedIds]);
@@ -65,22 +78,25 @@ const ContentRow: React.FC<ContentRowProps> = ({
       if (newItems.length === 0) {
         setHasMore(false);
       } else {
+        let uniqueNewItems: MediaItem[] = [];
+        
         setItems(prev => {
           const existingIds = new Set(prev.map(i => i.id));
-          const uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
-          
-          if (onDataFetched) {
-             onDataFetched(uniqueNewItems);
-          }
-          
+          uniqueNewItems = newItems.filter(i => !existingIds.has(i.id));
           return [...prev, ...uniqueNewItems];
         });
+        
+        // Execute the side effect safely outside the setState callback
+        if (onDataFetched && uniqueNewItems.length > 0) {
+          onDataFetched(uniqueNewItems);
+        }
       }
     } catch (err) {
       console.error(`Error fetching row data for ${title}`, err);
       setError(true);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
       hasInitiallyLoaded.current = true;
     }
   }, [fetchStrategy, onDataFetched, title]);
@@ -97,19 +113,16 @@ const ContentRow: React.FC<ContentRowProps> = ({
   }, [page, loadData]);
 
   useEffect(() => {
-    // Auto-fill row with a safety guard to prevent infinite update depth
-    // MAX 3 pages to prevent runaway pagination (rate limit protection)
     if (!loading && hasMore && visibleItems.length < 5 && items.length > 0 && !error && page < 3) {
       const timer = setTimeout(() => {
         setPage(prev => prev + 1);
-      }, 400); // 400ms debounce to allow React to breathe and avoid burst requests
+      }, 400); 
       return () => clearTimeout(timer);
     }
   }, [visibleItems.length, loading, hasMore, items.length, error, page]);
 
-  const handleScroll = (e: React.UIEvent<HTMLDivElement>) => {
-    const { scrollLeft, scrollWidth, clientWidth } = e.currentTarget;
-    if (scrollLeft + clientWidth >= scrollWidth - 600) {
+  const handleItemsRendered = ({ visibleStopIndex }: { visibleStopIndex: number }) => {
+    if (visibleStopIndex >= visibleItems.length - 2) {
        if (!loading && hasMore && !error) {
          setPage(prev => prev + 1);
        }
@@ -148,53 +161,74 @@ const ContentRow: React.FC<ContentRowProps> = ({
   // 3. Initial loading state - reserve space with skeletons
   const showInitialSkeletons = !hasInitiallyLoaded.current || (loading && items.length === 0);
 
+  const totalItems = visibleItems.length + (showInitialSkeletons ? 8 : (loading ? 5 : (error ? 1 : 0)));
+
   return (
-    <div className="mb-8 px-4 md:px-12 animate-in slide-in-from-bottom-5 duration-700">
+    <div className="mb-8 px-4 md:px-12 animate-in slide-in-from-bottom-5 duration-700" ref={containerRef}>
       <div className="flex items-center gap-2 mb-4">
         {icon}
         <h2 className="text-xl md:text-2xl font-bold text-white">{title}</h2>
       </div>
-      <HorizontalScrollContainer onScroll={handleScroll} className="min-h-[300px] md:min-h-[380px]">
-        {visibleItems.map(item => (
-          <div key={`${title}-${item.id}`} className="snap-start">
-            <ContentCard 
-              item={item}
-              onClick={onCardClick}
-              isInWatchlist={isInWatchlist(item.id)}
-              onToggleWatchlist={onToggleWatchlist}
-              isWatched={isWatched(item.id)}
-              onToggleWatched={onToggleWatched}
-            />
-          </div>
-        ))}
-        
-        {(loading || showInitialSkeletons) && Array.from({ length: showInitialSkeletons ? 8 : 5 }).map((_, i) => (
-          <div key={`skel-${i}`} className="snap-start">
-            <SkeletonCard />
-          </div>
-        ))}
+      
+      {width > 0 && (
+        <FixedSizeList
+          layout="horizontal"
+          height={380}
+          width={width}
+          itemCount={totalItems}
+          itemSize={240} // Content card + gap size approx
+          overscanCount={5}
+          itemData={visibleItems}
+          onItemsRendered={handleItemsRendered}
+        >
+          {({ index, style, data }) => {
+            // Render actual data item
+            if (index < data.length) {
+              const item = data[index];
+              return (
+                <div style={{ ...style, paddingRight: 16 }}>
+                  <ContentCard 
+                    item={item}
+                    onClick={onCardClick}
+                    isInWatchlist={isInWatchlist(item.id)}
+                    onToggleWatchlist={onToggleWatchlist}
+                    isWatched={isWatched(item.id)}
+                    onToggleWatched={onToggleWatched}
+                  />
+                </div>
+              );
+            }
 
-        {/* 3. Pagination Error (Items exist, failed to load next page) */}
-        {error && items.length > 0 && (
-          <div className="snap-start flex items-center justify-center min-w-[200px] h-[240px] md:h-[300px]">
-             <button 
-                onClick={() => loadData(page)}
-                disabled={loading}
-                className="group flex flex-col items-center gap-3 text-red-500 hover:text-red-400 transition-colors p-4 rounded-xl hover:bg-white/5"
-             >
-                <div className="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors">
-                  <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
+            // Render Error state at the end
+            if (error && index === data.length) {
+              return (
+                <div style={{ ...style, paddingRight: 16 }} className="flex items-center justify-center h-full">
+                  <button 
+                    onClick={() => loadData(page)}
+                    disabled={loading}
+                    className="group flex flex-col items-center gap-3 text-red-500 hover:text-red-400 transition-colors p-4 rounded-xl hover:bg-white/5"
+                  >
+                    <div className="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors">
+                      <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
+                    </div>
+                    <div className="text-center">
+                      <span className="block text-sm font-bold">Failed to load more</span>
+                      <span className="block text-xs opacity-60 mt-1">Tap to retry</span>
+                    </div>
+                  </button>
                 </div>
-                <div className="text-center">
-                  <span className="block text-sm font-bold">Failed to load more</span>
-                  <span className="block text-xs opacity-60 mt-1">Tap to retry</span>
-                </div>
-             </button>
-          </div>
-        )}
-        
-        <div className="w-12 flex-shrink-0"></div>
-      </HorizontalScrollContainer>
+              );
+            }
+
+            // Render Skeleton loaders
+            return (
+              <div style={{ ...style, paddingRight: 16 }}>
+                <SkeletonCard />
+              </div>
+            );
+          }}
+        </FixedSizeList>
+      )}
     </div>
   );
 };

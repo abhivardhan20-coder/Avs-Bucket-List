@@ -1,5 +1,7 @@
+/* eslint-disable react-refresh/only-export-components */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { withAppErrorBoundary } from './ErrorBoundary';
 import { Play, Info, Bookmark, Star, Calendar, Bell, ExternalLink, ImageOff } from 'lucide-react';
 import { MediaItem } from '../types';
 import { fetchTrailerKey } from '../services/tmdb';
@@ -79,10 +81,20 @@ const Hero: React.FC<HeroProps> = ({
     setBgLoaded(false);
   }
 
-  const handleBgLoad = () => {
+  const handleBgLoad = useCallback(() => {
     setPrevImage(currentImage);
     setBgLoaded(true);
-  };
+  }, [currentImage]);
+
+  const imgRef = useRef<HTMLImageElement>(null);
+  useEffect(() => {
+    if (imgRef.current?.complete && imgRef.current.naturalWidth > 0) {
+      const timer = setTimeout(() => {
+        handleBgLoad();
+      }, 0);
+      return () => clearTimeout(timer);
+    }
+  }, [currentImage, handleBgLoad]);
 
   if (!item) return null;
 
@@ -122,6 +134,7 @@ const Hero: React.FC<HeroProps> = ({
             )}
             {/* Current image layer — fades in on load */}
             <img
+              ref={imgRef}
               key={`hero-bg-${item.id}`}
               src={currentImage || undefined}
               alt={item.title}
@@ -145,7 +158,14 @@ const Hero: React.FC<HeroProps> = ({
             <span className="bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded text-[10px] font-bold uppercase tracking-widest border border-white/20">{item.type}</span>
           </div>
 
-          <h1 className="text-3xl md:text-5xl lg:text-7xl font-black mb-6 drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] animate-slide-up leading-[1.1] cursor-pointer" onClick={() => onMoreInfo(item)}>{item.title}</h1>
+          <h1 className="text-3xl md:text-5xl lg:text-7xl font-black mb-6 drop-shadow-[0_5px_15px_rgba(0,0,0,0.8)] animate-slide-up leading-[1.1]">
+            <button
+              onClick={() => onMoreInfo(item)}
+              className="text-left cursor-pointer outline-none focus:ring-2 focus:ring-red-500 rounded font-black text-white hover:text-red-500 transition-colors"
+            >
+              {item.title}
+            </button>
+          </h1>
 
           <div className="flex flex-col gap-6 animate-slide-up [animation-delay:200ms] opacity-0 [animation-fill-mode:forwards]">
             <div className="flex flex-wrap items-center gap-4 text-sm font-bold text-gray-200">
@@ -193,4 +213,4 @@ const Hero: React.FC<HeroProps> = ({
   );
 };
 
-export default Hero;
+export default withAppErrorBoundary(Hero);

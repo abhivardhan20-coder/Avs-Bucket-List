@@ -4,40 +4,69 @@ title AV's Bucket List - Bootstrapper
 
 :: --- CONFIGURATION ---
 set PORT=3000
-set B_PORT=8000
-set CHROME="C:\Program Files\Google\Chrome\Application\chrome.exe"
-set BRAVE="C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"
-set EDGE="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+
+:: Find Chrome in common installation paths
+set CHROME=
+if exist "C:\Program Files\Google\Chrome\Application\chrome.exe" (
+    set CHROME="C:\Program Files\Google\Chrome\Application\chrome.exe"
+) else if exist "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" (
+    set CHROME="C:\Program Files (x86)\Google\Chrome\Application\chrome.exe"
+) else if exist "%USERPROFILE%\AppData\Local\Google\Chrome\Application\chrome.exe" (
+    set CHROME="%USERPROFILE%\AppData\Local\Google\Chrome\Application\chrome.exe"
+) else if exist "%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe" (
+    set CHROME="%LOCALAPPDATA%\Google\Chrome\Application\chrome.exe"
+)
+
+:: Find Brave in common installation paths
+set BRAVE=
+if exist "C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe" (
+    set BRAVE="C:\Program Files\BraveSoftware\Brave-Browser\Application\brave.exe"
+) else if exist "C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe" (
+    set BRAVE="C:\Program Files (x86)\BraveSoftware\Brave-Browser\Application\brave.exe"
+) else if exist "%USERPROFILE%\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe" (
+    set BRAVE="%USERPROFILE%\AppData\Local\BraveSoftware\Brave-Browser\Application\brave.exe"
+) else if exist "%LOCALAPPDATA%\BraveSoftware\Brave-Browser\Application\brave.exe" (
+    set BRAVE="%LOCALAPPDATA%\BraveSoftware\Brave-Browser\Application\brave.exe"
+)
+
+:: Find Edge in common installation paths
+set EDGE=
+if exist "C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe" (
+    set EDGE="C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe"
+) else if exist "C:\Program Files\Microsoft\Edge\Application\msedge.exe" (
+    set EDGE="C:\Program Files\Microsoft\Edge\Application\msedge.exe"
+) else if exist "%USERPROFILE%\AppData\Local\Microsoft\Edge\Application\msedge.exe" (
+    set EDGE="%USERPROFILE%\AppData\Local\Microsoft\Edge\Application\msedge.exe"
+) else if exist "%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe" (
+    set EDGE="%LOCALAPPDATA%\Microsoft\Edge\Application\msedge.exe"
+)
 :: ---------------------
 
 echo.
 echo  ================================================
-echo     AV's Bucket List - System Startup
+echo     AV's Bucket List - System Startup (Supabase)
 echo  ================================================
 echo.
 
-:: 1. Cleanup old processes using PowerShell (more reliable)
-echo [1/4] Checking for stale processes...
-powershell -Command "Get-NetTCPConnection -LocalPort %PORT% -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
-powershell -Command "Get-NetTCPConnection -LocalPort %B_PORT% -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
-
-:: 2. Dependencies
-if not exist "node_modules\" (
-    echo [2/4] Installing dependencies...
-    call npm install
+:: 1. Cleanup old processes using standard cmd utilities
+echo [1/3] Checking for stale processes on port %PORT%...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :%PORT% ^| findstr LISTENING 2^>nul') do (
+    echo     ^> Killing process %%a running on port %PORT%...
+    taskkill /F /PID %%a >nul 2>&1
 )
 
-:: 3. Start Servers
-echo [3/4] Starting Frontend Server...
+:: 2. Dependencies check
+if not exist "node_modules\" (
+    echo [2/3] Installing dependencies...
+    call npm install --legacy-peer-deps
+)
+
+:: 3. Start Server
+echo [3/3] Starting Frontend Server...
 start /B npm run dev -- --port %PORT%
 
-if exist "backend\main.py" (
-    echo     ^> Starting Backend...
-    start /B python backend/main.py
-)
-
 :: 4. Launch Browser
-echo [4/4] Waiting for server to respond...
+echo Waiting for frontend server to respond...
 set ATTEMPTS=0
 :WAIT_LOOP
 set /a ATTEMPTS+=1
@@ -45,31 +74,40 @@ if %ATTEMPTS% gtr 20 (
     echo [!] Server failed to start in time.
     goto ERROR
 )
-powershell -Command "(New-Object System.Net.WebClient).DownloadString('http://localhost:%PORT%')" > nul 2>&1
+:: Use native curl if available, fallback to PowerShell
+curl -s -I http://localhost:%PORT% > nul 2>&1
 if %ERRORLEVEL% neq 0 (
-    timeout /t 1 /nobreak > nul
-    goto WAIT_LOOP
+    powershell -Command "(New-Object System.Net.WebClient).DownloadString('http://localhost:%PORT%')" > nul 2>&1
+    if !ERRORLEVEL! neq 0 (
+        timeout /t 1 /nobreak > nul
+        goto WAIT_LOOP
+    )
 )
 
 echo     ^> Server is LIVE. Launching App...
-start "" README.md
 
 :: Try Chrome
-if exist %CHROME% (
-    start "" /WAIT %CHROME% --app=http://localhost:%PORT% --user-data-dir="%CD%\.pwa-profile" --no-first-run
-    goto CLEANUP
+if defined CHROME (
+    if exist %CHROME% (
+        start "" /WAIT %CHROME% --app=http://localhost:%PORT% --user-data-dir="%CD%\.pwa-profile" --no-first-run --remote-debugging-port=9222
+        goto CLEANUP
+    )
 )
 
 :: Try Brave
-if exist %BRAVE% (
-    start "" /WAIT %BRAVE% --app=http://localhost:%PORT% --user-data-dir="%CD%\.pwa-profile" --no-first-run
-    goto CLEANUP
+if defined BRAVE (
+    if exist %BRAVE% (
+        start "" /WAIT %BRAVE% --app=http://localhost:%PORT% --user-data-dir="%CD%\.pwa-profile" --no-first-run --remote-debugging-port=9222
+        goto CLEANUP
+    )
 )
 
 :: Try Edge
-if exist %EDGE% (
-    start "" /WAIT %EDGE% --app=http://localhost:%PORT% --user-data-dir="%CD%\.pwa-profile" --no-first-run
-    goto CLEANUP
+if defined EDGE (
+    if exist %EDGE% (
+        start "" /WAIT %EDGE% --app=http://localhost:%PORT% --user-data-dir="%CD%\.pwa-profile" --no-first-run --remote-debugging-port=9222
+        goto CLEANUP
+    )
 )
 
 :: Fallback
@@ -81,9 +119,10 @@ pause > nul
 
 :CLEANUP
 echo.
-echo [CLEANUP] Stopping background servers...
-powershell -Command "Get-NetTCPConnection -LocalPort %PORT% -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
-powershell -Command "Get-NetTCPConnection -LocalPort %B_PORT% -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
+echo [CLEANUP] Stopping background server...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr :%PORT% ^| findstr LISTENING 2^>nul') do (
+    taskkill /F /PID %%a >nul 2>&1
+)
 echo System shutdown complete.
 timeout /t 2 > nul
 exit

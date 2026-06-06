@@ -1,7 +1,7 @@
 import { useMemo, useEffect, useRef } from 'react';
 import { WatchedItem, MediaItem, MediaType } from '../types';
 import { useSync } from '../contexts/AppContext';
-import { calculateShowActivity, ActivityResult } from '../utils/showActivity';
+import { calculateShowActivity } from '../utils/showActivity';
 
 /**
  * Intelligent "New Seasons" hook with tight 7-day window.

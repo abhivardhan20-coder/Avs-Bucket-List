@@ -80,8 +80,17 @@ const GenrePieChart: React.FC<GenrePieChartProps> = ({ data }) => {
           <h3 className="text-xl font-bold text-white tracking-tight">Genre Breakdown</h3>
           {others.length > 0 && (
             <div
+              role="button"
+              tabIndex={0}
               onClick={() => { setOtherGenres(others); setShowOtherModal(true); }}
-              className="flex items-center gap-1.5 px-2.5 py-1 bg-red-600/10 border border-red-600/20 rounded-full text-[9px] text-red-500 font-black uppercase tracking-widest cursor-pointer hover:bg-red-600/20 transition-all active:scale-95 shadow-sm"
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setOtherGenres(others);
+                  setShowOtherModal(true);
+                }
+              }}
+              className="flex items-center gap-1.5 px-2.5 py-1 bg-red-600/10 border border-red-600/20 rounded-full text-[9px] text-red-500 font-black uppercase tracking-widest cursor-pointer hover:bg-red-600/20 transition-all active:scale-95 shadow-sm outline-none focus:ring-1 focus:ring-red-500"
             >
               <MousePointerClick className="w-3 h-3" />
               Interactive
@@ -158,6 +167,7 @@ const GenrePieChart: React.FC<GenrePieChartProps> = ({ data }) => {
       {/* Other Genres Modal */}
       {showOtherModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center p-4 animate-in fade-in duration-300 backdrop-blur-md">
+          {/* eslint-disable-next-line jsx-a11y/click-events-have-key-events, jsx-a11y/no-static-element-interactions */}
           <div className="absolute inset-0 bg-black/80" onClick={() => setShowOtherModal(false)} />
           <div className="relative bg-[#1a1a1a] border border-gray-800 w-full max-w-sm rounded-[2.5rem] shadow-[0_0_100px_rgba(0,0,0,0.5)] overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-10">

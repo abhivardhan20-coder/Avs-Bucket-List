@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { MediaItem, MediaType } from '../../types';
 import { Play, Bookmark, Check, Loader, VideoOff } from 'lucide-react';
-import { resolveUpcomingContent } from '../../lib/dateUtils';
+import { getStandardBadge } from '../../lib/dateUtils';
 import { fetchTrailerKey } from '../../services/tmdb';
 import { openYouTubeTrailer } from '../../lib/videoUtils';
 import OptimizedImage from '../OptimizedImage';
@@ -27,9 +27,7 @@ const UpcomingCard: React.FC<UpcomingCardProps> = React.memo(({
   const [loadingTrailer, setLoadingTrailer] = useState(false);
   const [noTrailer, setNoTrailer] = useState(false);
 
-  const upcoming = useMemo(() => resolveUpcomingContent(item), [item]);
-
-  if (!upcoming) return null;
+  const badge = useMemo(() => getStandardBadge(item), [item]);
 
   const handlePlayTrailer = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -65,8 +63,16 @@ const UpcomingCard: React.FC<UpcomingCardProps> = React.memo(({
 
   return (
     <div
-      className="relative group w-[160px] md:w-[200px] aspect-[2/3] bg-[#1a1a1a] rounded-2xl cursor-pointer transition-all duration-500 hover:scale-[1.05] hover:z-20 shadow-2xl hover:shadow-red-900/30 border border-transparent hover:border-white/10 overflow-hidden"
+      role="button"
+      tabIndex={0}
+      className="relative group w-[160px] md:w-[200px] aspect-[2/3] bg-[#1a1a1a] rounded-2xl cursor-pointer transition-all duration-500 hover:scale-[1.05] hover:z-20 shadow-2xl hover:shadow-red-900/30 border border-transparent hover:border-white/10 overflow-hidden outline-none focus:ring-2 focus:ring-red-500"
       onClick={() => onClick(item)}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick(item);
+        }
+      }}
     >
       <OptimizedImage
         src={item.posterUrl}
@@ -76,9 +82,9 @@ const UpcomingCard: React.FC<UpcomingCardProps> = React.memo(({
       
       {/* Dynamic Release Badge */}
       <div className={`absolute top-2.5 left-2.5 px-2 py-1 ${
-        upcoming.status === 'urgent' ? 'bg-red-600' : 'bg-black/60'
+        badge.color
       } text-[9px] font-black rounded text-white shadow-2xl border border-white/10 backdrop-blur-md z-30 animate-in fade-in zoom-in duration-300`}>
-        {upcoming.labelText}
+        {badge.text}
       </div>
 
       {/* Gradient Overlay */}

@@ -1,11 +1,8 @@
-import React, { useState, useEffect, useMemo, Suspense, useCallback } from 'react';
+import React, { useState, useMemo, Suspense, useCallback } from 'react';
 import { useAuth, useWatchlist, useWatched } from '@/contexts/AppContext';
 import { MediaItem, MediaType } from '@/types';
-import { 
-  hydrateSeries 
-} from '@/services/tmdb';
-import { fetchMediaItem } from '@/lib/api/mediaFetcher';
-import StatsListModal, { StatsGroup } from '@/components/stats/StatsListModal';
+
+import StatsListModal from '@/components/stats/StatsListModal';
 import { RootLayout } from '@/layouts/RootLayout';
 import ContentModal from '@/components/ContentModal';
 import LoginPage from '@/components/LoginPage';
@@ -13,8 +10,11 @@ import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { useTrending } from '@/hooks/useContentQueries';
 import { useAppStats } from '@/hooks/useAppStats';
 import { useFilteredMedia } from '@/hooks/useFilteredMedia';
+import { useMediaToggles } from '@/hooks/useMediaToggles';
+import { useStatsModalData } from '@/hooks/useStatsModalData';
 import { db } from '@/lib/db';
-import { useLiveQuery } from 'dexie-react-hooks';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { AppRoutes } from '@/AppRoutes';
 
 // Lazy Pages for better initial load performance
 const Home = lazyWithRetry(() => import(/* webpackChunkName: "home" */ '@/pages/Home').then(module => ({ default: module.Home })));
@@ -24,7 +24,21 @@ const Watched = lazyWithRetry(() => import(/* webpackChunkName: "watched" */ '@/
 const StatsDashboard = lazyWithRetry(() => import(/* webpackChunkName: "stats" */ '@/components/stats/StatsDashboard'));
 
 function App() {
-  const [activeTab, setActiveTab] = useState<'home' | 'upcoming' | 'watchlist' | 'watched' | 'stats'>('home');
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const activeTab = useMemo(() => {
+    const path = location.pathname;
+    if (path.startsWith('/upcoming')) return 'upcoming';
+    if (path.startsWith('/watchlist')) return 'watchlist';
+    if (path.startsWith('/watched')) return 'watched';
+    if (path.startsWith('/stats')) return 'stats';
+    return 'home';
+  }, [location.pathname]);
+
+  const setActiveTab = useCallback((tab: 'home' | 'upcoming' | 'watchlist' | 'watched' | 'stats') => {
+    navigate(tab === 'home' ? '/' : `/${tab}`);
+  }, [navigate]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [appError, setAppError] = useState<string | null>(null);
@@ -36,7 +50,12 @@ function App() {
 
   const [selectedContent, setSelectedContent] = useState<MediaItem | null>(null);
   const [initialEpisodeId, setInitialEpisodeId] = useState<string | undefined>(undefined);
-  const [isProcessing, setIsProcessing] = useState(false);
+
+  const { handleToggleWatchlist, handleToggleWatched, isProcessing } = useMediaToggles(
+    isInWatchlist, removeFromWatchlist, addToWatchlist,
+    isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
+    setAppError
+  );
 
   const handleSetSelectedContent = useCallback((item: MediaItem, episodeId?: string) => {
     setSelectedContent(item);
@@ -52,6 +71,15 @@ function App() {
   const [filterType, setFilterType] = useState<'All' | MediaType>('All');
   const [filterYear, setFilterYear] = useState<string>('All');
   const [filterGenre, setFilterGenre] = useState<string[]>(['All']);
+
+  // Reset filters when changing tabs (handled in render phase to avoid cascading effects)
+  const [prevTab, setPrevTab] = useState(activeTab);
+  if (activeTab !== prevTab) {
+    setPrevTab(activeTab);
+    setFilterType('All');
+    setFilterYear('All');
+    setFilterGenre(['All']);
+  }
 
   // Stats Modal State
   const [statsModalConfig, setStatsModalConfig] = useState<{
@@ -81,12 +109,7 @@ function App() {
     refetch: loadHero 
   } = useTrending(MediaType.Movie);
 
-  // Reset filters when changing tabs
-  useEffect(() => {
-    setFilterType('All');
-    setFilterYear('All');
-    setFilterGenre(['All']);
-  }, [activeTab]);
+
 
   const excludedIds = useMemo(() => {
     return new Set([
@@ -94,70 +117,6 @@ function App() {
       ...watched.map(w => w.id)
     ]);
   }, [watchlist, watched]);
-
-  // Handlers memoized for child component performance
-  const handleToggleWatchlist = useCallback(async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    if (isInWatchlist(id)) {
-      removeFromWatchlist(id);
-    } else {
-      const item = await db.mediaCache.get(id);
-      if (item) addToWatchlist(item);
-    }
-  }, [isInWatchlist, removeFromWatchlist, addToWatchlist]);
-
-  const handleToggleWatched = useCallback(async (e: React.MouseEvent, id: string) => {
-    e.stopPropagation();
-    const item = await db.mediaCache.get(id);
-    if (!item) return;
-
-    if (isWatched(id)) {
-      if (item.type === MediaType.Movie) unmarkMovie(item);
-      else unmarkSeries(item);
-    } else {
-      setIsProcessing(true);
-      try {
-        let fullItem = item;
-        const needsHydration = 
-          (!item.runtime) || 
-          (!item.rating) || 
-          (item.type !== MediaType.Movie && (!item.seasons || item.seasons.length === 0));
-
-        if (needsHydration) {
-          const fullItemData = await fetchMediaItem(
-            item.id, 
-            item.type === MediaType.Movie ? 'movie' : 'tv', 
-            item.type === MediaType.Anime
-          );
-          
-          if (fullItemData) {
-            const merged = {
-              ...item,
-              runtime: item.runtime ?? fullItemData.runtime,
-              rating: item.rating ?? fullItemData.rating,
-              seasons: item.seasons ?? fullItemData.seasons
-            } as MediaItem;
-            
-            await db.mediaCache.put(merged);
-            fullItem = merged;
-          }
-        }
-
-        if (fullItem.type === MediaType.Movie) {
-          markMovieAsWatched(fullItem);
-        } else {
-          const hydrated = await hydrateSeries(fullItem);
-          await db.mediaCache.put(hydrated);
-          markSeriesAsWatched(hydrated);
-        }
-      } catch {
-        setAppError("Status update interruption.");
-        setTimeout(() => setAppError(null), 3000);
-      } finally {
-        setIsProcessing(false);
-      }
-    }
-  }, [isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched]);
 
   const handleToggleSection = useCallback((tab: 'watchlist' | 'watched', section: 'movies' | 'series' | 'anime') => {
     setExpandedSections(prev => ({
@@ -179,64 +138,13 @@ function App() {
     return continueWatching.map(item => ({
       ...item,
       progress: item.totalEpisodes > 0 ? (item.watchedEpisodes / item.totalEpisodes) * 100 : 0,
-      posterUrl: item.poster,
-      backdropUrl: item.backdrop || '',
+      posterUrl: item.posterUrl,
+      backdropUrl: (item as any).backdrop || '',
       overview: (item as any).overview || ''
     })) as MediaItem[];
   }, [continueWatching]);
 
-  const statsModalData = useMemo(() => {
-    if (!statsModalConfig) return null;
-
-    let groups: StatsGroup[] = [];
-    let totalCount = 0;
-
-    if (statsModalConfig.type === 'series') {
-      const items = watched
-        .filter(w => w.type === MediaType.Series)
-        .sort((a, b) => b.watchedEpisodes - a.watchedEpisodes)
-        .map(w => ({ ...w, posterUrl: w.poster, backdropUrl: w.backdrop }));
-
-      totalCount = items.reduce((acc, i) => acc + i.watchedEpisodes, 0);
-      const animatedSeries = items.filter(w => w.genres?.includes('Animation'));
-      const liveActionSeries = items.filter(w => !w.genres?.includes('Animation'));
-      
-      groups = [
-        { title: 'Live Action Series', items: liveActionSeries as any[], subCount: liveActionSeries.reduce((acc, i) => acc + i.watchedEpisodes, 0), subLabel: 'EPISODES' },
-        { title: 'Animated Series', items: animatedSeries as any[], subCount: animatedSeries.reduce((acc, i) => acc + i.watchedEpisodes, 0), subLabel: 'EPISODES' }
-      ].filter(g => g.items.length > 0);
-    } else if (statsModalConfig.type === 'anime') {
-      const allAnime = watched
-        .filter(w => w.type === MediaType.Anime)
-        .map(w => ({ ...w, posterUrl: w.poster, backdropUrl: w.backdrop }));
-
-      const animeSeries = allAnime.filter(w => (w.totalEpisodes || 0) > 1).sort((a, b) => b.watchedEpisodes - a.watchedEpisodes);
-      const animeMovies = allAnime.filter(w => (w.totalEpisodes || 0) <= 1).sort((a, b) => b.watchedEpisodes - a.watchedEpisodes);
-      totalCount = allAnime.reduce((acc, i) => acc + i.watchedEpisodes, 0);
-
-      groups = [
-        { title: 'Animated Series', items: animeSeries as any[], subCount: animeSeries.reduce((acc, i) => acc + i.watchedEpisodes, 0), subLabel: 'EPISODES' },
-        { title: 'Animated Movies', items: animeMovies as any[] }
-      ].filter(g => g.items.length > 0);
-    } else if (statsModalConfig.type === 'movies') {
-      const allMovies = watched
-        .filter(w => w.type === MediaType.Movie || (w.type === MediaType.Anime && (w.totalEpisodes || 0) <= 1))
-        .map(w => ({ ...w, posterUrl: w.poster, backdropUrl: w.backdrop }));
-
-      const liveAction = allMovies.filter(w => w.type === MediaType.Movie && !w.genres?.includes('Animation'));
-      const animatedMovies = allMovies.filter(w => w.type === MediaType.Movie && w.genres?.includes('Animation'));
-      const animeMovies = allMovies.filter(w => w.type === MediaType.Anime && (w.totalEpisodes || 0) <= 1);
-
-      groups = [
-        { title: 'Live-Action Movies', items: liveAction as any[] },
-        { title: 'Animated Movies', items: animatedMovies as any[] },
-        { title: 'Anime Movies', items: animeMovies as any[] }
-      ].filter(g => g.items.length > 0);
-      totalCount = groups.reduce((acc, g) => acc + g.items.length, 0);
-    }
-
-    return { groups, totalCount };
-  }, [statsModalConfig, watched]);
+  const statsModalData = useStatsModalData(statsModalConfig, watched as unknown as MediaItem[]);
 
   if (!user) return <LoginPage />;
 
@@ -269,71 +177,21 @@ function App() {
             <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.5em]">Syncing Interface</p>
           </div>
         }>
-          {activeTab === 'home' && (
-            <Home
-              heroItems={heroItems}
-              continueWatchingItems={continueWatchingItems}
-              watched={watched}
-              loadingHero={loadingHero || (isFetchingHero && heroItems.length === 0)}
-              heroError={heroError}
-              loadHero={() => loadHero()}
-              setSelectedContent={handleSetSelectedContent}
-              isInWatchlist={isInWatchlist}
-              toggleWatchlist={handleToggleWatchlist}
-              isWatched={isWatched}
-              toggleWatched={handleToggleWatched}
-              updateCache={() => {}}
-              excludedIds={excludedIds}
-              userEmail={user?.email}
-            />
-          )}
-
-          {activeTab === 'upcoming' && (
-            <Upcoming setSelectedContent={setSelectedContent} />
-          )}
-
-          {activeTab === 'watchlist' && (
-            <Watchlist
-              watchlistGroups={watchlistGroups}
-              filterType={filterType} setFilterType={setFilterType}
-              filterYear={filterYear} setFilterYear={setFilterYear}
-              filterGenre={filterGenre} setFilterGenre={setFilterGenre}
-              expandedSections={expandedSections.watchlist}
-              toggleSection={(s) => handleToggleSection('watchlist', s)}
-              setSelectedContent={setSelectedContent}
-              toggleWatchlist={handleToggleWatchlist}
-              isWatched={isWatched}
-              toggleWatched={handleToggleWatched}
-              onBrowseContent={() => setActiveTab('home')}
-            />
-          )}
-
-          {activeTab === 'watched' && (
-            <Watched
-              watchedGroups={watchedGroups}
-              dashboardStats={dashboardStats}
-              filterType={filterType} setFilterType={setFilterType}
-              filterYear={filterYear} setFilterYear={setFilterYear}
-              filterGenre={filterGenre} setFilterGenre={setFilterGenre}
-              expandedSections={expandedSections.watched}
-              toggleSection={(s) => handleToggleSection('watched', s)}
-              setSelectedContent={setSelectedContent}
-              isInWatchlist={isInWatchlist}
-              toggleWatchlist={handleToggleWatchlist}
-              isWatched={isWatched}
-              toggleWatched={handleToggleWatched}
-              openStatsModal={(type) => setStatsModalConfig({ 
-                isOpen: true, 
-                title: type === 'series' ? 'Series Watched' : type === 'anime' ? 'Animated Titles' : 'Movies Watched', 
-                type 
-              })}
-              isDbLoaded={isDbLoaded}
-            />
-          )}
-
-          {activeTab === 'stats' && (
-            <StatsDashboard />
-          )}
+          <AppRoutes
+            Home={Home} Upcoming={Upcoming} Watchlist={Watchlist} Watched={Watched} StatsDashboard={StatsDashboard}
+            heroItems={heroItems} continueWatchingItems={continueWatchingItems} watched={watched}
+            loadingHero={loadingHero || (isFetchingHero && heroItems.length === 0)} heroError={heroError}
+            loadHero={() => loadHero()} handleSetSelectedContent={handleSetSelectedContent}
+            isInWatchlist={isInWatchlist} handleToggleWatchlist={handleToggleWatchlist}
+            isWatched={isWatched} handleToggleWatched={handleToggleWatched}
+            excludedIds={excludedIds} userEmail={user?.email}
+            watchlistGroups={watchlistGroups} filterType={filterType} setFilterType={setFilterType}
+            filterYear={filterYear} setFilterYear={setFilterYear} filterGenre={filterGenre} setFilterGenre={setFilterGenre}
+            expandedSections={expandedSections} handleToggleSection={handleToggleSection}
+            setSelectedContent={setSelectedContent} setActiveTab={setActiveTab}
+            watchedGroups={watchedGroups} dashboardStats={dashboardStats} setStatsModalConfig={setStatsModalConfig}
+            isDbLoaded={isDbLoaded}
+          />
         </Suspense>
       </main>
 

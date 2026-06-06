@@ -31,15 +31,17 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
 
   return (
     <div className={`relative overflow-hidden flex items-center justify-center bg-[#1a1a1a] ${className}`}>
-      {!hasValidSrc ? (
-        <div className="flex flex-col items-center justify-center opacity-20 py-4">
-          <ImageOff className="w-10 h-10 mb-2" />
-          <span className="text-[10px] uppercase font-black tracking-widest px-2 text-center">{alt}</span>
+      {!hasValidSrc || error ? (
+        <div className="flex flex-col items-center justify-center w-full h-full p-4 text-center select-none bg-gradient-to-br from-[#1c1c1e] to-[#0a0a0a] border border-white/5 rounded-2xl">
+          <ImageOff className="w-8 h-8 mb-3 text-gray-500 animate-pulse" />
+          <span className="text-xs md:text-sm font-black text-gray-400 uppercase tracking-wide break-words w-full px-2 line-clamp-4 leading-normal">
+            {alt || 'No Title'}
+          </span>
         </div>
       ) : (
         <>
           {!loaded && !error && (
-            <div className="absolute inset-0 bg-[#1a1a1a]" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#2c2c2e] via-[#1c1c1e] to-[#0a0a0a] animate-pulse rounded-2xl border border-white/5" />
           )}
           <img
             src={src || undefined}

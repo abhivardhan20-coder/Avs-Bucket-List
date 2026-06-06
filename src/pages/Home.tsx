@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useCallback } from 'react';
+import React, { useMemo, useCallback } from 'react';
 import Hero from '@/components/Hero';
 import ContentCard from '@/components/ContentCard';
 import ContentRow from '@/components/ContentRow';
@@ -18,7 +18,7 @@ import {
     fetchTopRatedAnime,
     fetchRecommendationPool
 } from '@/services/tmdb';
-import { buildUserTaste, scoreItem } from '@/lib/recommendationEngine';
+import { recommendationEngine } from '@/lib/recommendationEngine';
 import { Sparkles } from 'lucide-react';
 
 
@@ -64,21 +64,14 @@ export const Home: React.FC<HomeProps> = ({
         return filtered;
     }, [heroItems, isWatched]);
 
+
+
     // ✅ Wrap fetchRecommendations in useCallback to prevent unnecessary re-renders
     const fetchRecommendations = useCallback(async () => {
         if (!userEmail) return [];
-        // Profile taste and fetch source pool in parallel
-        const [pool, taste] = await Promise.all([
-            fetchRecommendationPool(),
-            buildUserTaste(userEmail)
-        ]);
-
-        return pool
-            .map(item => ({ item, score: scoreItem(item, taste, excludedIds) }))
-            .filter(res => res.score > 0)
-            .sort((a, b) => b.score - a.score)
-            .map(res => res.item);
-    }, [userEmail, excludedIds]);
+        const pool = await fetchRecommendationPool();
+        return recommendationEngine.getRecommendations(watched, watchlist, pool);
+    }, [userEmail, watchlist, watched]);
 
     return (
         <>

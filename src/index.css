@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@source not "../.pwa-profile";
 
 :root {
   color-scheme: dark;
@@ -51,27 +52,7 @@
   background: linear-gradient(to top, #141414, transparent 50%);
 }
 
-/* Global Scrollbar Hide - Force on ALL elements */
-* {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-}
 
-*::-webkit-scrollbar {
-  display: none !important;
-  width: 0 !important;
-  height: 0 !important;
-  background: transparent !important;
-  opacity: 0 !important;
-}
-
-html,
-body {
-  scrollbar-width: none !important;
-  -ms-overflow-style: none !important;
-  overflow-y: scroll;
-  /* Allow scroll but hide bar */
-}
 
 /* SyncMonitor Styles */
 .sync-monitor-container {

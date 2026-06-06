@@ -1,0 +1,42 @@
+{
+  "headers": [
+    {
+      "source": "/(.*)",
+      "headers": [
+        {
+          "key": "X-Frame-Options",
+          "value": "DENY"
+        },
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
+        },
+        {
+          "key": "Referrer-Policy",
+          "value": "strict-origin-when-cross-origin"
+        },
+        {
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; img-src 'self' https://image.tmdb.org https://cdn.myanimelist.net https://s4.anilist.co https://m.media-amazon.com data: chrome-extension:; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com chrome-extension:; connect-src 'self' https://*.supabase.co https://api.themoviedb.org https://graphql.anilist.co https://*.ingest.sentry.io https://api.jikan.moe https://kitsu.io http://127.0.0.1:* http://localhost:* chrome-extension:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com chrome-extension:; font-src 'self' https://fonts.gstatic.com; frame-src https://accounts.google.com https://*.supabase.co https://www.youtube.com https://www.youtube-nocookie.com chrome-extension:; media-src 'self'; base-uri 'self'; upgrade-insecure-requests; object-src 'none';"
+        },
+        {
+          "key": "Permissions-Policy",
+          "value": "camera=(), microphone=(), geolocation=()"
+        },
+        {
+          "key": "Strict-Transport-Security",
+          "value": "max-age=63072000; includeSubDomains; preload"
+        }
+      ]
+    },
+    {
+      "source": "/assets/(.*)",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "public,max-age=31536000,immutable"
+        }
+      ]
+    }
+  ]
+}

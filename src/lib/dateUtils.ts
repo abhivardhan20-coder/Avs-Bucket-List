@@ -1,5 +1,16 @@
-
 import { MediaItem, MediaType } from '../types';
+
+export function safeDate(date?: string | null) {
+  if (!date) return null;
+
+  const parsed = new Date(date);
+
+  if (Number.isNaN(parsed.getTime())) {
+    return null;
+  }
+
+  return parsed;
+}
 
 export interface UpcomingResolution {
   type: "movie" | "episode" | "season";
@@ -83,7 +94,7 @@ export const formatReleaseLabel = (
         status: 'future'
       };
     }
-  } catch (e) {
+  } catch {
     return { text: 'Date Unknown', status: 'future' };
   }
 };
@@ -93,8 +104,7 @@ export const formatReleaseLabel = (
  * Priority: Next Episode > Future Season Air Date > Release Date > Returning Series (TBA)
  */
 export const resolveUpcomingContent = (
-  item: MediaItem,
-  progress?: { type: 'Watchlist' | 'Watched'; watchedEpisodes: number; totalEpisodes: number }
+  item: MediaItem
 ): UpcomingResolution | null => {
   // 1. Filter Invalid Types
   if (item.type === MediaType.Other) return null;

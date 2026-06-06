@@ -3,6 +3,7 @@ import { X, Film, Tv, ChevronDown, ChevronUp } from 'lucide-react';
 import { FixedSizeList as List } from 'react-window';
 import { MediaItem } from '@/types';
 import ContentCard from '../ContentCard';
+import Modal from '../ui/Modal';
 
 export interface StatsGroup {
   title: string;
@@ -94,12 +95,16 @@ const StatsGroupSection: React.FC<{
 };
 
 const StatsListModal: React.FC<StatsListModalProps> = (props) => {
-  if (!props.isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/80 backdrop-blur-md" onClick={props.onClose} />
-      <div className="relative bg-[#1a1a1a] w-full max-w-6xl h-[85vh] rounded-2xl border border-gray-800 shadow-2xl overflow-hidden flex flex-col">
+    <Modal
+      isOpen={props.isOpen}
+      onClose={props.onClose}
+      ariaLabel={props.title}
+      overlayClassName="bg-black/80 backdrop-blur-md"
+      className="w-full max-w-6xl mx-4"
+      zIndex={150}
+    >
+      <div className="bg-[#1a1a1a] w-full h-[85vh] rounded-2xl border border-gray-800 shadow-2xl overflow-hidden flex flex-col relative">
         <div className="flex-shrink-0 p-8 border-b border-gray-800 bg-[#141414] flex justify-between items-start">
           <div>
             <h2 className="text-3xl font-black text-white mb-2">{props.title}</h2>
@@ -108,7 +113,7 @@ const StatsListModal: React.FC<StatsListModalProps> = (props) => {
               <span className="text-sm font-bold text-gray-500 uppercase tracking-widest mt-2">{props.countLabel}</span>
             </div>
           </div>
-          <button onClick={props.onClose} className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white transition-colors">
+          <button onClick={props.onClose} className="p-2 bg-white/5 hover:bg-white/10 rounded-full text-white transition-colors" aria-label="Close stats list">
             <X className="w-6 h-6" />
           </button>
         </div>
@@ -119,7 +124,7 @@ const StatsListModal: React.FC<StatsListModalProps> = (props) => {
           ))}
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

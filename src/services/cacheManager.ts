@@ -1,4 +1,5 @@
 import { db } from '../lib/db';
+import { log } from '../lib/logger';
 
 const CACHE_LIMIT = 300;
 const STALE_TTL = 24 * 60 * 60 * 1000; // 24 Hours
@@ -33,7 +34,7 @@ export const enforceCacheLimit = async (limit: number = CACHE_LIMIT) => {
     
     if (count > limit) {
       const overflow = count - limit;
-      console.log(`[CacheManager] Evicting ${overflow} items (LRU) to maintain limit of ${limit}`);
+      log(`[CacheManager] Evicting ${overflow} items (LRU) to maintain limit of ${limit}`, 'info', 'cacheManager');
       
       // OPTIMIZED: Fetch only keys to be deleted, avoiding full record loads
       const oldestKeys = await db.mediaCache

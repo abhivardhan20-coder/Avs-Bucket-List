@@ -1,4 +1,4 @@
-import { MediaItem, Episode, WatchedItem } from '../types';
+import { MediaItem, Episode, WatchedItem, MediaType } from '../types';
 
 export interface UpNextItem {
   showId: string;
@@ -6,6 +6,7 @@ export interface UpNextItem {
   showPoster: string;
   nextEpisode: Episode;
   seasonNumber: number;
+  type: MediaType;
 }
 
 /**
@@ -28,57 +29,39 @@ export const getUpNextForSeries = (
   watchedItem: WatchedItem,
   fullMedia: MediaItem | null
 ): UpNextItem | null => {
-  if (!fullMedia || !fullMedia.seasons || fullMedia.seasons.length === 0) return null;
+  if (!fullMedia?.seasons?.length) return null;
 
-  // 1. Find the highest watched episode
-  let maxSeason = -1;
-  let maxEpisode = -1;
+  // Build a flat ordered list of all episodes across all seasons
+  const allEpisodes = fullMedia.seasons
+    .sort((a, b) => a.number - b.number)
+    .flatMap(season =>
+      (season.episodes || [])
+        .sort((a, b) => a.number - b.number)
+        .map(ep => ({ ...ep, seasonNumber: season.number }))
+    );
 
-  watchedItem.watchedEpisodeIds.forEach(id => {
-    const { season, episode } = parseEpisodeId(id);
-    if (season > maxSeason) {
-      maxSeason = season;
-      maxEpisode = episode;
-    } else if (season === maxSeason && episode > maxEpisode) {
-      maxEpisode = episode;
-    }
-  });
+  if (allEpisodes.length === 0) return null;
 
-  // If nothing watched, start with S1 E1
-  if (maxSeason === -1) {
-    maxSeason = 1;
-    maxEpisode = 0; // Pretend we watched E0 of S1
-  }
-
-  // 2. Look for the next episode in the same season
-  const currentSeason = fullMedia.seasons.find(s => s.number === maxSeason);
-  if (currentSeason && currentSeason.episodes) {
-    const nextInSeason = currentSeason.episodes.find(e => e.number === maxEpisode + 1);
-    if (nextInSeason) {
-      return {
-        showId: fullMedia.id,
-        showTitle: fullMedia.title,
-        showPoster: fullMedia.posterUrl,
-        nextEpisode: nextInSeason,
-        seasonNumber: maxSeason
-      };
+  // Find the last watched episode in series order
+  const watchedIds = watchedItem.watchedEpisodeIds;
+  let lastWatchedIndex = -1;
+  for (let i = allEpisodes.length - 1; i >= 0; i--) {
+    if (watchedIds.has(allEpisodes[i].id)) {
+      lastWatchedIndex = i;
+      break;
     }
   }
 
-  // 3. If not found, look for the first episode of the next season
-  const nextSeason = fullMedia.seasons.find(s => s.number === maxSeason + 1);
-  if (nextSeason && nextSeason.episodes) {
-    const firstInNext = nextSeason.episodes.find(e => e.number === 1);
-    if (firstInNext) {
-      return {
-        showId: fullMedia.id,
-        showTitle: fullMedia.title,
-        showPoster: fullMedia.posterUrl,
-        nextEpisode: firstInNext,
-        seasonNumber: maxSeason + 1
-      };
-    }
-  }
+  const nextIndex = lastWatchedIndex + 1; // -1 + 1 = 0 if nothing watched → S1E1
+  if (nextIndex >= allEpisodes.length) return null; // All watched
 
-  return null;
+  const nextEp = allEpisodes[nextIndex];
+  return {
+    showId: fullMedia.id,
+    showTitle: fullMedia.title,
+    showPoster: fullMedia.posterUrl,
+    nextEpisode: nextEp,
+    seasonNumber: nextEp.seasonNumber,
+    type: fullMedia.type,
+  };
 };

@@ -16,7 +16,7 @@ describe('rankWatchlistForNext', () => {
     id: '1',
     type: MediaType.Movie,
     title: 'Movie 1',
-    poster: '',
+    posterUrl: '/poster1.jpg',
     addedAt: Date.now(),
     updatedAt: new Date().toISOString(),
     version: 1,

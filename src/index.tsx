@@ -5,17 +5,21 @@ import App from './App';
 import { AppProvider } from './contexts/AppContext';
 import { AppErrorBoundary } from './components/ErrorBoundary';
 import { ToastProvider } from './contexts/ToastProvider';
+import { BrowserRouter } from 'react-router-dom';
+import * as Sentry from '@sentry/react';
 
-// ✅ Register service worker for offline resilience and PWA caching
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err =>
-      console.warn('SW registration failed:', err)
-    );
-  });
+if (import.meta.env.PROD) {
+  const dsn = import.meta.env.VITE_SENTRY_DSN;
+  if (dsn && dsn !== 'https://placeholder@o0.ingest.sentry.io/0') {
+    Sentry.init({
+      dsn,
+      tracesSampleRate: 0.1,
+    });
+  }
 }
 
-import { DebugOverlay } from './components/DebugOverlay';
+// Service worker is registered automatically by vite-plugin-pwa (registerType: 'autoUpdate')
+
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from './lib/queryClient';
 import { GoogleOAuthProvider } from '@react-oauth/google';
@@ -42,6 +46,7 @@ if (!API_KEYS.GOOGLE_CLIENT_ID || API_KEYS.GOOGLE_CLIENT_ID === 'YOUR_GOOGLE_CLI
     rootElement.innerHTML = '';
     rootElement.appendChild(container);
   }
+  throw new Error(errorMsg);
 }
 
 const rootElement = document.getElementById('root');
@@ -52,15 +57,28 @@ if (!rootElement) {
 // Global safety timeout to detect "Blank Screen"
 setTimeout(() => {
   if (rootElement.innerHTML === '') {
-    rootElement.innerHTML = `
-      <div style="padding: 3rem; text-align: center; color: white; background: #0a0a0a; min-height: 100vh; font-family: sans-serif;">
-        <h1 style="color: #ef4444;">Mounting Delay Detected</h1>
-        <p>The application is taking longer than usual to initialize.</p>
-        <button onclick="window.location.reload(true)" style="padding: 10px 20px; background: white; color: black; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; margin-top: 20px;">
-          Force Reload (Clear Cache)
-        </button>
-      </div>
-    `;
+    const container = document.createElement('div');
+    container.style.cssText = 'padding: 3rem; text-align: center; color: white; background: #0a0a0a; min-height: 100vh; font-family: sans-serif;';
+    
+    const heading = document.createElement('h1');
+    heading.style.color = '#ef4444';
+    heading.textContent = 'Mounting Delay Detected';
+    
+    const message = document.createElement('p');
+    message.textContent = 'The application is taking longer than usual to initialize.';
+    
+    const button = document.createElement('button');
+    button.style.cssText = 'padding: 10px 20px; background: white; color: black; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; margin-top: 20px;';
+    button.textContent = 'Force Reload (Clear Cache)';
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore
+    button.onclick = () => window.location.reload(true);
+    
+    container.appendChild(heading);
+    container.appendChild(message);
+    container.appendChild(button);
+    
+    rootElement.appendChild(container);
   }
 }, 8000);
 
@@ -68,16 +86,17 @@ const root = ReactDOM.createRoot(rootElement);
 root.render(
   <React.StrictMode>
     <QueryClientProvider client={queryClient}>
-      {import.meta.env.DEV && <DebugOverlay />}
-      <AppErrorBoundary variant="full">
-        <GoogleOAuthProvider clientId={API_KEYS.GOOGLE_CLIENT_ID}>
-          <ToastProvider>
-            <AppProvider>
-              <App />
-            </AppProvider>
-          </ToastProvider>
-        </GoogleOAuthProvider>
-      </AppErrorBoundary>
+      <BrowserRouter>
+        <AppErrorBoundary variant="full">
+          <GoogleOAuthProvider clientId={API_KEYS.GOOGLE_CLIENT_ID}>
+            <ToastProvider>
+              <AppProvider>
+                <App />
+              </AppProvider>
+            </ToastProvider>
+          </GoogleOAuthProvider>
+        </AppErrorBoundary>
+      </BrowserRouter>
     </QueryClientProvider>
   </React.StrictMode>
 );

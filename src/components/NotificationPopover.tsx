@@ -29,10 +29,18 @@ const NotificationRow: React.FC<{
 
   return (
     <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          onClick();
+        }
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      className="flex items-center gap-4 p-3.5 hover:bg-white/[0.04] cursor-pointer group transition-all rounded-[1.5rem] border border-transparent hover:border-white/5"
+      className="flex items-center gap-4 p-3.5 hover:bg-white/[0.04] cursor-pointer group transition-all rounded-[1.5rem] border border-transparent hover:border-white/5 outline-none focus:bg-white/[0.04] focus:border-white/10"
     >
       <div className="relative w-12 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-[#121212] shadow-xl border border-white/10">
         {imgError ? (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Menu, Tv, BarChart2, LogOut, Bell, Calendar } from 'lucide-react';
+import { Search, Menu, Tv, BarChart2, LogOut, Bell, Calendar, Puzzle, ExternalLink } from 'lucide-react';
 import { useAuth } from '../contexts/AppContext';
 import NotificationPopover from './NotificationPopover';
 import { MediaItem } from '../types';
@@ -77,8 +77,16 @@ const Navbar: React.FC<NavbarProps> = ({
 
           <div className="flex items-center gap-8">
             <div
-              className="flex items-center gap-3 cursor-pointer group"
+              role="button"
+              tabIndex={0}
+              className="flex items-center gap-3 cursor-pointer group outline-none focus:ring-2 focus:ring-red-500 rounded"
               onClick={() => setActiveTab('home')}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  setActiveTab('home');
+                }
+              }}
             >
               <Tv className="w-8 h-8 text-red-600 transition-transform group-hover:scale-110" />
               <h1 className="text-white text-xl md:text-2xl font-bold tracking-tight whitespace-nowrap">
@@ -172,8 +180,16 @@ const Navbar: React.FC<NavbarProps> = ({
 
             <div className="relative" ref={profileRef}>
               <div
-                className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold text-xs cursor-pointer hover:bg-blue-500 transition-colors uppercase"
+                role="button"
+                tabIndex={0}
+                className="w-8 h-8 rounded bg-blue-600 flex items-center justify-center font-bold text-xs cursor-pointer hover:bg-blue-500 transition-colors uppercase outline-none focus:ring-2 focus:ring-blue-300"
                 onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    setIsProfileMenuOpen(!isProfileMenuOpen);
+                  }
+                }}
                 title="Settings"
               >
                 {user?.name?.[0] || 'D'}
@@ -191,6 +207,16 @@ const Navbar: React.FC<NavbarProps> = ({
                   >
                     Settings
                   </button>
+                  <a
+                    href="https://chromewebstore.google.com/detail/antigravity-browser-exten/eeijfnjmjelapkebgockoeaadonbchdd"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
+                    onClick={() => setIsProfileMenuOpen(false)}
+                  >
+                    <Puzzle className="w-4 h-4 text-purple-400" /> Chrome Extension
+                    <ExternalLink className="w-3 h-3 text-gray-500 ml-auto" />
+                  </a>
                   <button
                     onClick={() => { logout(); setIsProfileMenuOpen(false); }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
@@ -256,6 +282,18 @@ const Navbar: React.FC<NavbarProps> = ({
                 >
                   Settings
                 </button>
+                <a
+                  href="https://chromewebstore.google.com/detail/antigravity-browser-exten/eeijfnjmjelapkebgockoeaadonbchdd"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={`${getMobileNavItemClass(false)} text-purple-400 hover:text-purple-300 flex justify-between items-center`}
+                  onClick={() => setIsMobileMenuOpen(false)}
+                >
+                  <span className="flex items-center gap-2">
+                    <Puzzle className="w-4 h-4" /> Chrome Extension
+                  </span>
+                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
+                </a>
                 <button
                   onClick={() => { logout(); setIsMobileMenuOpen(false); }}
                   className={`${getMobileNavItemClass(false)} text-red-400 hover:text-red-300`}

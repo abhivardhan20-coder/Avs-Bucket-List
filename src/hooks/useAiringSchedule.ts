@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from 'react';
-import { MediaItem, MediaType } from '@/types';
+import { MediaItem } from '@/types';
 import { fetchAiringSeries } from '@/services/tmdb';
-import { fetchMediaItem } from '@/lib/api/mediaFetcher';
 import { fetchAiringAnime } from '@/services/anilist';
 import { HydrateAniListToTmdb } from '../utils/animeMapper';
+import { ContentService } from '../services/contentService';
+import { safeDate } from '../lib/dateUtils';
 
 export const useAiringSchedule = () => {
     const [items, setItems] = useState<MediaItem[]>([]);
@@ -23,7 +24,10 @@ export const useAiringSchedule = () => {
             try {
                 const cached = localStorage.getItem(CACHE_KEY);
                 if (cached) {
-                    const { data, timestamp } = JSON.parse(cached);
+                    const { data, timestamp } = JSON.parse(cached, (key, value) => {
+                        if (value && value.__type === 'Set') return new Set(value.value);
+                        return value;
+                    });
                     if (Date.now() - timestamp < CACHE_DURATION) {
                         // De-duplicate cached data just in case
                         const uniqueMap = new Map<string, MediaItem>();
@@ -66,10 +70,14 @@ export const useAiringSchedule = () => {
                     });
                 }
 
+                // Hydrate TMDB series details first to get nextEpisode info
+                const detailedTmdbSeries = await ContentService.getItemsByIds(tmdbSeries.map(s => s.id));
+
                  // STRICT Date Filtering (UTC)
-                const validTmdb = tmdbSeries.filter(item => {
+                const validTmdb = detailedTmdbSeries.filter(item => {
                     if (!item.nextEpisode) return false;
-                    const airDate = new Date(item.nextEpisode.airDate);
+                    const airDate = safeDate(item.nextEpisode.airDate);
+                    if (!airDate) return false;
                     return airDate >= todayUTC && airDate <= nextWeekUTC;
                 });
 
@@ -83,8 +91,10 @@ export const useAiringSchedule = () => {
                 // Sort by air date (soonest first)
                 const sortByAirDate = (list: MediaItem[]) => {
                   return [...list].sort((a, b) => {
-                    const dateA = a.nextEpisode?.airDate ? new Date(a.nextEpisode.airDate).getTime() : 0;
-                    const dateB = b.nextEpisode?.airDate ? new Date(b.nextEpisode.airDate).getTime() : 0;
+                    const sdA = safeDate(a.nextEpisode?.airDate);
+                    const sdB = safeDate(b.nextEpisode?.airDate);
+                    const dateA = sdA ? sdA.getTime() : 0;
+                    const dateB = sdB ? sdB.getTime() : 0;
                     return dateA - dateB;
                   });
                 };
@@ -102,45 +112,19 @@ export const useAiringSchedule = () => {
                 setItems(initialFinalItems);
                 setLoading(false);
 
-                // Initial Cache Write
+                // Cache Write
                 try {
                   localStorage.setItem(CACHE_KEY, JSON.stringify({
                     data: initialFinalItems,
                     timestamp: Date.now()
+                  }, (key, value) => {
+                    if (value instanceof Set) return { __type: 'Set', value: Array.from(value) };
+                    return value;
                   }));
                 } catch (e) {
                   console.warn("Failed to write initial airing cache", e);
                 }
 
-                // BACKGROUND HYDRATION: Batch all detail fetches, then apply a single setState + cache write
-                const hydratedUpdates = new Map<string, MediaItem>();
-                await Promise.allSettled(
-                  validTmdb.map(async (item) => {
-                    try {
-                      const details = await fetchMediaItem(item.id, item.type === 'movie' ? 'movie' : 'tv');
-                      if (details) hydratedUpdates.set(item.id, details);
-                    } catch { /* silently skip failed hydrations */ }
-                  })
-                );
-
-                if (hydratedUpdates.size > 0) {
-                  setItems(prev => {
-                    const updated = prev.map(p =>
-                      hydratedUpdates.has(p.id) ? { ...p, ...hydratedUpdates.get(p.id) } : p
-                    );
-                    const final = getUniqueItems(sortByAirDate(updated));
-                    // Single cache write after all hydrations complete
-                    try {
-                      localStorage.setItem(CACHE_KEY, JSON.stringify({
-                        data: final,
-                        timestamp: Date.now()
-                      }));
-                    } catch { /* non-fatal cache write failure */ }
-                    return final;
-                  });
-                }
-
-                // Cache is updated above during initial set and background updates.
                 return; 
 
 

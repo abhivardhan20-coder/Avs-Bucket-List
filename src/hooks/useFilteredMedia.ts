@@ -28,8 +28,8 @@ export function useFilteredMedia(
             // Map item once instead of re-creating for each group
             const mappedItem: MediaItem = {
                 ...item,
-                posterUrl: item.poster || (item as any).posterUrl || '',
-                backdropUrl: (item as any).backdrop || (item as any).backdropUrl || '',
+                posterUrl: item.posterUrl || '',
+                backdropUrl: (item as any).backdrop || '',
                 rating: item.rating || 0,
                 overview: (item as any).overview || '',
                 genres: item.genres || [],

@@ -1,5 +1,6 @@
 import React from 'react';
 import { Clock, Film, Tv, Zap, X } from 'lucide-react';
+import Modal from '../ui/Modal';
 
 interface WatchBreakdownModalProps {
   isOpen: boolean;
@@ -17,20 +18,20 @@ interface WatchBreakdownModalProps {
 }
 
 const WatchBreakdownModal: React.FC<WatchBreakdownModalProps> = ({ isOpen, onClose, stats }) => {
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-in fade-in duration-200"
-      onClick={onClose}
+    <Modal
+      isOpen={isOpen}
+      onClose={onClose}
+      ariaLabel="Watch Breakdown"
+      overlayClassName="bg-black/80 backdrop-blur-sm"
+      className="max-w-sm w-full mx-4"
+      zIndex={100}
     >
-      <div
-        className="bg-[#1a1a1a] p-8 rounded-[32px] border border-white/10 shadow-2xl max-w-sm w-full relative animate-in zoom-in-95 duration-200"
-        onClick={e => e.stopPropagation()}
-      >
+      <div className="bg-[#1a1a1a] p-8 rounded-[32px] border border-white/10 shadow-2xl relative">
         <button
           onClick={onClose}
           className="absolute top-6 right-6 p-2 rounded-full hover:bg-white/10 transition-colors"
+          aria-label="Close watch breakdown"
         >
           <X className="w-5 h-5 text-gray-400" />
         </button>
@@ -105,7 +106,7 @@ const WatchBreakdownModal: React.FC<WatchBreakdownModalProps> = ({ isOpen, onClo
           </div>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

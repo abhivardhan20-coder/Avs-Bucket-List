@@ -1,27 +1,9 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import { buildUserTaste, scoreItem, UserTaste } from '../lib/recommendationEngine';
 import { MediaType, MediaItem } from '../types';
-import { db } from '../lib/db';
-
-// Mock the Dexie database
-vi.mock('../lib/db', () => ({
-  db: {
-    watched: {
-      where: vi.fn().mockReturnThis(),
-      equals: vi.fn().mockReturnThis(),
-      toArray: vi.fn()
-    }
-  }
-}));
 
 describe('recommendationEngine', () => {
-    const userEmail = 'test@example.com';
-
     describe('buildUserTaste', () => {
-        beforeEach(() => {
-            vi.clearAllMocks();
-        });
-
         it('should extract top genres and preferred type from watch history', async () => {
             const mockWatched = [
                 {
@@ -44,9 +26,7 @@ describe('recommendationEngine', () => {
                 }
             ];
 
-            (db.watched.toArray as any).mockResolvedValue(mockWatched);
-
-            const taste = await buildUserTaste(userEmail);
+            const taste = await buildUserTaste(mockWatched as any);
 
             expect(taste.preferredType).toBe(MediaType.Anime);
             // Action appears twice, should be top genre
@@ -76,9 +56,7 @@ describe('recommendationEngine', () => {
                 { type: MediaType.Movie, genres: ['Drama'], cast: ['Top1', 'Top2', 'Top3', 'Top4', 'Top5'], updatedAt: new Date().toISOString() }
             ];
 
-            (db.watched.toArray as any).mockResolvedValue(mockWatched);
-
-            const taste = await buildUserTaste(userEmail);
+            const taste = await buildUserTaste(mockWatched as any);
 
             expect(taste.topDirectors).toContain('Director A');
             expect(taste.topCast).toContain('Actor 1');
@@ -87,8 +65,7 @@ describe('recommendationEngine', () => {
         });
 
         it('should handle empty history gracefully', async () => {
-            (db.watched.toArray as any).mockResolvedValue([]);
-            const taste = await buildUserTaste(userEmail);
+            const taste = await buildUserTaste([]);
             expect(taste.topGenres).toEqual([]);
             expect(taste.preferredType).toBe(MediaType.Movie); // Default
         });
@@ -96,58 +73,56 @@ describe('recommendationEngine', () => {
         it('gives higher score to recent watches (recency weighting)', async () => {
             const now = Date.now();
             const ONE_YEAR_MS = 1000 * 60 * 60 * 24 * 365;
-          
+
             const mockWatched = [
               {
-                id: 'recent', 
-                type: MediaType.Movie, 
-                genres: ['Sci-Fi'], 
-                rating: 10, 
+                id: 'recent',
+                type: MediaType.Movie,
+                genres: ['Sci-Fi'],
+                rating: 10,
                 updatedAt: new Date(now).toISOString()
               },
               {
-                id: 'old', 
-                type: MediaType.Movie, 
-                genres: ['Action'], 
-                rating: 10, 
+                id: 'old',
+                type: MediaType.Movie,
+                genres: ['Action'],
+                rating: 10,
                 updatedAt: new Date(now - ONE_YEAR_MS).toISOString()
               }
             ];
-          
-            (db.watched.toArray as any).mockResolvedValue(mockWatched);
-            const taste = await buildUserTaste(userEmail);
-          
+
+            const taste = await buildUserTaste(mockWatched as any);
+
             const sciFiScore = taste.topGenres.find(g => g.genre === 'Sci-Fi')?.score || 0;
             const actionScore = taste.topGenres.find(g => g.genre === 'Action')?.score || 0;
-          
+
             // Sci-Fi (recent) should have a higher score than Action (1 year old)
             expect(sciFiScore).toBeGreaterThan(actionScore);
         });
-          
+
         it('applies rating boost to genre scores', async () => {
             const mockWatched = [
               {
-                id: 'good', 
-                type: MediaType.Movie, 
-                genres: ['Horror'], 
-                rating: 10, 
+                id: 'good',
+                type: MediaType.Movie,
+                genres: ['Horror'],
+                rating: 10,
                 updatedAt: new Date().toISOString()
               },
               {
-                id: 'bad', 
-                type: MediaType.Movie, 
-                genres: ['Comedy'], 
-                rating: 2, 
+                id: 'bad',
+                type: MediaType.Movie,
+                genres: ['Comedy'],
+                rating: 2,
                 updatedAt: new Date().toISOString()
               }
             ];
-          
-            (db.watched.toArray as any).mockResolvedValue(mockWatched);
-            const taste = await buildUserTaste(userEmail);
-          
+
+            const taste = await buildUserTaste(mockWatched as any);
+
             const horrorScore = taste.topGenres.find(g => g.genre === 'Horror')?.score || 0;
             const comedyScore = taste.topGenres.find(g => g.genre === 'Comedy')?.score || 0;
-          
+
             // Horror (rating 10) should have a significantly higher score than Comedy (rating 2)
             expect(horrorScore).toBeGreaterThan(comedyScore * 2);
         });
@@ -190,10 +165,10 @@ describe('recommendationEngine', () => {
             } as MediaItem;
 
             const scoreBase = scoreItem(baseItem, sampleTaste, excludedIds);
-            
+
             const itemWithCast = { ...baseItem, id: '2', cast: ['Actor A'] } as MediaItem;
             const scoreWithCast = scoreItem(itemWithCast, sampleTaste, excludedIds);
-            
+
             expect(scoreWithCast).toBeGreaterThan(scoreBase);
             expect(scoreWithCast - scoreBase).toBe(2); // Actor A boost
         });

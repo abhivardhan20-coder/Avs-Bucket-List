@@ -3,7 +3,7 @@ import * as tmdb from './tmdb';
 import { fetchMediaItem } from '@/lib/api/mediaFetcher';
 import { MediaItem, MediaType } from '@/types';
 
-import { MEDIA_FRESHNESS_MS } from './config';
+import { MEDIA_FRESHNESS_MS, ACTIVE_SHOW_REFRESH_MS } from './config';
 
 /**
  * Service to manage content fetching with local caching (Dexie)
@@ -20,7 +20,8 @@ export const ContentService = {
       if (!cached) return true;
       if (!cached.runtime || (cached.type !== MediaType.Movie && !cached.seasons)) return true;
       if (!cached.lastRefreshedAt) return true;
-      return (Date.now() - cached.lastRefreshedAt) > MEDIA_FRESHNESS_MS;
+      const threshold = cached.type === MediaType.Movie ? MEDIA_FRESHNESS_MS : ACTIVE_SHOW_REFRESH_MS;
+      return (Date.now() - cached.lastRefreshedAt) > threshold;
     };
 
     if (cached && !isStale(cached)) {
@@ -97,17 +98,32 @@ export const ContentService = {
    */
   async getItemsByIds(ids: string[]): Promise<MediaItem[]> {
     const cached = await db.mediaCache.where('id').anyOf(ids).toArray();
-    const cachedMap = new Map(cached.map(i => [i.id, i]));
-    const missingIds = ids.filter(id => !cachedMap.has(id));
+    
+    // Check if cached items are incomplete or stale
+    const isValid = (item: MediaItem) => {
+      if (!item) return false;
+      if (!item.lastRefreshedAt) return false;
+      const threshold = item.type === MediaType.Movie ? MEDIA_FRESHNESS_MS : ACTIVE_SHOW_REFRESH_MS;
+      if (Date.now() - item.lastRefreshedAt > threshold) return false;
+      if (!item.runtime) return false;
+      if (item.type !== MediaType.Movie && !item.seasons) return false;
+      return true;
+    };
 
-    if (missingIds.length === 0) return cached;
+    const validCached = cached.filter(isValid);
+    const validCachedMap = new Map(validCached.map(i => [i.id, i]));
+    const missingIds = ids.filter(id => !validCachedMap.has(id));
 
-    // Fetch missing from TMDB
+    if (missingIds.length === 0) {
+      return ids.map(id => validCachedMap.get(id)!).filter(Boolean);
+    }
+
+    // Fetch missing or stale/incomplete from TMDB
     const fetched = await tmdb.fetchItemsByIds(missingIds);
     if (fetched.length > 0) {
       await db.mediaCache.bulkPut(fetched.map(f => ({ ...f, lastRefreshedAt: Date.now() })));
     }
 
-    return ids.map(id => cachedMap.get(id) || fetched.find(f => f.id === id)).filter(Boolean) as MediaItem[];
+    return ids.map(id => validCachedMap.get(id) || fetched.find(f => f.id === id)).filter(Boolean) as MediaItem[];
   }
 };

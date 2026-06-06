@@ -37,6 +37,16 @@ export const FilterBar: React.FC<FilterBarProps> = ({
   const [openDropdown, setOpenDropdown] = useState<'type' | 'year' | null>(null);
   const [yearInput, setYearInput] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (openDropdown === 'year') {
+      const timer = setTimeout(() => {
+        inputRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [openDropdown]);
 
   const handleGenreClick = (genre: string) => {
     if (genre === 'All') {
@@ -155,8 +165,8 @@ export const FilterBar: React.FC<FilterBarProps> = ({
                       }
                     }
                   }}
+                  ref={inputRef}
                   className="w-full bg-[#141414] text-white text-xs px-2 py-2 rounded-lg border border-gray-700 focus:border-red-500 outline-none font-bold text-center placeholder-gray-600"
-                  autoFocus
                 />
               </div>
               <div className="overflow-y-auto flex-1 no-scrollbar">
