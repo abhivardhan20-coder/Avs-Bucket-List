@@ -1,5 +1,5 @@
 import React, { useState, useRef, useCallback } from 'react';
-import { ChevronDown, ChevronUp, Bookmark, Check, WifiOff, Loader, RefreshCw, Zap } from 'lucide-react';
+import { ChevronDown, ChevronUp, Bookmark, Check, WifiOff, Loader, RefreshCw, Zap, Tv, Clock } from 'lucide-react';
 import { MediaItem, Season, Episode } from '../../types';
 import { useLibraryActions } from '../../contexts/LibraryProvider';
 import { parseLocalDate } from '../../lib/dateUtils';

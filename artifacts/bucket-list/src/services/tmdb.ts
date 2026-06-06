@@ -223,10 +223,10 @@ const mapResultToItem = (item: TmdbResult, type: MediaType): MediaItem => {
 
   const mapped = {
     id: toAppId(tmdbType, item.id),
-    title: item.title || item.name,
+    title: item.title || item.name || '',
     type: finalType,
-    backdropUrl: getImageUrl(item.backdrop_path, 'w1280'),
-    posterUrl: getImageUrl(item.poster_path || item.backdrop_path, 'original'),
+    backdropUrl: getImageUrl(item.backdrop_path ?? null, 'w1280'),
+    posterUrl: getImageUrl(item.poster_path ?? item.backdrop_path ?? null, 'original'),
     overview: item.overview || '',
     rating: (item.vote_average !== undefined && item.vote_average !== null) ? Number(Number(item.vote_average).toFixed(1)) : 0,
     year: new Date(item.release_date || item.first_air_date || Date.now()).getFullYear(),
@@ -352,34 +352,34 @@ export const fetchTrendingAnime = async (page: number = 1) => {
 
 export const fetchTopRatedMovies = async (page: number = 1) => {
   const data = await safeTmdbFetch<any>(`/movie/top_rated?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Movie)) || []).filter(i => i.posterUrl);
+  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Movie)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchTopRatedSeries = async (page: number = 1) => {
   const data = await safeTmdbFetch<any>(`/tv/top_rated?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Series)) || []).filter(i => i.posterUrl);
+  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Series)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchTopRatedAnime = async (page: number = 1) => {
   const data = await safeTmdbFetch<any>(`/discover/tv?with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=200&page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Anime)) || []).filter(i => i.posterUrl);
+  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Anime)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchUpcomingMovies = async (page: number = 1) => {
   const data = await safeTmdbFetch<any>(`/movie/upcoming?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Movie)) || []).filter(i => i.posterUrl);
+  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Movie)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchAiringSeries = async (page: number = 1) => {
   const data = await safeTmdbFetch<any>(`/tv/on_the_air?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Series)) || []).filter(i => i.posterUrl);
+  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Series)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchUpcomingAnime = async (page: number = 1) => {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
   const data = await safeTmdbFetch<any>(`/discover/tv?with_genres=16&with_original_language=ja&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Anime)) || []).filter(i => i.posterUrl);
+  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Anime)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const searchAnime = async (query: string, page: number = 1): Promise<MediaItem[]> => {
@@ -487,7 +487,7 @@ export const fetchContentByGenre = async (genre: string, type: MediaType, page: 
   // Use discover
   const data = await safeTmdbFetch<any>(`/discover/${endpointType}?with_genres=${genreId}&sort_by=popularity.desc&page=${page}`);
   if (!data?.results) return [];
-  return (data.results.map((i: any) => mapResultToItem(i, type)) || []).filter(i => i.posterUrl);
+  return (data.results.map((i: any) => mapResultToItem(i, type)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchRecommendationPool = async (): Promise<MediaItem[]> => {

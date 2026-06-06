@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, useLayoutEffect } from 'react';
-import { List as FixedSizeList } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import ContentCard from './ContentCard';
 import SkeletonCard from './SkeletonCard';
 import { MediaItem } from '../types';
@@ -119,6 +119,7 @@ const ContentRow: React.FC<ContentRowProps> = ({
       }, 400); 
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [visibleItems.length, loading, hasMore, items.length, error, page]);
 
   const handleItemsRendered = ({ visibleStopIndex }: { visibleStopIndex: number }) => {
@@ -181,7 +182,7 @@ const ContentRow: React.FC<ContentRowProps> = ({
           itemData={visibleItems}
           onItemsRendered={handleItemsRendered}
         >
-          {({ index, style, data }) => {
+          {({ index, style, data }: { index: number; style: React.CSSProperties; data: MediaItem[] }) => {
             // Render actual data item
             if (index < data.length) {
               const item = data[index];

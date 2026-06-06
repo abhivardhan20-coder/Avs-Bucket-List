@@ -125,7 +125,7 @@ const ContentModal: React.FC<ContentModalProps> = ({ item: initialItem, isOpen, 
         return false;
       };
 
-      if (scrollToElement()) return;
+      if (scrollToElement()) return undefined;
 
       const observer = new MutationObserver((mutations, obs) => {
         if (scrollToElement()) obs.disconnect();
@@ -135,6 +135,7 @@ const ContentModal: React.FC<ContentModalProps> = ({ item: initialItem, isOpen, 
       observer.observe(modalBody, { childList: true, subtree: true });
       return () => observer.disconnect();
     }
+    return undefined;
   }, [activeTab, userNextUp, item.id]);
 
   const upcomingRes = useMemo(() => resolveUpcomingContent(item), [item]);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { List } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import { ChevronRight, Loader2 } from 'lucide-react';
 import { MediaItem } from '../../types';
 import ContentCard from '../ContentCard';
@@ -71,7 +71,7 @@ const SearchResultSection: React.FC<SearchResultSectionProps> = ({
       </h3>
 
       <div className="h-[320px]">
-        <List
+        <FixedSizeList
           height={320}
           itemCount={itemCount}
           itemSize={ITEM_WIDTH + GAP}
@@ -118,7 +118,7 @@ const SearchResultSection: React.FC<SearchResultSectionProps> = ({
               </div>
             );
           }}
-        </List>
+        </FixedSizeList>
       </div>
     </div>
   );

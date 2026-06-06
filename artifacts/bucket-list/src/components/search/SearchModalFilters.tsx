@@ -14,8 +14,8 @@ interface SearchModalFiltersProps {
   setYearInput: (val: string) => void;
   openDropdown: 'type' | 'year' | null;
   setOpenDropdown: (val: 'type' | 'year' | null) => void;
-  dropdownRef: React.RefObject<HTMLDivElement>;
-  yearInputRef: React.RefObject<HTMLInputElement>;
+  dropdownRef: React.RefObject<HTMLDivElement | null>;
+  yearInputRef: React.RefObject<HTMLInputElement | null>;
   TYPES: Array<{ label: string; value: string; icon: React.ElementType }>;
   YEARS: string[];
   GENRES: string[];

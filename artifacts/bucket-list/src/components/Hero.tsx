@@ -94,6 +94,7 @@ const Hero: React.FC<HeroProps> = ({
       }, 0);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [currentImage, handleBgLoad]);
 
   if (!item) return null;

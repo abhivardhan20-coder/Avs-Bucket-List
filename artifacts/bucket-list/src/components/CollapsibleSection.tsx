@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { ChevronDown } from 'lucide-react';
-import { List } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import { MediaItem } from '../types';
 import ContentCard from './ContentCard';
 
@@ -56,6 +56,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         resizeObserver.current?.disconnect();
       };
     }
+    return undefined;
   }, [isOpen, updateWidth]);
 
   if (items.length === 0) return null;
@@ -88,7 +89,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
         <div ref={containerRef} className="p-6 md:p-8 pt-0 bg-transparent animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="h-[320px] w-full mt-2">
             {containerWidth !== null && (
-              <List
+              <FixedSizeList
                 layout="horizontal"
                 itemCount={items.length}
                 itemSize={ITEM_SIZE}
@@ -96,7 +97,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
                 width={containerWidth}
                 className="no-scrollbar"
                 overscanCount={4}
-                itemKey={(index) => items[index]?.id || index}
+                itemKey={(index: number) => items[index]?.id || index}
               >
                 {({ index, style }: { index: number; style: React.CSSProperties }) => {
                   const item = items[index];
@@ -115,7 +116,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
                     </div>
                   );
                 }}
-              </List>
+              </FixedSizeList>
             )}
           </div>
         </div>

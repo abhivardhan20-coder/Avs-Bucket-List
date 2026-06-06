@@ -1,0 +1,1 @@
+- [react-window v1 Vite cache gotcha](react-window-vite-cache.md) — after downgrading react-window, must clear node_modules/.vite or old bundle serves wrong exports

@@ -24,7 +24,7 @@ export function useNewSeasons(watched: WatchedItem[], mediaCache: Record<string,
 
           // ✅ NEW: Remove from New Seasons if no future episodes AND all episodes watched
           const hasNoFutureEpisodes = !media.nextEpisode;
-          const allEpisodesWatched = media.totalEpisodes > 0 && w.watchedEpisodes >= media.totalEpisodes;
+          const allEpisodesWatched = (media.totalEpisodes ?? 0) > 0 && w.watchedEpisodes >= (media.totalEpisodes ?? 0);
           
           if (hasNoFutureEpisodes && allEpisodesWatched) {
             return null; // Filter out: no upcoming episodes and all watched

@@ -46,6 +46,7 @@ export const FilterBar: React.FC<FilterBarProps> = ({
       }, 50);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [openDropdown]);
 
   const handleGenreClick = (genre: string) => {

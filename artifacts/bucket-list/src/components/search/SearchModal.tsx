@@ -91,6 +91,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onResultClic
       }, 50);
       return () => clearTimeout(timer);
     }
+    return undefined;
   }, [openDropdown]);
 
   // --- HANDLERS ---

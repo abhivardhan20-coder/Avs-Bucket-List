@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Film, Tv, ChevronDown, ChevronUp } from 'lucide-react';
-import { List } from 'react-window';
+import { FixedSizeList } from 'react-window';
 import { MediaItem } from '@/types';
 import ContentCard from '../ContentCard';
 import Modal from '../ui/Modal';
@@ -63,12 +63,12 @@ const StatsGroupSection: React.FC<{
       {isOpen && (
         <div className="p-4 border-t border-gray-800 bg-[#141414]/50">
           <div className="h-[280px]">
-            <List
+            <FixedSizeList
               height={280}
               itemCount={group.items.length}
               itemSize={200}
               layout="horizontal"
-              width={1000} // This will be constrained by the container width
+              width={1000}
               className="no-scrollbar"
             >
               {({ index, style }: { index: number; style: React.CSSProperties }) => {
@@ -86,7 +86,7 @@ const StatsGroupSection: React.FC<{
                   </div>
                 );
               }}
-            </List>
+            </FixedSizeList>
           </div>
         </div>
       )}

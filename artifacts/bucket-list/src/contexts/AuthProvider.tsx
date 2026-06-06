@@ -5,7 +5,7 @@ import { UserProfile } from '../types';
 
 export interface AuthContextType {
   user: UserProfile | null;
-  login: (data: Partial<UserProfile>) => void;
+  login: (data?: UserProfile & { token?: string; isDemo?: boolean }) => Promise<void>;
   logout: () => void;
   signInWithGoogle: () => Promise<void>;
 }
