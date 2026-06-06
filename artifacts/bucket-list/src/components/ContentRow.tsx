@@ -124,7 +124,8 @@ const ContentRow: React.FC<ContentRowProps> = ({
 
   const handleItemsRendered = ({ visibleStopIndex }: { visibleStopIndex: number }) => {
     if (visibleStopIndex >= visibleItems.length - 2) {
-       if (!loading && hasMore && !error) {
+       if (!loadingRef.current && hasMoreRef.current && !errorRef.current) {
+         loadingRef.current = true; // Prevent re-entry before the useEffect fires loadData
          setPage(prev => prev + 1);
        }
     }

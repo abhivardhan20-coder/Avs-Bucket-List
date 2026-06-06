@@ -2,6 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { MediaItem } from '@/types';
 
+const noop = () => {};
+
 // Types for props
 interface AppRoutesProps {
   Home: React.ComponentType<any>;
@@ -86,7 +88,7 @@ export const AppRoutes: React.FC<AppRoutesProps> = ({
           toggleWatchlist={handleToggleWatchlist}
           isWatched={isWatched}
           toggleWatched={handleToggleWatched}
-          updateCache={() => {}}
+          updateCache={noop}
           excludedIds={excludedIds}
           userEmail={userEmail}
         />

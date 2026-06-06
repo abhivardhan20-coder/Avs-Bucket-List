@@ -74,12 +74,10 @@ const Hero: React.FC<HeroProps> = ({
   const [prevImage, setPrevImage] = useState<string | undefined>(undefined);
   const currentImage = item?.backdropUrl || item?.posterUrl;
 
-  const [prevIndex, setPrevIndex] = useState(heroState.index);
-
-  if (prevIndex !== heroState.index) {
-    setPrevIndex(heroState.index);
+  // Reset bgLoaded when the hero index changes (proper useEffect, not render-phase setState)
+  useEffect(() => {
     setBgLoaded(false);
-  }
+  }, [heroState.index]);
 
   const handleBgLoad = useCallback(() => {
     setPrevImage(currentImage);

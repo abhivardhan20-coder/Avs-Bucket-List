@@ -1,3 +1,6 @@
 - [react-window v1 Vite cache gotcha](react-window-vite-cache.md) — after downgrading react-window, must clear node_modules/.vite or old bundle serves wrong exports
 - [React Query unstable array default](react-query-array-default.md) — `= []` in destructuring creates new ref every render when data=undefined; use useMemo to stabilize.
 - [TMDB fetch strategy](tmdb-fetch-strategy.md) — DEV skips Edge Function; 404 null-return must only be on direct TMDB path, not Edge Function path.
+- [ContentRow infinite loop](contentrow-infinite-loop.md) — react-window onItemsRendered fires after every render; always use refs (not state) for re-entry guards.
+- [Render-phase setState](render-phase-setstate.md) — calling setState directly in render body causes cascading renders; always use useEffect instead.
+- [Inline function props as deps](inline-fn-deps.md) — inline `() => {}` as a prop creates new ref every render, destabilizing useCallback/useEffect chains; use module-level constants.

@@ -72,14 +72,12 @@ function App() {
   const [filterYear, setFilterYear] = useState<string>('All');
   const [filterGenre, setFilterGenre] = useState<string[]>(['All']);
 
-  // Reset filters when changing tabs (handled in render phase to avoid cascading effects)
-  const [prevTab, setPrevTab] = useState(activeTab);
-  if (activeTab !== prevTab) {
-    setPrevTab(activeTab);
+  // Reset filters when changing tabs
+  React.useEffect(() => {
     setFilterType('All');
     setFilterYear('All');
     setFilterGenre(['All']);
-  }
+  }, [activeTab]);
 
   // Stats Modal State
   const [statsModalConfig, setStatsModalConfig] = useState<{
