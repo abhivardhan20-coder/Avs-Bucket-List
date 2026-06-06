@@ -74,73 +74,64 @@ async function fetchWithRetry(
 }
 
 /**
- * Robust fetch wrapper for TMDB (via Backend Proxy) with local fallback to TMDB API if proxy fails/times out
+ * Robust fetch wrapper for TMDB.
+ * In development: goes straight to TMDB API (no Edge Function latency).
+ * In production: tries Supabase Edge Function first, falls back to direct TMDB on any failure.
  */
 async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise<T | null> {
   return dedupe(`tmdb:${endpoint}`, async () => {
-    try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const token = sessionData.session?.access_token;
+    const tmdbKey = import.meta.env.VITE_TMDB_API_KEY;
+    const separator = endpoint.includes('?') ? '&' : '?';
+    const directUrl = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${tmdbKey}`;
 
-    const edgeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb?path=${encodeURIComponent(endpoint)}`;
-    const headers: Record<string, string> = { ...getHeaders() };
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    try {
-      // First attempt: Supabase Edge Function with a 5s timeout and 1 retry
-      const response = await fetchWithRetry(
-        edgeUrl,
-        {
-          headers,
-          signal
-        },
-        1,
-        500,
-        5000
-      );
-
-      if (response && response.ok) {
-        return await response.json();
-      }
-
-      if (response && response.status === 404) {
+    // In development, skip the Edge Function entirely — it adds 5-10s of latency
+    // when not deployed. Go straight to TMDB.
+    if (import.meta.env.DEV || !import.meta.env.VITE_SUPABASE_URL) {
+      if (!tmdbKey) {
+        console.error('[TMDB] VITE_TMDB_API_KEY is not set');
         return null;
       }
-
-      throw new Error(`Edge function returned status ${response?.status}`);
-    } catch (edgeError) {
-      // Fallback: fetch directly from TMDB API if key is available
-      const tmdbKey = import.meta.env.VITE_TMDB_API_KEY;
-      if (tmdbKey) {
-        if (import.meta.env.DEV) {
-          console.warn("[TMDB] Edge function failed or timed out. Falling back to direct TMDB API...", edgeError);
-        }
-        const separator = endpoint.includes('?') ? '&' : '?';
-        const directUrl = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${tmdbKey}`;
-        
-        const directResponse = await fetchWithRetry(
-          directUrl,
-          { signal },
-          2,
-          800,
-          6000
-        );
-
-        if (directResponse && directResponse.ok) {
-          return await directResponse.json();
-        }
+      try {
+        const response = await fetchWithRetry(directUrl, { signal }, 2, 800, 8000);
+        if (response && response.ok) return await response.json() as T;
+        if (response && response.status === 404) return null;
+        throw new Error(`TMDB returned status ${response?.status}`);
+      } catch (error) {
+        console.error(`[TMDB] Fetch failed for ${endpoint}:`, error);
+        throw error;
       }
-      throw edgeError;
     }
-  } catch (error) {
-    if (error instanceof Error && error.message.startsWith('TMDB_API_ERROR')) {
+
+    // Production: try Edge Function first, fall back to direct TMDB on any failure
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const token = sessionData.session?.access_token;
+
+      const edgeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb?path=${encodeURIComponent(endpoint)}`;
+      const headers: Record<string, string> = { ...getHeaders() };
+      if (token) {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+
+      try {
+        const response = await fetchWithRetry(edgeUrl, { headers, signal }, 1, 500, 5000);
+        if (response && response.ok) return await response.json() as T;
+        // Any non-OK from edge function (including 404 = function not deployed) → fall back
+        throw new Error(`Edge function returned status ${response?.status}`);
+      } catch (edgeError) {
+        // Fallback: direct TMDB
+        if (tmdbKey) {
+          const directResponse = await fetchWithRetry(directUrl, { signal }, 2, 800, 8000);
+          if (directResponse && directResponse.ok) return await directResponse.json() as T;
+          if (directResponse && directResponse.status === 404) return null;
+        }
+        throw edgeError;
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.startsWith('TMDB_API_ERROR')) throw error;
+      console.error(`[TMDB] Fetch failure for ${endpoint}:`, error);
       throw error;
     }
-    console.error(`TMDB Fetch Failure for ${endpoint}:`, error);
-    throw error;
-  }
   });
 }
 

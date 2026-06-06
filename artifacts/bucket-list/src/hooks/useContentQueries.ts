@@ -7,6 +7,7 @@ export function useTrending(type: MediaType, page: number = 1) {
     queryKey: ['trending', type, page],
     queryFn: () => ContentService.getTrending(type, page),
     staleTime: 1000 * 60 * 60, // 1 hour
+    retry: 1,
   });
 }
 
