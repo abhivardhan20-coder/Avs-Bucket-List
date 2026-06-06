@@ -1,45 +1,68 @@
-# [Project name]
+# AV's Bucket List
 
-_Replace the heading above with the project's name, and this line with one sentence describing what this app does for users._
+A personal movie and TV show tracker with Supabase sync and Google OAuth. Track your watchlist, watched titles, upcoming releases, and stats — with offline-first Dexie.js storage and real-time Supabase sync.
 
 ## Run & Operate
 
-- `pnpm --filter @workspace/api-server run dev` — run the API server (port 5000)
+- `pnpm --filter @workspace/bucket-list run dev` — run the frontend (port auto-assigned via workflow)
+- `pnpm --filter @workspace/api-server run dev` — run the API server
 - `pnpm run typecheck` — full typecheck across all packages
 - `pnpm run build` — typecheck + build all packages
-- `pnpm --filter @workspace/api-spec run codegen` — regenerate API hooks and Zod schemas from the OpenAPI spec
-- `pnpm --filter @workspace/db run push` — push DB schema changes (dev only)
-- Required env: `DATABASE_URL` — Postgres connection string
 
 ## Stack
 
 - pnpm workspaces, Node.js 24, TypeScript 5.9
-- API: Express 5
-- DB: PostgreSQL + Drizzle ORM
-- Validation: Zod (`zod/v4`), `drizzle-zod`
-- API codegen: Orval (from OpenAPI spec)
-- Build: esbuild (CJS bundle)
+- Frontend: React 19 + Vite 7 + Tailwind CSS v4 + React Router v7
+- Auth: Google OAuth via `@react-oauth/google` + Supabase Auth
+- DB: Supabase (remote sync) + Dexie.js (offline-first IndexedDB)
+- API sources: TMDB, Trakt, TheTVDB, Fanart.tv, AniList, Jikan
+- State: TanStack React Query v5
+- Error tracking: Sentry (optional, only in prod if VITE_SENTRY_DSN is set)
 
 ## Where things live
 
-_Populate as you build — short repo map plus pointers to the source-of-truth file for DB schema, API contracts, theme files, etc._
+- `artifacts/bucket-list/src/` — main app source
+  - `App.tsx` — root component (uses react-router-dom BrowserRouter)
+  - `AppRoutes.tsx` — route definitions (/, /upcoming, /watchlist, /watched, /stats)
+  - `index.tsx` — entry point with auth guard and provider setup
+  - `contexts/` — AppContext, AuthProvider, LibraryProvider, SyncProvider, ToastProvider, SettingsProvider
+  - `components/` — UI components (ContentCard, ContentModal, Navbar, Hero, etc.)
+  - `pages/` — Home, Watchlist, Watched, Upcoming
+  - `features/search/` — GlobalSearch feature
+  - `services/` — API clients (tmdb.ts, supabaseClient.ts, anilist.ts, etc.)
+  - `lib/` — utilities (db.ts for Dexie, queryClient.ts, recommendationEngine.ts, etc.)
+  - `hooks/` — custom hooks (useContentQueries, useFilteredMedia, useMediaToggles, etc.)
+- `artifacts/api-server/` — Express backend (healthcheck only, app is mostly client-side)
 
 ## Architecture decisions
 
-_Populate as you build — non-obvious choices a reader couldn't infer from the code (3-5 bullets)._
+- **Offline-first**: Dexie.js (IndexedDB) is the primary local store; Supabase syncs in background
+- **No PWA plugin**: vite-plugin-pwa was dropped (not supported in Replit multi-artifact setup); sw.js is retained as a static fallback
+- **react-window**: Uses `List` export (not `FixedSizeList`) — upgraded package API
+- **Client-side only**: No API routes — all data fetching hits external APIs (TMDB, Supabase, etc.) directly from the browser
+- **CSP**: Relaxed for Replit proxy (wss:, https: broad) while retaining img-src restrictions
 
-## Product
+## Required Secrets
 
-_Describe the high-level user-facing capabilities of this app once they exist._
+Set these in the Replit Secrets panel:
+
+- `VITE_GOOGLE_CLIENT_ID` — Google OAuth Client ID
+- `VITE_SUPABASE_URL` — Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` — Supabase anon/publishable key
+- `VITE_TMDB_API_KEY` — TMDB API key
+- `VITE_TRAKT_CLIENT_ID` / `VITE_TRAKT_CLIENT_SECRET` — Trakt API
+- `VITE_TVDB_API_KEY` — TheTVDB v4 API key
+- `VITE_FANART_API_KEY` — Fanart.tv API key
+- `VITE_SENTRY_DSN` — (optional) Sentry DSN for error tracking
 
 ## User preferences
 
-_Populate as you build — explicit user instructions worth remembering across sessions._
+- Preserve the original dark Netflix-style UI at all costs — no light mode
+- App is single-user (personal tool), no multi-user support needed
 
 ## Gotchas
 
-_Populate as you build — sharp edges, "always run X before Y" rules._
-
-## Pointers
-
-- See the `pnpm-workspace` skill for workspace structure, TypeScript setup, and package details
+- Do NOT run `pnpm dev` at workspace root — use workflows
+- `VITE_SUPABASE_ANON_KEY` value should not include trailing comments when set
+- react-window exports `List` not `FixedSizeList` in the installed version
+- postcss.config.js was intentionally skipped (conflicts with @tailwindcss/vite in Tailwind v4)

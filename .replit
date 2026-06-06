@@ -20,5 +20,28 @@ path = "scripts/post-merge.sh"
 timeoutMs = 20000
 
 [[ports]]
+localPort = 8080
+externalPort = 8080
+
+[[ports]]
+localPort = 8081
+externalPort = 8081
+
+[[ports]]
 localPort = 21741
 externalPort = 80
+
+[userenv]
+
+[userenv.shared]
+VITE_GOOGLE_CLIENT_ID = "1056900120908-t078nkuuosn0nj7v2m76qui1miput97g.apps.googleusercontent.com"
+VITE_SUPABASE_URL = "https://rlhpfhvwavdkjevixfsq.supabase.co"
+VITE_SUPABASE_ANON_KEY = "sb_publishable_tEsHCodYuOSF8c92uOJ3Qg_rn2jcUPa"
+VITE_TMDB_API_KEY = "cdf741ca0481bc5a2351954aeea641d2"
+VITE_TRAKT_CLIENT_ID = "81ccd85db0a6fba54d475f0f2cdad8edb732e07c1c8df617ed4226969464c19a"
+VITE_TRAKT_CLIENT_SECRET = "17cef1f3790fd70d4e89afbb53e5f3c3a39a4aeea10279abf545f25056851c66"
+VITE_TVDB_API_KEY = "3b380759-7315-4aef-bda3-295f759dcff7"
+VITE_FANART_API_KEY = "b6a495580cdb4cab809e17d3"
+VITE_BACKEND_URL = "http://127.0.0.1:8000"
+VITE_SENTRY_DSN = ""
+OMDB_API_KEY = "49c4944b"
