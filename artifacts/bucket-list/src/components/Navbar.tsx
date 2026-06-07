@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { NavLink, Link } from 'react-router-dom';
 import { Search, Menu, Tv, BarChart2, LogOut, Bell, Calendar, Puzzle, ExternalLink } from 'lucide-react';
 import { useAuth } from '../contexts/AppContext';
 import NotificationPopover from './NotificationPopover';
@@ -8,19 +9,27 @@ import { useNotifications } from '../hooks/useNotifications';
 import { SyncMonitor } from './SyncMonitor';
 
 interface NavbarProps {
-  activeTab: 'home' | 'watchlist' | 'watched' | 'stats' | 'upcoming';
-  setActiveTab: (tab: 'home' | 'watchlist' | 'watched' | 'stats' | 'upcoming') => void;
   watchedCount: number;
   onSearchClick: () => void;
   onSettingsClick: () => void;
 }
 
+const navLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `px-5 py-2 rounded-md text-sm font-bold transition-all duration-300 flex items-center gap-2 ${
+    isActive
+      ? 'bg-[#7f1d1d] text-white shadow-lg shadow-red-900/20 scale-105'
+      : 'text-gray-300 hover:text-white hover:bg-white/10'
+  }`;
+
+const mobileNavLinkClass = ({ isActive }: { isActive: boolean }) =>
+  `px-4 py-2 rounded text-left transition-colors flex items-center gap-2 ${
+    isActive ? 'bg-[#7f1d1d] text-white font-bold' : 'text-gray-300 hover:bg-white/5'
+  }`;
+
 const Navbar: React.FC<NavbarProps> = ({
-  activeTab,
-  setActiveTab,
   watchedCount,
   onSearchClick,
-  onSettingsClick
+  onSettingsClick,
 }) => {
   const { logout, user } = useAuth();
   const [isScrolled, setIsScrolled] = useState(false);
@@ -33,13 +42,10 @@ const Navbar: React.FC<NavbarProps> = ({
   const profileRef = useRef<HTMLDivElement>(null);
   const notifRef = useRef<HTMLDivElement>(null);
 
-  // Use the notification hook to get counts and items
   const { notifications, loading: loadingNotifications } = useNotifications();
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 0);
-    };
+    const handleScroll = () => setIsScrolled(window.scrollY > 0);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
@@ -53,22 +59,11 @@ const Navbar: React.FC<NavbarProps> = ({
         setIsNotifOpen(false);
       }
     };
-
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getNavItemClass = (isActive: boolean) =>
-    `px-5 py-2 rounded-md text-sm font-bold transition-all duration-300 flex items-center gap-2 ${isActive
-      ? 'bg-[#7f1d1d] text-white shadow-lg shadow-red-900/20 scale-105'
-      : 'text-gray-300 hover:text-white hover:bg-white/10'
-    }`;
-
-  const getMobileNavItemClass = (isActive: boolean) =>
-    `px-4 py-2 rounded text-left transition-colors flex items-center gap-2 ${isActive
-      ? 'bg-[#7f1d1d] text-white font-bold'
-      : 'text-gray-300 hover:bg-white/5'
-    }`;
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   return (
     <>
@@ -76,65 +71,51 @@ const Navbar: React.FC<NavbarProps> = ({
         <div className="px-4 md:px-12 py-4 flex items-center justify-between">
 
           <div className="flex items-center gap-8">
-            <div
-              role="button"
-              tabIndex={0}
+            <Link
+              to="/"
               className="flex items-center gap-3 cursor-pointer group outline-none focus:ring-2 focus:ring-red-500 rounded"
-              onClick={() => setActiveTab('home')}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ' ') {
-                  e.preventDefault();
-                  setActiveTab('home');
-                }
-              }}
             >
               <Tv className="w-8 h-8 text-red-600 transition-transform group-hover:scale-110" />
               <h1 className="text-white text-xl md:text-2xl font-bold tracking-tight whitespace-nowrap">
                 AV's Bucket List
               </h1>
-            </div>
+            </Link>
 
             <div className="hidden md:flex items-center gap-4">
-              <button
-                onClick={() => setActiveTab('home')}
-                className={getNavItemClass(activeTab === 'home')}
-              >
+              <NavLink to="/" end className={navLinkClass}>
                 Home
-              </button>
+              </NavLink>
 
-              <button
-                onClick={() => setActiveTab('watchlist')}
-                className={getNavItemClass(activeTab === 'watchlist')}
-              >
+              <NavLink to="/watchlist" className={navLinkClass}>
                 Watchlist
-              </button>
+              </NavLink>
 
-              <button
-                onClick={() => setActiveTab('watched')}
-                className={`${getNavItemClass(activeTab === 'watched')} flex items-center gap-2`}
+              <NavLink
+                to="/watched"
+                className={({ isActive }) =>
+                  `${navLinkClass({ isActive })} flex items-center gap-2`
+                }
                 aria-label={`Watched items, ${watchedCount} items`}
               >
-                Watched
-                {watchedCount > 0 && (
-                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[24px] text-center transition-colors ${activeTab === 'watched' ? 'bg-white text-[#7f1d1d]' : 'bg-[#7f1d1d] text-white'}`}>
-                    {watchedCount}
-                  </span>
+                {({ isActive }) => (
+                  <>
+                    Watched
+                    {watchedCount > 0 && (
+                      <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full min-w-[24px] text-center transition-colors ${isActive ? 'bg-white text-[#7f1d1d]' : 'bg-[#7f1d1d] text-white'}`}>
+                        {watchedCount}
+                      </span>
+                    )}
+                  </>
                 )}
-              </button>
+              </NavLink>
 
-              <button
-                onClick={() => setActiveTab('stats')}
-                className={getNavItemClass(activeTab === 'stats')}
-              >
+              <NavLink to="/stats" className={navLinkClass}>
                 <BarChart2 className="w-4 h-4" /> Stats
-              </button>
+              </NavLink>
 
-              <button
-                onClick={() => setActiveTab('upcoming')}
-                className={getNavItemClass(activeTab === 'upcoming')}
-              >
+              <NavLink to="/upcoming" className={navLinkClass}>
                 Upcoming
-              </button>
+              </NavLink>
             </div>
           </div>
 
@@ -147,8 +128,7 @@ const Navbar: React.FC<NavbarProps> = ({
             >
               <Search className="w-5 h-5" />
             </button>
-            
-            {/* Notification Bell */}
+
             <div className="relative" ref={notifRef}>
               <button
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -240,45 +220,36 @@ const Navbar: React.FC<NavbarProps> = ({
         {isMobileMenuOpen && (
           <div className="md:hidden bg-[#141414] border-t border-gray-800 p-4 absolute w-full animate-in slide-in-from-top-5 shadow-2xl">
             <div className="flex flex-col gap-4">
-              <button
-                onClick={() => { setActiveTab('home'); setIsMobileMenuOpen(false); }}
-                className={getMobileNavItemClass(activeTab === 'home')}
-              >
+              <NavLink to="/" end className={mobileNavLinkClass} onClick={closeMobileMenu}>
                 Home
-              </button>
-              <button
-                onClick={() => { setActiveTab('watchlist'); setIsMobileMenuOpen(false); }}
-                className={getMobileNavItemClass(activeTab === 'watchlist')}
-              >
+              </NavLink>
+              <NavLink to="/watchlist" className={mobileNavLinkClass} onClick={closeMobileMenu}>
                 Watchlist
-              </button>
-              <button
-                onClick={() => { setActiveTab('watched'); setIsMobileMenuOpen(false); }}
-                className={`${getMobileNavItemClass(activeTab === 'watched')} flex justify-between items-center`}
+              </NavLink>
+              <NavLink
+                to="/watched"
+                className={({ isActive }) =>
+                  `${mobileNavLinkClass({ isActive })} flex justify-between items-center`
+                }
+                onClick={closeMobileMenu}
               >
                 <span>Watched</span>
                 {watchedCount > 0 && (
-                  <span className={`text-xs px-2 py-1 rounded-full ${activeTab === 'watched' ? 'bg-white text-[#7f1d1d]' : 'bg-[#7f1d1d] text-white'}`}>
+                  <span className={`text-xs px-2 py-1 rounded-full bg-[#7f1d1d] text-white`}>
                     {watchedCount}
                   </span>
                 )}
-              </button>
-              <button
-                onClick={() => { setActiveTab('stats'); setIsMobileMenuOpen(false); }}
-                className={getMobileNavItemClass(activeTab === 'stats')}
-              >
+              </NavLink>
+              <NavLink to="/stats" className={mobileNavLinkClass} onClick={closeMobileMenu}>
                 <BarChart2 className="w-4 h-4" /> My Stats
-              </button>
-              <button
-                onClick={() => { setActiveTab('upcoming'); setIsMobileMenuOpen(false); }}
-                className={getMobileNavItemClass(activeTab === 'upcoming')}
-              >
+              </NavLink>
+              <NavLink to="/upcoming" className={mobileNavLinkClass} onClick={closeMobileMenu}>
                 <Calendar className="w-4 h-4" /> Upcoming
-              </button>
+              </NavLink>
               <div className="border-t border-gray-800 pt-2 mt-2">
                 <button
-                  onClick={() => { onSettingsClick(); setIsMobileMenuOpen(false); }}
-                  className={getMobileNavItemClass(false)}
+                  onClick={() => { onSettingsClick(); closeMobileMenu(); }}
+                  className="w-full text-left px-4 py-2 rounded text-gray-300 hover:bg-white/5 flex items-center gap-2"
                 >
                   Settings
                 </button>
@@ -286,8 +257,8 @@ const Navbar: React.FC<NavbarProps> = ({
                   href="https://chromewebstore.google.com/detail/antigravity-browser-exten/eeijfnjmjelapkebgockoeaadonbchdd"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`${getMobileNavItemClass(false)} text-purple-400 hover:text-purple-300 flex justify-between items-center`}
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="px-4 py-2 rounded text-purple-400 hover:text-purple-300 hover:bg-white/5 flex justify-between items-center"
+                  onClick={closeMobileMenu}
                 >
                   <span className="flex items-center gap-2">
                     <Puzzle className="w-4 h-4" /> Chrome Extension
@@ -295,8 +266,8 @@ const Navbar: React.FC<NavbarProps> = ({
                   <ExternalLink className="w-3.5 h-3.5 opacity-60" />
                 </a>
                 <button
-                  onClick={() => { logout(); setIsMobileMenuOpen(false); }}
-                  className={`${getMobileNavItemClass(false)} text-red-400 hover:text-red-300`}
+                  onClick={() => { logout(); closeMobileMenu(); }}
+                  className="w-full text-left px-4 py-2 rounded text-red-400 hover:text-red-300 hover:bg-white/5 flex items-center gap-2"
                 >
                   <LogOut className="w-4 h-4" /> Sign Out
                 </button>

@@ -148,8 +148,6 @@ function App() {
 
   return (
     <RootLayout
-      activeTab={activeTab}
-      setActiveTab={setActiveTab}
       watchedCount={watched.length}
       isSearchOpen={isSearchOpen}
       setIsSearchOpen={setIsSearchOpen}

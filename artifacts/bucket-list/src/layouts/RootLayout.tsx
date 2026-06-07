@@ -9,8 +9,6 @@ import { AlertTriangle, Plus, Loader, Zap } from 'lucide-react';
 
 interface RootLayoutProps {
     children: React.ReactNode;
-    activeTab: 'home' | 'upcoming' | 'watchlist' | 'watched' | 'stats';
-    setActiveTab: (tab: 'home' | 'upcoming' | 'watchlist' | 'watched' | 'stats') => void;
     watchedCount: number;
     isSearchOpen: boolean;
     setIsSearchOpen: (open: boolean) => void;
@@ -25,8 +23,6 @@ interface RootLayoutProps {
 
 export const RootLayout: React.FC<RootLayoutProps> = ({
     children,
-    activeTab,
-    setActiveTab,
     watchedCount,
     isSearchOpen,
     setIsSearchOpen,
@@ -83,8 +79,6 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
             <div className="fixed inset-0 pointer-events-none z-[100]">
                 <div className="pointer-events-auto">
                     <Navbar
-                        activeTab={activeTab}
-                        setActiveTab={setActiveTab}
                         watchedCount={watchedCount}
                         onSearchClick={() => setIsSearchOpen(true)}
                         onSettingsClick={() => setIsSettingsOpen(true)}
