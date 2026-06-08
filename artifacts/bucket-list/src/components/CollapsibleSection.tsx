@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useScrollArrows } from '@/hooks/useScrollArrows';
 import { FixedSizeList } from 'react-window';
 import { MediaItem } from '../types';
 import ContentCard from './ContentCard';
@@ -33,6 +34,9 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   const containerRef = useRef<HTMLDivElement>(null);
   const [containerWidth, setContainerWidth] = useState<number | null>(null);
   const resizeObserver = useRef<ResizeObserver | null>(null);
+  
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { showLeftArrow, showRightArrow, scrollByAmount } = useScrollArrows(scrollRef, items.length);
 
   const updateWidth = useCallback(() => {
     if (containerRef.current) {
@@ -62,7 +66,6 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
   if (items.length === 0) return null;
 
   // Constants for virtualization
-  const ITEM_SIZE = 216; 
   const LIST_HEIGHT = 320;
 
   return (
@@ -88,36 +91,70 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
       {isOpen && (
         <div ref={containerRef} className="p-6 md:p-8 pt-0 bg-transparent animate-in fade-in slide-in-from-top-4 duration-500">
           <div className="h-[320px] w-full mt-2">
-            {containerWidth !== null && (
-              <FixedSizeList
-                layout="horizontal"
-                itemCount={items.length}
-                itemSize={ITEM_SIZE}
-                height={LIST_HEIGHT}
-                width={containerWidth}
-                className="no-scrollbar"
-                overscanCount={4}
-                itemKey={(index: number) => items[index]?.id || index}
-              >
-                {({ index, style }: { index: number; style: React.CSSProperties }) => {
-                  const item = items[index];
-                  if (!item) return null;
+            {containerWidth !== null && (() => {
+              const isMobile = containerWidth < 768;
+              const cardWidth = isMobile ? 160 : 200;
+              const gap = isMobile ? 8 : 12;
+              const itemSize = cardWidth + gap;
+              
+              return (
+                <div className="relative group/horizontal-scroll w-full">
+                  {/* Left Arrow Overlay */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); scrollByAmount('left'); }}
+                    className={`absolute left-0 top-0 bottom-0 z-50 w-12 bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-300 ${showLeftArrow ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}
+                    aria-label="Scroll Left"
+                    disabled={!showLeftArrow}
+                  >
+                    <ChevronLeft className="w-8 h-8" />
+                  </button>
 
-                  return (
-                    <div style={style} className="pr-4 pb-2">
-                      <ContentCard 
-                        item={item}
-                        onClick={onCardClick}
-                        isInWatchlist={isInWatchlist(item.id)}
-                        onToggleWatchlist={onToggleWatchlist}
-                        isWatched={isWatched(item.id)}
-                        onToggleWatched={onToggleWatched}
-                      />
-                    </div>
-                  );
-                }}
-              </FixedSizeList>
-            )}
+                  {/* Right Arrow Overlay */}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); scrollByAmount('right'); }}
+                    className={`absolute right-0 top-0 bottom-0 z-50 w-12 bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-300 ${showRightArrow ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}`}
+                    aria-label="Scroll Right"
+                    disabled={!showRightArrow}
+                  >
+                    <ChevronRight className="w-8 h-8" />
+                  </button>
+
+                  {/* Edge Gradients */}
+                  <div className={`absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#141414] to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showLeftArrow ? 'opacity-100' : 'opacity-0'}`} />
+                  <div className={`absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#141414] to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showRightArrow ? 'opacity-100' : 'opacity-0'}`} />
+
+                  <FixedSizeList
+                    layout="horizontal"
+                    itemCount={items.length}
+                    itemSize={itemSize}
+                    height={LIST_HEIGHT}
+                    width={containerWidth}
+                    className="no-scrollbar"
+                    overscanCount={4}
+                    itemKey={(index: number) => items[index]?.id || index}
+                    outerRef={scrollRef}
+                  >
+                    {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                      const item = items[index];
+                      if (!item) return null;
+
+                      return (
+                        <div style={style} className={`${isMobile ? 'pr-2' : 'pr-3'} pb-2`}>
+                          <ContentCard 
+                            item={item}
+                            onClick={onCardClick}
+                            isInWatchlist={isInWatchlist(item.id)}
+                            onToggleWatchlist={onToggleWatchlist}
+                            isWatched={isWatched(item.id)}
+                            onToggleWatched={onToggleWatched}
+                          />
+                        </div>
+                      );
+                    }}
+                  </FixedSizeList>
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

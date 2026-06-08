@@ -22,9 +22,9 @@ A personal movie and TV show tracker with Supabase sync and Google OAuth. Track 
 ## Where things live
 
 - `artifacts/bucket-list/src/` — main app source
-  - `App.tsx` — root component (uses react-router-dom BrowserRouter)
+  - `App.tsx` — root component (consumes react-router-dom hooks; BrowserRouter is provided by main.tsx)
   - `AppRoutes.tsx` — route definitions (/, /upcoming, /watchlist, /watched, /stats)
-  - `index.tsx` — entry point with auth guard and provider setup
+  - `main.tsx` — entry point with auth guard and provider setup
   - `contexts/` — AppContext, AuthProvider, LibraryProvider, SyncProvider, ToastProvider, SettingsProvider
   - `components/` — UI components (ContentCard, ContentModal, Navbar, Hero, etc.)
   - `pages/` — Home, Watchlist, Watched, Upcoming
@@ -37,7 +37,7 @@ A personal movie and TV show tracker with Supabase sync and Google OAuth. Track 
 ## Architecture decisions
 
 - **Offline-first**: Dexie.js (IndexedDB) is the primary local store; Supabase syncs in background
-- **No PWA plugin**: vite-plugin-pwa was dropped (not supported in Replit multi-artifact setup); sw.js is retained as a static fallback
+- **Minimal PWA**: A lightweight service worker (`public/sw.js`) pre-caches the offline fallback page; `manifest.webmanifest` enables "Add to Home Screen". Full offline caching relies on Dexie.js (IndexedDB).
 - **react-window**: Uses `List` export (not `FixedSizeList`) — upgraded package API
 - **Client-side only**: No API routes — all data fetching hits external APIs (TMDB, Supabase, etc.) directly from the browser
 - **CSP**: Relaxed for Replit proxy (wss:, https: broad) while retaining img-src restrictions

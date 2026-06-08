@@ -25,6 +25,12 @@ import {
 } from './LibraryProvider';
 import { runMigrations } from '../lib/migrationService';
 
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClient } from '../lib/queryClient';
+import { GoogleOAuthProvider } from '@react-oauth/google';
+import { ToastProvider } from './ToastProvider';
+import { API_KEYS } from '../services/config';
+
 const MigrationRunner = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
   useEffect(() => {
@@ -37,17 +43,23 @@ const MigrationRunner = ({ children }: { children: React.ReactNode }) => {
 
 export const AppProvider = ({ children }: { children: React.ReactNode }) => {
   return (
-    <AuthProvider>
-      <MigrationRunner>
-        <SettingsProvider>
-          <SyncProvider>
-            <LibraryProvider>
-              {children}
-            </LibraryProvider>
-          </SyncProvider>
-        </SettingsProvider>
-      </MigrationRunner>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <GoogleOAuthProvider clientId={API_KEYS.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
+        <ToastProvider>
+          <AuthProvider>
+            <MigrationRunner>
+              <SettingsProvider>
+                <SyncProvider>
+                  <LibraryProvider>
+                    {children}
+                  </LibraryProvider>
+                </SyncProvider>
+              </SettingsProvider>
+            </MigrationRunner>
+          </AuthProvider>
+        </ToastProvider>
+      </GoogleOAuthProvider>
+    </QueryClientProvider>
   );
 };
 

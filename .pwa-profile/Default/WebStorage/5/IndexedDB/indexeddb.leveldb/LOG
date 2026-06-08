@@ -1,0 +1,7 @@
+2026/05/24-22:22:47.966 5d84 Reusing MANIFEST C:\Users\abhi\OneDrive\Desktop\AVS BL\.pwa-profile\Default\WebStorage\5\IndexedDB\indexeddb.leveldb/MANIFEST-000001
+2026/05/24-22:22:47.967 5d84 Recovering log #3
+2026/05/24-22:22:47.969 5d84 Reusing old log C:\Users\abhi\OneDrive\Desktop\AVS BL\.pwa-profile\Default\WebStorage\5\IndexedDB\indexeddb.leveldb/000003.log 
+2026/05/24-22:22:51.309 6e40 Level-0 table #5: started
+2026/05/24-22:22:51.313 6e40 Level-0 table #5: 77223 bytes OK
+2026/05/24-22:22:51.317 6e40 Delete type=0 #3
+2026/05/24-22:22:51.318 6e40 Manual compaction at level-0 from (begin) .. (end); will stop at (end)

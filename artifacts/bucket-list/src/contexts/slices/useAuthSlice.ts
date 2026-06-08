@@ -35,7 +35,20 @@ export const useAuthSlice = () => {
           setUser(profile);
           localStorage.setItem('av_user_profile', JSON.stringify(profile));
         } else {
-          // Clear legacy data
+          // No active Supabase session. Check if there is a saved demo profile to restore.
+          const storedProfileStr = localStorage.getItem('av_user_profile');
+          if (storedProfileStr) {
+            try {
+              const storedProfile = JSON.parse(storedProfileStr) as UserProfile;
+              if (storedProfile && (storedProfile as any).isDemo) {
+                setUser(storedProfile);
+                return;
+              }
+            } catch (e) {
+              console.error('[Auth] Failed to parse stored profile:', e);
+            }
+          }
+          // Clear legacy data if not a demo session
           localStorage.removeItem("av_user_profile");
         }
       } catch (err) {
@@ -47,10 +60,9 @@ export const useAuthSlice = () => {
 
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      sessionRef.current = session;
-      setSession(session);
-      
       if (session?.user) {
+        sessionRef.current = session;
+        setSession(session);
         const profile: UserProfile = {
           id: session.user.id,
           email: session.user.email || '',
@@ -60,6 +72,25 @@ export const useAuthSlice = () => {
         setUser(profile);
         localStorage.setItem('av_user_profile', JSON.stringify(profile));
       } else {
+        // No session from Supabase. Check if we currently have a stored demo session.
+        const storedProfileStr = localStorage.getItem('av_user_profile');
+        let isDemo = false;
+        if (storedProfileStr) {
+          try {
+            const parsed = JSON.parse(storedProfileStr);
+            if (parsed && parsed.isDemo) {
+              isDemo = true;
+            }
+          } catch {}
+        }
+
+        if (isDemo) {
+          // Keep the demo user session active and do not clear it
+          return;
+        }
+
+        sessionRef.current = null;
+        setSession(null);
         setUser(null);
         localStorage.removeItem('av_user_profile');
       }

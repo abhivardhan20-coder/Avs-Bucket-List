@@ -1,11 +1,11 @@
 
-import React, { useState } from 'react';
+import React from 'react';
 import Navbar from '@/components/Navbar';
 import GlobalSearch from '@/features/search/GlobalSearch';
 import SettingsModal from '@/components/SettingsModal';
-import { WatchNextModal } from '@/components/WatchNextModal';
 import { MediaItem } from '@/types';
-import { AlertTriangle, Plus, Loader, Zap } from 'lucide-react';
+import { AlertTriangle, Plus, Loader } from 'lucide-react';
+import { Toaster } from 'sonner';
 
 interface RootLayoutProps {
     children: React.ReactNode;
@@ -34,15 +34,8 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
     setAppError,
     setSelectedContent
 }) => {
-    const [isWatchNextOpen, setIsWatchNextOpen] = useState(false);
-
     return (
         <div className="min-h-screen bg-[#141414] font-sans relative">
-            <WatchNextModal 
-                isOpen={isWatchNextOpen} 
-                onClose={() => setIsWatchNextOpen(false)} 
-                setSelectedContent={setSelectedContent || (() => {})}
-            />
 
             {isProcessing && (
                 <div className="fixed inset-0 z-[200] bg-black/50 backdrop-blur-md flex items-center justify-center flex-col gap-4">
@@ -84,21 +77,9 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
                         onSettingsClick={() => setIsSettingsOpen(true)}
                     />
                 </div>
-
-                {!isWatchNextOpen && (
-                    <div className="absolute bottom-24 right-6 pointer-events-auto">
-                        <button
-                            onClick={() => setIsWatchNextOpen(true)}
-                            className="bg-red-600 hover:bg-red-500 text-white rounded-full px-5 py-3.5 font-black text-xs shadow-[0_12px_40px_rgba(220,38,30,0.4)] flex items-center gap-2.5 active:scale-90 transition-all group overflow-hidden"
-                            aria-label="What to watch? Get recommendations"
-                        >
-                            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full group-hover:animate-shimmer" />
-                            <Zap className="w-4 h-4 fill-current group-hover:scale-125 transition-transform" />
-                            <span className="mb-0.5 uppercase tracking-tighter font-black">What to watch?</span>
-                        </button>
-                    </div>
-                )}
             </div>
+            
+            <Toaster theme="dark" position="bottom-right" richColors />
         </div>
     );
 };

@@ -1,6 +1,6 @@
 
 import React, { useRef, useState, useEffect } from 'react';
-import { X, Download, Upload, Database, CheckCircle, Trash2, Cloud, RefreshCw, FileText, Puzzle, ExternalLink } from 'lucide-react';
+import { X, Download, Upload, Database, CheckCircle, Trash2, Cloud, RefreshCw, FileText } from 'lucide-react';
 import Modal from './ui/Modal';
 import { useLibraryData, useSettings } from '../contexts/AppContext';
 import { usePWAInstall } from '../hooks/usePWAInstall';
@@ -22,32 +22,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
-  const [isExtensionInstalled, setIsExtensionInstalled] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    if (!isOpen) return;
-    const extensionId = "eeijfnjmjelapkebgockoeaadonbchdd";
-    const chrome = (window as any).chrome;
-    if (chrome && chrome.runtime && chrome.runtime.sendMessage) {
-      try {
-        chrome.runtime.sendMessage(
-          extensionId,
-          { type: "ping" },
-          () => {
-            if (chrome.runtime.lastError) {
-              setIsExtensionInstalled(false);
-            } else {
-              setIsExtensionInstalled(true);
-            }
-          }
-        );
-      } catch {
-        setIsExtensionInstalled(false);
-      }
-    } else {
-      setIsExtensionInstalled(false);
-    }
-  }, [isOpen]);
 
   const handleExport = () => {
     exportData();
@@ -223,60 +197,6 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
 
-            {/* Antigravity Browser Extension Promotion */}
-            <div className="space-y-4 pt-6 border-t border-white/5">
-              <div className="flex items-center justify-between">
-                <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                  <Puzzle className="w-4 h-4 text-purple-400" /> Browser Extension
-                </h3>
-                {isExtensionInstalled === true ? (
-                  <div className="px-2 py-0.5 bg-green-500/10 border border-green-500/20 rounded-full flex items-center gap-1">
-                    <CheckCircle className="w-3.5 h-3.5 text-green-500" />
-                    <span className="text-[10px] font-black text-green-500 uppercase tracking-tighter">Active</span>
-                  </div>
-                ) : isExtensionInstalled === false ? (
-                  <div className="px-2 py-0.5 bg-yellow-500/10 border border-yellow-500/20 rounded-full flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-yellow-500 animate-pulse"></span>
-                    <span className="text-[10px] font-black text-yellow-500 uppercase tracking-tighter">Not Installed</span>
-                  </div>
-                ) : (
-                  <div className="px-2 py-0.5 bg-white/5 border border-white/10 rounded-full flex items-center gap-1.5">
-                    <span className="w-1.5 h-1.5 rounded-full bg-gray-500 animate-pulse"></span>
-                    <span className="text-[10px] font-black text-gray-500 uppercase tracking-tighter">Checking...</span>
-                  </div>
-                )}
-              </div>
-
-              <div className="bg-[#0f0f0f] border border-gray-800 rounded-2xl p-5 space-y-4">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <p className="text-white font-bold text-sm">Antigravity Tracker Companion</p>
-                    <p className="text-[11px] text-gray-500 leading-tight">
-                      Automatically sync watching progress from Netflix, YouTube, AniList, Crunchyroll, and others.
-                    </p>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between pt-2 border-t border-white/5">
-                  <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider">Chrome Web Store</span>
-                  {isExtensionInstalled === true ? (
-                    <span className="text-xs text-green-400 font-bold flex items-center gap-1.5 py-2">
-                      <CheckCircle className="w-4 h-4 text-green-500" /> Connected
-                    </span>
-                  ) : (
-                    <a
-                      href="https://chromewebstore.google.com/detail/antigravity-browser-exten/eeijfnjmjelapkebgockoeaadonbchdd"
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="bg-purple-600 hover:bg-purple-500 text-white px-4 py-2 rounded-xl font-bold text-xs transition-all flex items-center gap-2 active:scale-95 shadow-lg shadow-purple-900/20"
-                    >
-                      Add to Chrome
-                      <ExternalLink className="w-3.5 h-3.5" />
-                    </a>
-                  )}
-                </div>
-              </div>
-            </div>
           </div>
         </div>
       </div>

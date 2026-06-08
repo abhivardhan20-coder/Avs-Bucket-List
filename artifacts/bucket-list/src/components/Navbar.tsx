@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Search, Menu, Tv, BarChart2, LogOut, Bell, Calendar, Puzzle, ExternalLink } from 'lucide-react';
+import { Search, Menu, Tv, BarChart2, LogOut, Bell, Calendar } from 'lucide-react';
 import { useAuth } from '../contexts/AppContext';
 import NotificationPopover from './NotificationPopover';
 import { MediaItem } from '../types';
@@ -187,16 +187,6 @@ const Navbar: React.FC<NavbarProps> = ({
                   >
                     Settings
                   </button>
-                  <a
-                    href="https://chromewebstore.google.com/detail/antigravity-browser-exten/eeijfnjmjelapkebgockoeaadonbchdd"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
-                    onClick={() => setIsProfileMenuOpen(false)}
-                  >
-                    <Puzzle className="w-4 h-4 text-purple-400" /> Chrome Extension
-                    <ExternalLink className="w-3 h-3 text-gray-500 ml-auto" />
-                  </a>
                   <button
                     onClick={() => { logout(); setIsProfileMenuOpen(false); }}
                     className="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-white/10 hover:text-white flex items-center gap-2"
@@ -253,18 +243,6 @@ const Navbar: React.FC<NavbarProps> = ({
                 >
                   Settings
                 </button>
-                <a
-                  href="https://chromewebstore.google.com/detail/antigravity-browser-exten/eeijfnjmjelapkebgockoeaadonbchdd"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-4 py-2 rounded text-purple-400 hover:text-purple-300 hover:bg-white/5 flex justify-between items-center"
-                  onClick={closeMobileMenu}
-                >
-                  <span className="flex items-center gap-2">
-                    <Puzzle className="w-4 h-4" /> Chrome Extension
-                  </span>
-                  <ExternalLink className="w-3.5 h-3.5 opacity-60" />
-                </a>
                 <button
                   onClick={() => { logout(); closeMobileMenu(); }}
                   className="w-full text-left px-4 py-2 rounded text-red-400 hover:text-red-300 hover:bg-white/5 flex items-center gap-2"

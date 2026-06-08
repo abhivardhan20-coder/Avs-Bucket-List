@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' https:;
-             img-src 'self' https://image.tmdb.org https://cdn.myanimelist.net https://s4.anilist.co https://m.media-amazon.com https://images.unsplash.com https://assets.fanart.tv https://artworks.thetvdb.com data: blob: chrome-extension:;
-             script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com chrome-extension:;
-             connect-src 'self' https: wss: ws: chrome-extension:;
-             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com chrome-extension:;
+             img-src 'self' https://image.tmdb.org https://cdn.myanimelist.net https://s4.anilist.co https://m.media-amazon.com https://images.unsplash.com https://assets.fanart.tv https://artworks.thetvdb.com data: blob:;
+             script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com;
+             connect-src 'self' https: wss: ws:;
+             style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
              font-src 'self' https://fonts.gstatic.com data:;
-             frame-src https://accounts.google.com https://*.supabase.co https://www.youtube.com https://www.youtube-nocookie.com chrome-extension:;
+             frame-src https://accounts.google.com https://*.supabase.co https://www.youtube.com https://www.youtube-nocookie.com;
              media-src 'self' blob:;
              base-uri 'self';
              object-src 'none';">
@@ -43,7 +43,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&display=swap">
   </noscript>
   
-  <script type="module" src="/src/index.tsx"></script>
+  <script type="module" src="/src/main.tsx"></script>
 </head>
 
 <body class="bg-[#141414]">

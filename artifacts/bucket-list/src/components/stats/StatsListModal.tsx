@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { X, Film, Tv, ChevronDown, ChevronUp } from 'lucide-react';
+import { X, Film, Tv, ChevronDown, ChevronUp, ChevronLeft, ChevronRight } from 'lucide-react';
 import { FixedSizeList } from 'react-window';
 import { MediaItem } from '@/types';
 import ContentCard from '../ContentCard';
 import Modal from '../ui/Modal';
+import { useScrollArrows } from '@/hooks/useScrollArrows';
 
 export interface StatsGroup {
   title: string;
@@ -35,6 +36,10 @@ const StatsGroupSection: React.FC<{
   onToggleWatched: (e: React.MouseEvent, id: string) => void;
 }> = ({ group, ...props }) => {
   const [isOpen, setIsOpen] = useState(true);
+  
+  const scrollRef = React.useRef<HTMLDivElement>(null);
+  const { showLeftArrow, showRightArrow, scrollByAmount } = useScrollArrows(scrollRef, group.items.length);
+
   if (group.items.length === 0) return null;
 
   return (
@@ -60,36 +65,70 @@ const StatsGroupSection: React.FC<{
         {isOpen ? <ChevronUp className="w-5 h-5 text-gray-500" /> : <ChevronDown className="w-5 h-5 text-gray-500" />}
       </button>
 
-      {isOpen && (
-        <div className="p-4 border-t border-gray-800 bg-[#141414]/50">
-          <div className="h-[280px]">
-            <FixedSizeList
-              height={280}
-              itemCount={group.items.length}
-              itemSize={200}
-              layout="horizontal"
-              width={1000}
-              className="no-scrollbar"
-            >
-              {({ index, style }: { index: number; style: React.CSSProperties }) => {
-                const item = group.items[index];
-                return (
-                  <div style={style} className="pr-4">
-                    <ContentCard
-                      item={item}
-                      onClick={props.onCardClick}
-                      isInWatchlist={props.isInWatchlist(item.id)}
-                      onToggleWatchlist={props.onToggleWatchlist}
-                      isWatched={props.isWatched(item.id)}
-                      onToggleWatched={props.onToggleWatched}
-                    />
-                  </div>
-                );
-              }}
-            </FixedSizeList>
+      {isOpen && (() => {
+        const isMobile = window.innerWidth < 768;
+        const cardWidth = isMobile ? 160 : 200;
+        const gap = isMobile ? 8 : 12;
+        const itemSize = cardWidth + gap;
+
+        return (
+          <div className="p-4 border-t border-gray-800 bg-[#141414]/50">
+            <div className="h-[280px]">
+              <div className="relative group/horizontal-scroll w-full h-full">
+                {/* Left Arrow Overlay */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); scrollByAmount('left'); }}
+                  className={`absolute left-0 top-0 bottom-0 z-50 w-12 bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-300 ${showLeftArrow ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}
+                  aria-label="Scroll Left"
+                  disabled={!showLeftArrow}
+                >
+                  <ChevronLeft className="w-8 h-8" />
+                </button>
+
+                {/* Right Arrow Overlay */}
+                <button
+                  onClick={(e) => { e.stopPropagation(); scrollByAmount('right'); }}
+                  className={`absolute right-0 top-0 bottom-0 z-50 w-12 bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-300 ${showRightArrow ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}`}
+                  aria-label="Scroll Right"
+                  disabled={!showRightArrow}
+                >
+                  <ChevronRight className="w-8 h-8" />
+                </button>
+
+                {/* Edge Gradients */}
+                <div className={`absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#141414] to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showLeftArrow ? 'opacity-100' : 'opacity-0'}`} />
+                <div className={`absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#141414] to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showRightArrow ? 'opacity-100' : 'opacity-0'}`} />
+
+                <FixedSizeList
+                  height={280}
+                  itemCount={group.items.length}
+                  itemSize={itemSize}
+                  layout="horizontal"
+                  width={1000}
+                  className="no-scrollbar"
+                  outerRef={scrollRef}
+                >
+                  {({ index, style }: { index: number; style: React.CSSProperties }) => {
+                    const item = group.items[index];
+                    return (
+                      <div style={style} className={isMobile ? 'pr-2' : 'pr-3'}>
+                        <ContentCard
+                          item={item}
+                          onClick={props.onCardClick}
+                          isInWatchlist={props.isInWatchlist(item.id)}
+                          onToggleWatchlist={props.onToggleWatchlist}
+                          isWatched={props.isWatched(item.id)}
+                          onToggleWatched={props.onToggleWatched}
+                        />
+                      </div>
+                    );
+                  }}
+                </FixedSizeList>
+              </div>
+            </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

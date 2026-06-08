@@ -25,6 +25,7 @@ declare module 'react-window' {
     onItemsRendered?: (props: { overscanStartIndex: number; overscanStopIndex: number; visibleStartIndex: number; visibleStopIndex: number }) => void;
     innerElementType?: React.ElementType;
     outerElementType?: React.ElementType;
+    outerRef?: React.Ref<any>;
     ref?: React.Ref<FixedSizeList<T>>;
   }
 

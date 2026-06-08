@@ -107,7 +107,7 @@ const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
             ) : (
               <HorizontalScrollContainer onScroll={onScroll} className="pb-6 pt-2">
                 {visiblePersonCredits.map((creditItem) => (
-                  <div key={creditItem.id} className="snap-start flex-shrink-0 w-[180px] md:w-[200px]">
+                  <div key={creditItem.id} className="snap-start flex-shrink-0 w-[160px] md:w-[200px]">
                     <ContentCard
                       item={creditItem}
                       onClick={onNavigate}
@@ -154,7 +154,7 @@ const PersonCreditsModal: React.FC<PersonCreditsModalProps> = ({
                 ))}
 
                 {visiblePersonCredits.length < allPersonCredits.length && (
-                  <div className="snap-start flex-shrink-0 w-[180px] md:w-[200px] flex items-center justify-center bg-white/5 rounded-xl border border-dashed border-white/10 animate-pulse">
+                  <div className="snap-start flex-shrink-0 w-[160px] md:w-[200px] flex items-center justify-center bg-white/5 rounded-xl border border-dashed border-white/10 animate-pulse">
                     <Loader className="w-8 h-8 text-gray-600 animate-spin" />
                   </div>
                 )}

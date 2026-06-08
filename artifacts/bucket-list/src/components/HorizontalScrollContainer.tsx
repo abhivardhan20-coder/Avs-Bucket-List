@@ -1,6 +1,7 @@
 
-import React, { useRef, useState, useEffect, useCallback } from 'react';
+import React, { useRef } from 'react';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useScrollArrows } from '@/hooks/useScrollArrows';
 
 interface HorizontalScrollContainerProps {
   children: React.ReactNode;
@@ -16,60 +17,11 @@ const HorizontalScrollContainer: React.FC<HorizontalScrollContainerProps> = ({
   itemGap
 }) => {
   const scrollRef = useRef<HTMLDivElement>(null);
-  const [showLeftArrow, setShowLeftArrow] = useState(false);
-  const [showRightArrow, setShowRightArrow] = useState(false);
-
-  const updateArrows = useCallback(() => {
-    if (scrollRef.current) {
-      const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current;
-      setShowLeftArrow(scrollLeft > 20);
-      setShowRightArrow(scrollLeft < scrollWidth - clientWidth - 20);
-    }
-  }, []);
-
-  useEffect(() => {
-    updateArrows();
-
-    // Debounce the observer callback to prevent layout thrashing (50ms is enough)
-    let timeout: ReturnType<typeof setTimeout>;
-    const debouncedUpdate = () => {
-      clearTimeout(timeout);
-      timeout = setTimeout(updateArrows, 50);
-    };
-
-    const observer = new MutationObserver(debouncedUpdate);
-    if (scrollRef.current) {
-      // Changed subtree to false to only watch direct children (cards), not inner card changes
-      observer.observe(scrollRef.current, { childList: true, subtree: false }); 
-    }
-
-    let resizeObserver: ResizeObserver | null = null;
-    if (scrollRef.current) {
-      resizeObserver = new ResizeObserver(debouncedUpdate);
-      resizeObserver.observe(scrollRef.current);
-    }
-
-    return () => {
-      clearTimeout(timeout);
-      observer.disconnect();
-      if (resizeObserver) resizeObserver.disconnect();
-    };
-  }, [updateArrows]);
+  const { showLeftArrow, showRightArrow, scrollByAmount, updateArrows } = useScrollArrows(scrollRef, children);
 
   const onScroll = (e: React.UIEvent<HTMLDivElement>) => {
     updateArrows();
     if (externalOnScroll) externalOnScroll(e);
-  };
-
-
-  const scrollByAmount = (direction: 'left' | 'right') => {
-    if (scrollRef.current) {
-      const scrollAmount = scrollRef.current.clientWidth * 0.75;
-      scrollRef.current.scrollBy({
-        left: direction === 'left' ? -scrollAmount : scrollAmount,
-        behavior: 'smooth'
-      });
-    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -115,8 +67,8 @@ const HorizontalScrollContainer: React.FC<HorizontalScrollContainerProps> = ({
         tabIndex={0}
         role="region"
         aria-label="Scrollable list"
-        className={`flex overflow-x-auto no-scrollbar scroll-smooth outline-none snap-x snap-mandatory touch-pan-x py-6`}
-        style={itemGap ? { gap: `${itemGap}px` } : { gap: '1rem' }}
+        className={`flex overflow-x-auto no-scrollbar scroll-smooth outline-none snap-x snap-mandatory touch-pan-x py-6 gap-2 md:gap-3`}
+        style={itemGap ? { gap: `${itemGap}px` } : undefined}
       >
         {children}
       </div>

@@ -8,8 +8,13 @@ export function useRecommendation(watched: any[], watchlist: any[]) {
   const [taste, setTaste] = useState<UserTaste | null>(null);
   const [loading, setLoading] = useState(false);
 
+  const watchedHash = useMemo(() => {
+    if (!watched || watched.length === 0) return '';
+    return watched.map(w => `${w.id}-${w.updated_at || ''}-${w.rating || 0}`).join('|');
+  }, [watched]);
+
   useEffect(() => {
-    if (!user?.email || watched.length === 0) return;
+    if (!user?.email || !watchedHash) return;
 
     let isMounted = true;
     const updateTaste = async () => {
@@ -26,7 +31,7 @@ export function useRecommendation(watched: any[], watchlist: any[]) {
 
     updateTaste();
     return () => { isMounted = false; };
-  }, [user?.email, watched]);
+  }, [user?.email, watchedHash]); // Depend on watchedHash, not watched reference
 
   const getRecommendations = useMemo(() => {
     return (pool: MediaItem[]) => {

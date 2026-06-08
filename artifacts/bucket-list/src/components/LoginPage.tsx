@@ -132,7 +132,7 @@ const LoginPage: React.FC = () => {
           {/* Footer Text */}
           <div className="mt-16 text-[#737373]">
             <p className="text-xs leading-relaxed">
-              This page is protected by Google reCAPTCHA to ensure you're not a bot. <span className="text-blue-500 hover:underline cursor-pointer">Learn more.</span>
+              Secure sign-in powered by Google OAuth via Supabase.
             </p>
           </div>
         </div>

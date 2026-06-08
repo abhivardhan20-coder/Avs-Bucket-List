@@ -92,6 +92,24 @@ export interface SyncTask {
   data?: Record<string, unknown> | null; // Payload for cloud_push or extra context
 }
 
+export interface RecommendationDBItem {
+  id: string; // resolved appId like movie_123 or series_456
+  title: string;
+  mediaType: MediaType;
+  matchScore: number;
+  genres: string[];
+  releaseYear: number;
+  reason: string;
+  similarity: string;
+  posterUrl: string;
+  rating: number;
+  language: string;
+  overview: string;
+  backdropUrl: string;
+  createdAt: number;
+  feedback?: 'liked' | 'disliked' | 'clicked' | 'added_to_watchlist' | 'watched';
+}
+
 /**
  * AVBucketListDB - Production Edition
  * Implements user-level segmentation and composite indexing.
@@ -104,6 +122,7 @@ export class AppDatabase extends Dexie {
   conflicts!: Table<ConflictRecord, [string, string]>;
   logs!: Table<LogEntry, number>;
   scheduleCache!: Table<{ id: string; payload: string; lastRefreshedAt: number }, string>;
+  recommendations!: Table<RecommendationDBItem, string>;
 
   constructor() {
     super('AVBucketList_v2');
@@ -144,6 +163,11 @@ export class AppDatabase extends Dexie {
     // v17: Add scheduleCache table
     this.version(17).stores({
       scheduleCache: 'id, lastRefreshedAt'
+    });
+
+    // v18: Add recommendations table
+    this.version(18).stores({
+      recommendations: 'id, title, mediaType, matchScore, releaseYear, createdAt, feedback'
     });
   }
 }

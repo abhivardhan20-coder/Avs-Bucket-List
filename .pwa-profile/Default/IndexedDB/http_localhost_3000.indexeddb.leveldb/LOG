@@ -1,0 +1,39 @@
+2026/06/06-16:53:07.215 562c Reusing MANIFEST C:\Users\abhi\OneDrive\Desktop\AVS BL\.pwa-profile\Default\IndexedDB\http_localhost_3000.indexeddb.leveldb/MANIFEST-000001
+2026/06/06-16:53:07.216 562c Recovering log #71
+2026/06/06-16:53:07.236 562c Reusing old log C:\Users\abhi\OneDrive\Desktop\AVS BL\.pwa-profile\Default\IndexedDB\http_localhost_3000.indexeddb.leveldb/000071.log 
+2026/06/06-16:55:17.279 5638 Level-0 table #77: started
+2026/06/06-16:55:17.318 5638 Level-0 table #77: 1141411 bytes OK
+2026/06/06-16:55:17.341 5638 Delete type=0 #71
+2026/06/06-16:55:17.552 5638 Compacting 1@1 + 1@2 files
+2026/06/06-16:55:17.638 5638 Generated table #78@1: 19939 keys, 1573672 bytes
+2026/06/06-16:55:17.638 5638 Compacted 1@1 + 1@2 files => 1573672 bytes
+2026/06/06-16:55:17.666 5638 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/06/06-16:55:17.667 5638 Delete type=2 #74
+2026/06/06-16:55:17.667 5638 Delete type=2 #77
+2026/06/06-16:55:27.826 5638 Level-0 table #80: started
+2026/06/06-16:55:27.864 5638 Level-0 table #80: 1123638 bytes OK
+2026/06/06-16:55:27.866 5638 Delete type=0 #76
+2026/06/06-16:55:28.054 5638 Compacting 1@1 + 1@2 files
+2026/06/06-16:55:28.147 5638 Generated table #81@1: 20778 keys, 1593288 bytes
+2026/06/06-16:55:28.147 5638 Compacted 1@1 + 1@2 files => 1593288 bytes
+2026/06/06-16:55:28.149 5638 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/06/06-16:55:28.150 5638 Delete type=2 #78
+2026/06/06-16:55:28.150 5638 Delete type=2 #80
+2026/06/06-16:55:29.828 5638 Level-0 table #83: started
+2026/06/06-16:55:29.867 5638 Level-0 table #83: 1109305 bytes OK
+2026/06/06-16:55:29.881 5638 Delete type=0 #79
+2026/06/06-16:55:30.066 5638 Compacting 1@1 + 1@2 files
+2026/06/06-16:55:30.159 5638 Generated table #84@1: 21261 keys, 1637470 bytes
+2026/06/06-16:55:30.159 5638 Compacted 1@1 + 1@2 files => 1637470 bytes
+2026/06/06-16:55:30.161 5638 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/06/06-16:55:30.162 5638 Delete type=2 #81
+2026/06/06-16:55:30.162 5638 Delete type=2 #83
+2026/06/06-16:55:31.782 5638 Level-0 table #86: started
+2026/06/06-16:55:31.820 5638 Level-0 table #86: 1111438 bytes OK
+2026/06/06-16:55:31.825 5638 Delete type=0 #82
+2026/06/06-16:55:32.024 5638 Compacting 1@1 + 1@2 files
+2026/06/06-16:55:32.119 5638 Generated table #87@1: 21735 keys, 1684014 bytes
+2026/06/06-16:55:32.119 5638 Compacted 1@1 + 1@2 files => 1684014 bytes
+2026/06/06-16:55:32.120 5638 compacted to: files[ 0 0 1 0 0 0 0 ]
+2026/06/06-16:55:32.121 5638 Delete type=2 #84
+2026/06/06-16:55:32.121 5638 Delete type=2 #86

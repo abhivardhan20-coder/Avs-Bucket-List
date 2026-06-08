@@ -1,6 +1,7 @@
 import { MediaItem, MediaType, Season, Episode, NextEpisodeInfo } from '@/types';
 import { supabase } from './supabaseClient';
 import { dedupe } from '../lib/requestDeduplicator';
+import { getCached, setCached, getTtlForEndpoint } from '../lib/tmdbCache';
 
 // ✅ PERFORMANCE OPTIMIZED: Use optimized image sizes
 const getImageUrl = (path: string | null, size: 'original' | 'w1280' | 'w780' | 'w500' | 'w342' | 'w300' = 'original') => {
@@ -79,21 +80,37 @@ async function fetchWithRetry(
  * In production: tries Supabase Edge Function first, falls back to direct TMDB on any failure.
  */
 async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise<T | null> {
-  return dedupe(`tmdb:${endpoint}`, async () => {
-    const tmdbKey = import.meta.env.VITE_TMDB_API_KEY;
-    const separator = endpoint.includes('?') ? '&' : '?';
-    const directUrl = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${tmdbKey}`;
+  // ✅ CACHE LAYER: Check in-memory cache before any network request
+  const cacheKey = `tmdb:${endpoint}`;
+  const cached = getCached<T>(cacheKey);
+  if (cached !== null) {
+    return cached;
+  }
+
+  return dedupe(cacheKey, async () => {
+    /**
+     * Helper: store a successful response in the TTL cache.
+     */
+    const cacheAndReturn = (data: T): T => {
+      const ttl = getTtlForEndpoint(endpoint);
+      setCached(cacheKey, data, ttl);
+      return data;
+    };
 
     // In development, skip the Edge Function entirely — it adds 5-10s of latency
     // when not deployed. Go straight to TMDB.
     if (import.meta.env.DEV || !import.meta.env.VITE_SUPABASE_URL) {
+      const tmdbKey = import.meta.env.VITE_TMDB_API_KEY;
+      const separator = endpoint.includes('?') ? '&' : '?';
+      const directUrl = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${tmdbKey}`;
+
       if (!tmdbKey) {
         console.error('[TMDB] VITE_TMDB_API_KEY is not set');
         return null;
       }
       try {
         const response = await fetchWithRetry(directUrl, { signal }, 2, 800, 8000);
-        if (response && response.ok) return await response.json() as T;
+        if (response && response.ok) return cacheAndReturn(await response.json() as T);
         if (response && response.status === 404) return null;
         throw new Error(`TMDB returned status ${response?.status}`);
       } catch (error) {
@@ -102,7 +119,7 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
       }
     }
 
-    // Production: try Edge Function first, fall back to direct TMDB on any failure
+    // Production: try Edge Function exclusively. Fallback is removed for security.
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const token = sessionData.session?.access_token;
@@ -113,23 +130,14 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
         headers['Authorization'] = `Bearer ${token}`;
       }
 
-      try {
-        const response = await fetchWithRetry(edgeUrl, { headers, signal }, 1, 500, 5000);
-        if (response && response.ok) return await response.json() as T;
-        // Any non-OK from edge function (including 404 = function not deployed) → fall back
-        throw new Error(`Edge function returned status ${response?.status}`);
-      } catch (edgeError) {
-        // Fallback: direct TMDB
-        if (tmdbKey) {
-          const directResponse = await fetchWithRetry(directUrl, { signal }, 2, 800, 8000);
-          if (directResponse && directResponse.ok) return await directResponse.json() as T;
-          if (directResponse && directResponse.status === 404) return null;
-        }
-        throw edgeError;
-      }
+      const response = await fetchWithRetry(edgeUrl, { headers, signal }, 1, 500, 5000);
+      if (response && response.ok) return cacheAndReturn(await response.json() as T);
+      
+      // Any non-OK from edge function means proxy failed
+      throw new Error(`Edge function returned status ${response?.status}. Proxy is required in production.`);
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('TMDB_API_ERROR')) throw error;
-      console.error(`[TMDB] Fetch failure for ${endpoint}:`, error);
+      console.error(`[TMDB] Proxy fetch failure for ${endpoint}:`, error);
       throw error;
     }
   });

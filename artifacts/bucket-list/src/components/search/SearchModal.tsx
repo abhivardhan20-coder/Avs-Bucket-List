@@ -64,7 +64,7 @@ const SearchModal: React.FC<SearchModalProps> = ({ isOpen, onClose, onResultClic
   const {
     movies, series, anime, loading, loadingMore,
     resetSearchStates, performSearch, loadMore
-  } = useSearchEngine(debouncedQuery, (msg, type) => showToast(msg, type));
+  } = useSearchEngine(debouncedQuery, showToast);
 
   // Filter State
   const [selectedType, setSelectedType] = useState<'All' | MediaType>('All');

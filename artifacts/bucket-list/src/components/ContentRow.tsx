@@ -3,7 +3,8 @@ import { FixedSizeList } from 'react-window';
 import ContentCard from './ContentCard';
 import SkeletonCard from './SkeletonCard';
 import { MediaItem } from '../types';
-import { AlertCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useScrollArrows } from '@/hooks/useScrollArrows';
 
 interface ContentRowProps {
   title: string;
@@ -165,6 +166,14 @@ const ContentRow: React.FC<ContentRowProps> = ({
 
   const totalItems = visibleItems.length + (showInitialSkeletons ? 8 : (loading ? 5 : (error ? 1 : 0)));
 
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { showLeftArrow, showRightArrow, scrollByAmount } = useScrollArrows(scrollRef, totalItems);
+
+  const isMobile = width < 768;
+  const cardWidth = isMobile ? 160 : 200;
+  const gap = isMobile ? 8 : 12;
+  const itemSize = cardWidth + gap;
+
   return (
     <div className="mb-8 px-4 md:px-12 animate-in slide-in-from-bottom-5 duration-700" ref={containerRef}>
       <div className="flex items-center gap-2 mb-4">
@@ -173,63 +182,91 @@ const ContentRow: React.FC<ContentRowProps> = ({
       </div>
       
       {width > 0 && (
-        <FixedSizeList
-          layout="horizontal"
-          height={380}
-          width={width}
-          itemCount={totalItems}
-          itemSize={240} // Content card + gap size approx
-          overscanCount={5}
-          itemData={visibleItems}
-          onItemsRendered={handleItemsRendered}
-        >
-          {({ index, style, data }: { index: number; style: React.CSSProperties; data: MediaItem[] }) => {
-            // Render actual data item
-            if (index < data.length) {
-              const item = data[index];
+        <div className="relative group/horizontal-scroll w-full">
+          {/* Left Arrow Overlay */}
+          <button
+            onClick={(e) => { e.stopPropagation(); scrollByAmount('left'); }}
+            className={`absolute left-0 top-0 bottom-0 z-50 w-12 bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-300 ${showLeftArrow ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4 pointer-events-none'}`}
+            aria-label="Scroll Left"
+            disabled={!showLeftArrow}
+          >
+            <ChevronLeft className="w-8 h-8" />
+          </button>
+
+          {/* Right Arrow Overlay */}
+          <button
+            onClick={(e) => { e.stopPropagation(); scrollByAmount('right'); }}
+            className={`absolute right-0 top-0 bottom-0 z-50 w-12 bg-black/60 hover:bg-black/80 text-white flex items-center justify-center transition-all duration-300 ${showRightArrow ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-4 pointer-events-none'}`}
+            aria-label="Scroll Right"
+            disabled={!showRightArrow}
+          >
+            <ChevronRight className="w-8 h-8" />
+          </button>
+
+          {/* Edge Gradients */}
+          <div className={`absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-[#141414] to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showLeftArrow ? 'opacity-100' : 'opacity-0'}`} />
+          <div className={`absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-[#141414] to-transparent z-20 pointer-events-none transition-opacity duration-300 ${showRightArrow ? 'opacity-100' : 'opacity-0'}`} />
+
+          <FixedSizeList
+            layout="horizontal"
+            height={380}
+            width={width}
+            itemCount={totalItems}
+            itemSize={itemSize}
+            overscanCount={5}
+            itemData={visibleItems}
+            onItemsRendered={handleItemsRendered}
+            className="no-scrollbar"
+            outerRef={scrollRef}
+          >
+            {({ index, style, data }: { index: number; style: React.CSSProperties; data: MediaItem[] }) => {
+              // Render actual data item
+              if (index < data.length) {
+                const item = data[index];
+                return (
+                  <div style={{ ...style, paddingRight: gap }}>
+                    <ContentCard 
+                      item={item}
+                      onClick={onCardClick}
+                      isInWatchlist={isInWatchlist(item.id)}
+                      onToggleWatchlist={onToggleWatchlist}
+                      isWatched={isWatched(item.id)}
+                      onToggleWatched={onToggleWatched}
+                    />
+                  </div>
+                );
+              }
+
+              // Render Error state at the end
+              if (error && index === data.length) {
+                return (
+                  <div style={{ ...style, paddingRight: gap }} className="flex items-center justify-center h-full">
+                    <button 
+                      onClick={() => loadData(page)}
+                      disabled={loading}
+                      className="group flex flex-col items-center gap-3 text-red-500 hover:text-red-400 transition-colors p-4 rounded-xl hover:bg-white/5"
+                    >
+                      <div className="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors">
+                        <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
+                      </div>
+                      <div className="text-center">
+                        <span className="block text-sm font-bold">Failed to load more</span>
+                        <span className="block text-xs opacity-60 mt-1">Tap to retry</span>
+                      </div>
+                    </button>
+                  </div>
+                );
+              }
+
+              // Render Skeleton loaders
               return (
-                <div style={{ ...style, paddingRight: 16 }}>
-                  <ContentCard 
-                    item={item}
-                    onClick={onCardClick}
-                    isInWatchlist={isInWatchlist(item.id)}
-                    onToggleWatchlist={onToggleWatchlist}
-                    isWatched={isWatched(item.id)}
-                    onToggleWatched={onToggleWatched}
-                  />
+                <div style={{ ...style, paddingRight: gap }}>
+                  <SkeletonCard />
                 </div>
               );
-            }
-
-            // Render Error state at the end
-            if (error && index === data.length) {
-              return (
-                <div style={{ ...style, paddingRight: 16 }} className="flex items-center justify-center h-full">
-                  <button 
-                    onClick={() => loadData(page)}
-                    disabled={loading}
-                    className="group flex flex-col items-center gap-3 text-red-500 hover:text-red-400 transition-colors p-4 rounded-xl hover:bg-white/5"
-                  >
-                    <div className="p-3 bg-red-500/10 rounded-full group-hover:bg-red-500/20 transition-colors">
-                      <RefreshCw className={`w-6 h-6 ${loading ? 'animate-spin' : ''}`} />
-                    </div>
-                    <div className="text-center">
-                      <span className="block text-sm font-bold">Failed to load more</span>
-                      <span className="block text-xs opacity-60 mt-1">Tap to retry</span>
-                    </div>
-                  </button>
-                </div>
-              );
-            }
-
-            // Render Skeleton loaders
-            return (
-              <div style={{ ...style, paddingRight: 16 }}>
-                <SkeletonCard />
-              </div>
-            );
-          }}
-        </FixedSizeList>
+            }}
+          </FixedSizeList>
+        </div>
       )}
     </div>
   );

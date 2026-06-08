@@ -108,7 +108,7 @@ const GenreResultsModal: React.FC<GenreResultsModalProps> = ({
             ) : (
               <HorizontalScrollContainer className="pb-6 pt-2" onScroll={onScroll}>
                 {genreResults.map((genreItem) => (
-                  <div key={genreItem.id} className="snap-start flex-shrink-0 w-[180px] md:w-[200px]">
+                  <div key={genreItem.id} className="snap-start flex-shrink-0 w-[160px] md:w-[200px]">
                     <ContentCard
                       item={genreItem}
                       onClick={onNavigate}
@@ -155,7 +155,7 @@ const GenreResultsModal: React.FC<GenreResultsModalProps> = ({
                   </div>
                 ))}
                 {loadingGenre && (
-                  <div className="snap-start flex-shrink-0 w-[180px] md:w-[200px] flex items-center justify-center bg-white/5 rounded-xl border border-dashed border-white/10 animate-pulse">
+                  <div className="snap-start flex-shrink-0 w-[160px] md:w-[200px] flex items-center justify-center bg-white/5 rounded-xl border border-dashed border-white/10 animate-pulse">
                     <Loader className="w-8 h-8 text-green-500 animate-spin" />
                   </div>
                 )}

@@ -1,8 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import { MediaItem, MediaType } from '../types';
 import { searchMovies, searchSeries, searchAnime, unifiedSearch } from '../lib/search';
 
 export function useSearchEngine(debouncedQuery: string, showToast: (msg: string, type: 'error'|'success') => void) {
+  const showToastRef = useRef(showToast);
+  useEffect(() => {
+    showToastRef.current = showToast;
+  }, [showToast]);
+
   const [movies, setMovies] = useState<MediaItem[]>([]);
   const [series, setSeries] = useState<MediaItem[]>([]);
   const [anime, setAnime] = useState<MediaItem[]>([]);
@@ -24,14 +29,14 @@ export function useSearchEngine(debouncedQuery: string, showToast: (msg: string,
 
   const performSearch = useCallback(async (isMounted: boolean) => {
     if (!debouncedQuery.trim()) {
-      setMovies([]);
-      setSeries([]);
-      setAnime([]);
+      setMovies(prev => prev.length > 0 ? [] : prev);
+      setSeries(prev => prev.length > 0 ? [] : prev);
+      setAnime(prev => prev.length > 0 ? [] : prev);
       return;
     }
 
     if (!navigator.onLine) {
-      if (isMounted) showToast("You are offline. Please check your internet connection.", "error");
+      if (isMounted) showToastRef.current("You are offline. Please check your internet connection.", "error");
       return;
     }
 
@@ -61,9 +66,9 @@ export function useSearchEngine(debouncedQuery: string, showToast: (msg: string,
       if (isMounted) {
         const errMsg = err instanceof Error ? err.message : "Connection failed";
         if (errMsg.includes("502") || errMsg.includes("500") || errMsg.includes("Connection failed")) {
-           showToast("Backend connection issue. Make sure the server is running.", "error");
+           showToastRef.current("Backend connection issue. Make sure the server is running.", "error");
         } else {
-           showToast(`Search failed: ${errMsg}`, "error");
+           showToastRef.current(`Search failed: ${errMsg}`, "error");
         }
         setMovies([]);
         setSeries([]);
@@ -72,13 +77,13 @@ export function useSearchEngine(debouncedQuery: string, showToast: (msg: string,
     } finally {
       if (isMounted) setLoading(false);
     }
-  }, [debouncedQuery, showToast]);
+  }, [debouncedQuery]);
 
   const loadMore = useCallback(async (type: MediaType) => {
     if (loading || !debouncedQuery.trim()) return;
 
     if (!navigator.onLine) {
-      showToast("You are offline. Please check your internet connection.", "error");
+      showToastRef.current("You are offline. Please check your internet connection.", "error");
       return;
     }
 
@@ -106,11 +111,11 @@ export function useSearchEngine(debouncedQuery: string, showToast: (msg: string,
     } catch (err) {
       console.error(`Failed to load more ${key}`, err);
       const msg = err instanceof Error ? err.message : "Unknown error";
-      showToast(`Unable to load more results: ${msg}`, "error");
+      showToastRef.current(`Unable to load more results: ${msg}`, "error");
     } finally {
       setLoadingMore(prev => ({ ...prev, [key]: false }));
     }
-  }, [loading, debouncedQuery, showToast, hasMore, loadingMore, pages]);
+  }, [loading, debouncedQuery, hasMore, loadingMore, pages]);
 
   return {
     movies, series, anime,

@@ -7,6 +7,7 @@ import { AppErrorBoundary as ErrorBoundary } from '@/components/ErrorBoundary';
 import AiringScheduleRow from '@/components/home/AiringScheduleRow';
 import NewSeasonsRow from '@/components/home/NewSeasonsRow';
 import UpNextRow from '@/components/home/UpNextRow';
+import AIRecommendationsRow from '@/components/home/AIRecommendationsRow';
 import { AlertTriangle, Clock, RefreshCw } from 'lucide-react';
 import { MediaItem, WatchedItem } from '@/types';
 import {
@@ -173,6 +174,18 @@ export const Home: React.FC<HomeProps> = ({
                         </HorizontalScrollContainer>
                     </div>
                 )}
+
+                <ErrorBoundary variant="row">
+                    <AIRecommendationsRow
+                        watched={watched}
+                        watchlist={watchlist}
+                        onCardClick={setSelectedContent}
+                        isInWatchlist={isInWatchlist}
+                        onToggleWatchlist={toggleWatchlist}
+                        isWatched={isWatched}
+                        onToggleWatched={toggleWatched}
+                    />
+                </ErrorBoundary>
 
                 <ErrorBoundary variant="row">
                     <ContentRow
