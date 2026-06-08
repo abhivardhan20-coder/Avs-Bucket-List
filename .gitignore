@@ -47,7 +47,24 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+.replit
+.replitignore
+replit.md
 
 # Env files
 .env
 .env.*
+
+# Cache and Build Output
+.pwa-profile/
+__pycache__/
+dev-dist/
+dist/
+
+# Local Backups & History
+.migration-backup/
+sync_history/
+
+# System Scripts
+extra_wifi_fixes.ps1
+fix_wifi_power.ps1
