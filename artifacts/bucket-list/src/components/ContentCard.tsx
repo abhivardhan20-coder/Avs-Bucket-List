@@ -118,6 +118,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
         }
       }}
       onMouseEnter={handlePrefetchDetails}
+      aria-label={`View details for ${item.title}`}
     >
       <OptimizedImage
         src={item.posterUrl}
@@ -132,7 +133,7 @@ const ContentCard: React.FC<ContentCardProps> = ({
       )}
 
       {progress !== undefined && progress > 0 && (
-        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-black/40 z-20 overflow-hidden`}>
+        <div className={`absolute bottom-0 left-0 right-0 h-1 bg-black/40 z-20 overflow-hidden`} aria-hidden="true">
           <div
             className="h-full bg-gradient-to-r from-red-600 via-red-500 to-orange-400 transition-all duration-1000 ease-out shadow-[0_0_8px_rgba(239,68,68,0.6)]"
             style={{ width: `${progress}%` }}
@@ -175,13 +176,15 @@ const ContentCard: React.FC<ContentCardProps> = ({
             disabled={noTrailer}
             className={`bg-white rounded-full p-2.5 transition-all shadow-2xl flex items-center justify-center ${noTrailer ? 'opacity-30 cursor-not-allowed bg-gray-400' : 'hover:bg-gray-100 hover:scale-110 active:scale-90 hover:shadow-white/20'}`}
             title={noTrailer ? "Trailer not available" : "Play Trailer on YouTube"}
+            aria-label={noTrailer ? "Trailer not available" : `Play Trailer for ${item.title}`}
           >
-            {loadingTrailer ? <Loader className="w-3.5 h-3.5 text-black animate-spin" /> : (noTrailer ? <VideoOff className="w-3.5 h-3.5 text-black" /> : <Play className="w-3.5 h-3.5 text-black fill-black" />)}
+            {loadingTrailer ? <Loader className="w-3.5 h-3.5 text-black animate-spin" aria-hidden="true" /> : (noTrailer ? <VideoOff className="w-3.5 h-3.5 text-black" aria-hidden="true" /> : <Play className="w-3.5 h-3.5 text-black fill-black" aria-hidden="true" />)}
           </button>
           <button
             className={`border border-white/20 rounded-full p-2.5 transition-all hover:scale-110 active:scale-90 shadow-2xl ${isInWatchlist ? 'bg-red-600 border-red-600 text-white shadow-red-600/40' : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'}`}
             onClick={(e) => onToggleWatchlist(e, item.id)}
             title={isInWatchlist ? "Remove from Bucket List" : "Add to Bucket List"}
+            aria-label={isInWatchlist ? `Remove ${item.title} from Bucket List` : `Add ${item.title} to Bucket List`}
           >
             <Bookmark className={`w-3.5 h-3.5 ${isInWatchlist ? 'fill-current' : ''}`} />
           </button>
@@ -189,8 +192,9 @@ const ContentCard: React.FC<ContentCardProps> = ({
             className={`border border-white/20 rounded-full p-2.5 transition-all hover:scale-110 active:scale-90 shadow-2xl ${isWatched ? 'bg-blue-600 border-blue-600 text-white shadow-blue-600/40' : 'bg-white/10 text-gray-300 hover:bg-white/20 hover:text-white'}`}
             onClick={(e) => onToggleWatched(e, item.id)}
             title={isWatched ? "Fully Watched" : "Mark as Watched"}
+            aria-label={isWatched ? `Mark ${item.title} as unwatched` : `Mark ${item.title} as watched`}
           >
-            <Check className="w-3.5 h-3.5" />
+            <Check className="w-3.5 h-3.5" aria-hidden="true" />
           </button>
         </div>
 

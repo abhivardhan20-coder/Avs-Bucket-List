@@ -1,4 +1,5 @@
 import React, { useState, useMemo, Suspense, useCallback } from 'react';
+import { APP_ROUTES, TABS } from '@/constants/routes';
 import { useAuth, useWatchlist, useWatched } from '@/contexts/AppContext';
 import { MediaItem, MediaType } from '@/types';
 
@@ -12,7 +13,7 @@ import { useAppStats } from '@/hooks/useAppStats';
 import { useFilteredMedia } from '@/hooks/useFilteredMedia';
 import { useMediaToggles } from '@/hooks/useMediaToggles';
 import { useStatsModalData } from '@/hooks/useStatsModalData';
-import { db } from '@/lib/db';
+import { dbService } from '@/services/dbService';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { AppRoutes } from '@/AppRoutes';
 
@@ -29,15 +30,15 @@ function App() {
 
   const activeTab = useMemo(() => {
     const path = location.pathname;
-    if (path.startsWith('/upcoming')) return 'upcoming';
-    if (path.startsWith('/watchlist')) return 'watchlist';
-    if (path.startsWith('/watched')) return 'watched';
-    if (path.startsWith('/stats')) return 'stats';
-    return 'home';
+    if (path.startsWith(APP_ROUTES.UPCOMING)) return TABS.UPCOMING;
+    if (path.startsWith(APP_ROUTES.WATCHLIST)) return TABS.WATCHLIST;
+    if (path.startsWith(APP_ROUTES.WATCHED)) return TABS.WATCHED;
+    if (path.startsWith(APP_ROUTES.STATS)) return TABS.STATS;
+    return TABS.HOME;
   }, [location.pathname]);
 
-  const setActiveTab = useCallback((tab: 'home' | 'upcoming' | 'watchlist' | 'watched' | 'stats') => {
-    navigate(tab === 'home' ? '/' : `/${tab}`);
+  const setActiveTab = useCallback((tab: string) => {
+    navigate(tab === TABS.HOME ? APP_ROUTES.HOME : `/${tab}`);
   }, [navigate]);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -127,7 +128,7 @@ function App() {
   }, []);
 
   const handleSearchResultClick = useCallback((item: MediaItem) => {
-    db.mediaCache.put(item);
+    dbService.cacheMediaItem(item);
     setSelectedContent(item);
     setIsSearchOpen(false);
   }, []);
@@ -137,8 +138,8 @@ function App() {
       ...item,
       progress: item.totalEpisodes > 0 ? (item.watchedEpisodes / item.totalEpisodes) * 100 : 0,
       posterUrl: item.posterUrl,
-      backdropUrl: (item as any).backdrop || '',
-      overview: (item as any).overview || ''
+      backdropUrl: (item as unknown as { backdrop?: string }).backdrop || '',
+      overview: (item as unknown as { overview?: string }).overview || ''
     })) as MediaItem[];
   }, [continueWatching]);
 

@@ -144,6 +144,13 @@ export interface WatchedItem extends BaseMediaItem {
   lastAirDate?: string;
 }
 
+export interface ContinueWatchingItem extends WatchedItem {
+  progress: number;
+  posterUrl: string;
+  backdropUrl: string;
+  overview: string;
+}
+
 export interface UserProfile {
   id: string;
   email: string;

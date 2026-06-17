@@ -4,6 +4,11 @@ import { db } from '@/lib/db';
 import { hydrateSeries } from '@/services/tmdb';
 import { fetchMediaItem } from '@/lib/api/mediaFetcher';
 
+/**
+ * Custom hook to handle common media toggle operations such as adding to watchlist
+ * or marking items as watched. Integrates with the AppContext library and
+ * displays toast notifications for user feedback.
+ */
 export function useMediaToggles(
   isInWatchlist: (id: string) => boolean,
   removeFromWatchlist: (id: string) => Promise<any>,

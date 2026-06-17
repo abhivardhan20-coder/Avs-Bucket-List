@@ -3,6 +3,8 @@ import './index.css';
 import { createRoot } from 'react-dom/client';
 import App from './App';
 import { AppProvider } from './contexts/AppContext';
+import { UIProvider } from './contexts/UIContext';
+import { Toaster } from 'sonner';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { BrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
@@ -77,7 +79,10 @@ if (isMissingConfig) {
       <ErrorBoundary>
         <BrowserRouter>
           <AppProvider>
-            <App />
+            <UIProvider>
+              <App />
+              <Toaster position="bottom-right" theme="dark" />
+            </UIProvider>
           </AppProvider>
         </BrowserRouter>
       </ErrorBoundary>
