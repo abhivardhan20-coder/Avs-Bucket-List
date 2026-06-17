@@ -2,8 +2,19 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "../lib/env";
 
+export interface SupabaseJwtPayload extends JwtPayload {
+  sub: string;
+  email?: string;
+  role?: string;
+  app_metadata?: {
+    provider?: string;
+    providers?: string[];
+  };
+  user_metadata?: Record<string, any>;
+}
+
 export interface AuthenticatedRequest extends Request {
-  user?: JwtPayload | string;
+  user?: SupabaseJwtPayload;
 }
 
 export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
@@ -17,7 +28,7 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   const token = authHeader.split(" ")[1];
 
   try {
-    const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET);
+    const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as SupabaseJwtPayload;
     req.user = decoded;
     next();
   } catch (error) {

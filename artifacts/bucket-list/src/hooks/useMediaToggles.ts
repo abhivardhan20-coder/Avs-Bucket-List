@@ -8,6 +8,17 @@ import { fetchMediaItem } from '@/lib/api/mediaFetcher';
  * Custom hook to handle common media toggle operations such as adding to watchlist
  * or marking items as watched. Integrates with the AppContext library and
  * displays toast notifications for user feedback.
+ * 
+ * @param isInWatchlist - Function checking if an item is in the watchlist
+ * @param removeFromWatchlist - Function to remove item from watchlist
+ * @param addToWatchlist - Function to add item to watchlist
+ * @param isWatched - Function checking if an item is fully watched
+ * @param unmarkMovie - Function to unmark a movie as watched
+ * @param unmarkSeries - Function to unmark a series as watched
+ * @param markMovieAsWatched - Function to mark a movie as watched
+ * @param markSeriesAsWatched - Function to mark a series as watched
+ * @param setAppError - Function to set a global app error
+ * @returns Object with `handleToggleWatchlist`, `handleToggleWatched`, and `isProcessing` boolean.
  */
 export function useMediaToggles(
   isInWatchlist: (id: string) => boolean,

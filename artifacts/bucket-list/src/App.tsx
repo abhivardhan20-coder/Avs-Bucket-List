@@ -46,7 +46,7 @@ function App() {
     setIsSearchOpen(false);
   }, [handleSetSelectedContent, setIsSearchOpen]);
 
-  const statsModalData = useStatsModalData(statsModalConfig, watched as unknown as MediaItem[]);
+  const statsModalData = useStatsModalData(statsModalConfig, watched);
 
   if (!user) return <LoginPage />;
 

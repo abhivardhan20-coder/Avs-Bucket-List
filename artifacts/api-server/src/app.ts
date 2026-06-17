@@ -14,7 +14,8 @@ const limiter = rateLimit({
   max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-  message: { error: "Too many requests, please try again later." }
+  message: { error: "Too many requests, please try again later." },
+  skip: (req) => req.path.startsWith('/api/health') // Exclude health checks
 });
 
 app.use(limiter);
@@ -40,11 +41,11 @@ app.use(
 );
 const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 
-app.use(cors({
+const corsMiddleware = cors({
   origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
+    if (!origin) {
+      return callback(new Error('Origin header required'));
+    }
     if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
       callback(null, true);
     } else {
@@ -52,7 +53,15 @@ app.use(cors({
     }
   },
   credentials: true
-}));
+});
+
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/health')) {
+    return next();
+  }
+  return corsMiddleware(req, res, next);
+});
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
