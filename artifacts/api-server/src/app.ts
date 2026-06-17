@@ -2,11 +2,15 @@ import express, { type Express } from "express";
 import cors from "cors";
 import pinoHttp from "pino-http";
 import rateLimit from "express-rate-limit";
+import helmet from "helmet";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { env } from "./lib/env";
 
 const app: Express = express();
+
+// Security headers
+app.use(helmet());
 
 // Rate limiting middleware
 const limiter = rateLimit({
