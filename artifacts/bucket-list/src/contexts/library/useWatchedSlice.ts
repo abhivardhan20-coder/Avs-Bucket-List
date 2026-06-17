@@ -47,11 +47,19 @@ export function useWatchedSlice(db: AppDatabase, watchlistMap: Map<string, Watch
       const cachedItems = await db.mediaCache
         .where('id').anyOf(candidates.map(c => c.id)).toArray();
       const cacheMap = new Map(cachedItems.map(c => [c.id, c]));
-      const result = candidates.filter(w => {
+      const result = candidates.reduce<WatchedItem[]>((acc, w) => {
         const media = cacheMap.get(w.id);
-        if (!media) return false;
-        return calculateShowActivity(media, w).isActive;
-      });
+        if (!media) return acc;
+        if (calculateShowActivity(media, w).isActive) {
+          acc.push({
+            ...w,
+            posterUrl: w.posterUrl || media.posterUrl || '',
+            backdrop: w.backdrop || media.backdropUrl || '',
+            overview: (w as any).overview || media.overview || ''
+          } as WatchedItem);
+        }
+        return acc;
+      }, []);
       setContinueWatching(result);
     };
     load();

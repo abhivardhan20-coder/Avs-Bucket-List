@@ -61,8 +61,16 @@ const Hero: React.FC<HeroProps> = ({
   useEffect(() => {
     const backdropUrl = item?.backdropUrl || item?.posterUrl;
     if (!backdropUrl) return;
-    const link = document.getElementById('hero-preload') as HTMLLinkElement;
-    if (link) link.href = backdropUrl;
+    let link = document.getElementById("hero-preload") as HTMLLinkElement;
+    if (!link) {
+      link = document.createElement("link");
+      link.id = "hero-preload";
+      link.rel = "preload";
+      link.as = "image";
+      link.fetchPriority = "high";
+      document.head.appendChild(link);
+    }
+    link.href = backdropUrl;
   }, [item?.backdropUrl, item?.posterUrl]);
 
 

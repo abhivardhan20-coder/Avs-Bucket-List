@@ -155,16 +155,19 @@ export const HydrateTmdbToAniList = async (tmdbItem: MediaItem): Promise<MediaIt
         }
         `;
 
-        const response = await fetch('https://graphql.anilist.co', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                query,
-                variables: { search: tmdbItem.title }
-            })
-        });
-
-        const json = await response.json();
+        const response = await fetch("https://graphql.anilist.co", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        query,
+        variables: { search: tmdbItem.title }
+      })
+    });
+    if (!response.ok) {
+      console.warn("AniList API returned status:", response.status);
+      return tmdbItem;
+    }
+    const json = await response.json();
         const alMatch = json?.data?.Media;
 
         if (alMatch?.nextAiringAt) {

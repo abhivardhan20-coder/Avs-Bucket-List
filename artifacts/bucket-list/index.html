@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' https:;
-             img-src 'self' https://image.tmdb.org https://cdn.myanimelist.net https://s4.anilist.co https://m.media-amazon.com https://images.unsplash.com https://assets.fanart.tv https://artworks.thetvdb.com data: blob:;
+             img-src 'self' https://wsrv.nl https://image.tmdb.org https://media.themoviedb.org https://cdn.myanimelist.net https://s4.anilist.co https://m.media-amazon.com https://images.unsplash.com https://assets.fanart.tv https://artworks.thetvdb.com data: blob:;
              script-src 'self' 'unsafe-inline' 'unsafe-eval' https://accounts.google.com;
              connect-src 'self' https: wss: ws:;
              style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
@@ -29,8 +29,7 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
   <link rel="manifest" href="/manifest.webmanifest" />
 
-  <!-- ✅ Preload hero backdrop for faster LCP: updated by Hero.tsx once actual URL is known -->
-  <link id="hero-preload" rel="preload" as="image" fetchpriority="high" />
+  <!-- Hero.tsx dynamically injects a preload link once actual URL is known -->
   
   <title>AV’s Bucket List | Personal Media Tracker</title>
   

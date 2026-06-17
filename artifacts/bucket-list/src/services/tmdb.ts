@@ -6,7 +6,7 @@ import { getCached, setCached, getTtlForEndpoint } from '../lib/tmdbCache';
 // ✅ PERFORMANCE OPTIMIZED: Use optimized image sizes
 const getImageUrl = (path: string | null, size: 'original' | 'w1280' | 'w780' | 'w500' | 'w342' | 'w300' = 'original') => {
   if (!path) return '';
-  const base = `https://image.tmdb.org/t/p/${size}`;
+  const base = `https://media.themoviedb.org/t/p/${size}`;
   const cleanPath = path.startsWith('/') ? path.slice(1) : path;
   return `${base}/${cleanPath}`;
 };

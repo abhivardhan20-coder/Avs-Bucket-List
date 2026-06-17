@@ -27,15 +27,25 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
     setError(false);
   }
 
-  const hasValidSrc = src && src.length > 0;
+  // Bulletproof fallback: If the ISP completely blocks TMDB domains,
+  // route the image through the highly reliable wsrv.nl global proxy.
+  let optimizedSrc = src;
+  if (src && (src.includes('tmdb.org') || src.includes('themoviedb.org'))) {
+    optimizedSrc = `https://wsrv.nl/?url=${encodeURIComponent(src)}`;
+  }
+
+  const hasValidSrc = optimizedSrc && optimizedSrc.length > 0;
 
   return (
     <div className={`relative overflow-hidden flex items-center justify-center bg-[#1a1a1a] ${className}`}>
       {!hasValidSrc || error ? (
-        <div className="flex flex-col items-center justify-center w-full h-full p-4 text-center select-none bg-gradient-to-br from-[#1c1c1e] to-[#0a0a0a] border border-white/5 rounded-2xl">
+        <div className="flex flex-col items-center justify-center w-full h-full p-4 text-center select-none bg-gradient-to-br from-[#1c1c1e] to-[#0a0a0a] border border-white/5 rounded-2xl overflow-hidden">
           <ImageOff className="w-8 h-8 mb-3 text-gray-500 animate-pulse" />
-          <span className="text-xs md:text-sm font-black text-gray-400 uppercase tracking-wide break-words w-full px-2 line-clamp-4 leading-normal">
+          <span className="text-xs md:text-sm font-black text-gray-400 uppercase tracking-wide break-words w-full px-2 line-clamp-2 leading-normal">
             {alt || 'No Title'}
+          </span>
+          <span className="text-[8px] text-red-400 break-all w-full mt-2 font-mono opacity-50">
+            {optimizedSrc || 'NO_SRC'}
           </span>
         </div>
       ) : (
@@ -44,7 +54,7 @@ const OptimizedImage: React.FC<OptimizedImageProps> = ({
             <div className="absolute inset-0 bg-gradient-to-br from-[#2c2c2e] via-[#1c1c1e] to-[#0a0a0a] animate-pulse rounded-2xl border border-white/5" />
           )}
           <img
-            src={src || undefined}
+            src={optimizedSrc || undefined}
             alt={alt}
             width={width}
             height={height}
