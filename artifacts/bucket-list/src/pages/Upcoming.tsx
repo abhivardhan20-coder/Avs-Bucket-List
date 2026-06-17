@@ -1,17 +1,15 @@
 import React from 'react';
 import UpcomingDashboard from '@/components/upcoming/UpcomingDashboard';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
-import { MediaItem } from '@/types';
+import { useUI } from '@/contexts/UIContext';
 
-interface UpcomingProps {
-    setSelectedContent: (item: MediaItem) => void;
-}
+export const Upcoming: React.FC = React.memo(() => {
+    const { handleSetSelectedContent } = useUI();
 
-export const Upcoming: React.FC<UpcomingProps> = React.memo(({ setSelectedContent }) => {
     return (
         <ErrorBoundary>
             <UpcomingDashboard
-                onResultClick={setSelectedContent}
+                onResultClick={handleSetSelectedContent}
             />
         </ErrorBoundary>
     );

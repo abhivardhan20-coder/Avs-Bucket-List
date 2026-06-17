@@ -1,9 +1,9 @@
 import { Request, Response, NextFunction } from "express";
-import jwt from "jsonwebtoken";
+import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "../lib/env";
 
 export interface AuthenticatedRequest extends Request {
-  user?: any;
+  user?: JwtPayload | string;
 }
 
 export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {

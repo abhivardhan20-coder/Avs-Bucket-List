@@ -5,7 +5,7 @@ import path from "path";
 import { VitePWA } from 'vite-plugin-pwa';
 import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
-const rawPort = process.env.PORT;
+const rawPort = process.env.PORT || (process.env.VITEST ? "3000" : undefined);
 
 if (!rawPort) {
   throw new Error(
@@ -19,7 +19,7 @@ if (Number.isNaN(port) || port <= 0) {
   throw new Error(`Invalid PORT value: "${rawPort}"`);
 }
 
-const basePath = process.env.BASE_PATH;
+const basePath = process.env.BASE_PATH || (process.env.VITEST ? "/" : undefined);
 
 if (!basePath) {
   throw new Error(

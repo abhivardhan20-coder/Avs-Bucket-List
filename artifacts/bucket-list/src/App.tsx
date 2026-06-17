@@ -1,20 +1,16 @@
-import React, { useState, useMemo, Suspense, useCallback } from 'react';
-import { APP_ROUTES, TABS } from '@/constants/routes';
+import React, { Suspense, useCallback } from 'react';
 import { useAuth, useWatchlist, useWatched } from '@/contexts/AppContext';
-import { MediaItem, MediaType } from '@/types';
+import { useUI } from '@/contexts/UIContext';
+import { MediaItem } from '@/types';
 
 import StatsListModal from '@/components/stats/StatsListModal';
 import { RootLayout } from '@/layouts/RootLayout';
 import ContentModal from '@/components/ContentModal';
 import LoginPage from '@/components/LoginPage';
 import { lazyWithRetry } from '@/lib/lazyWithRetry';
-import { useTrending } from '@/hooks/useContentQueries';
-import { useAppStats } from '@/hooks/useAppStats';
-import { useFilteredMedia } from '@/hooks/useFilteredMedia';
 import { useMediaToggles } from '@/hooks/useMediaToggles';
 import { useStatsModalData } from '@/hooks/useStatsModalData';
 import { dbService } from '@/services/dbService';
-import { useLocation, useNavigate } from 'react-router-dom';
 import { AppRoutes } from '@/AppRoutes';
 
 // Lazy Pages for better initial load performance
@@ -25,32 +21,18 @@ const Watched = lazyWithRetry(() => import(/* webpackChunkName: "watched" */ '@/
 const StatsDashboard = lazyWithRetry(() => import(/* webpackChunkName: "stats" */ '@/components/stats/StatsDashboard'));
 
 function App() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const activeTab = useMemo(() => {
-    const path = location.pathname;
-    if (path.startsWith(APP_ROUTES.UPCOMING)) return TABS.UPCOMING;
-    if (path.startsWith(APP_ROUTES.WATCHLIST)) return TABS.WATCHLIST;
-    if (path.startsWith(APP_ROUTES.WATCHED)) return TABS.WATCHED;
-    if (path.startsWith(APP_ROUTES.STATS)) return TABS.STATS;
-    return TABS.HOME;
-  }, [location.pathname]);
-
-  const setActiveTab = useCallback((tab: string) => {
-    navigate(tab === TABS.HOME ? APP_ROUTES.HOME : `/${tab}`);
-  }, [navigate]);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [appError, setAppError] = useState<string | null>(null);
-
   const { user } = useAuth();
-  const { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist, isDbLoaded: wlLoaded } = useWatchlist();
-  const { watched, continueWatching, markMovieAsWatched, unmarkMovie, markSeriesAsWatched, unmarkSeries, isWatched, isDbLoaded: wdLoaded } = useWatched();
-  const isDbLoaded = wlLoaded && wdLoaded;
+  const { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+  const { watched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched, isWatched } = useWatched();
 
-  const [selectedContent, setSelectedContent] = useState<MediaItem | null>(null);
-  const [initialEpisodeId, setInitialEpisodeId] = useState<string | undefined>(undefined);
+  const {
+    isSearchOpen, setIsSearchOpen,
+    isSettingsOpen, setIsSettingsOpen,
+    appError, setAppError,
+    selectedContent, initialEpisodeId,
+    statsModalConfig, setStatsModalConfig,
+    handleSetSelectedContent, handleCloseModal
+  } = useUI();
 
   const { handleToggleWatchlist, handleToggleWatched, isProcessing } = useMediaToggles(
     isInWatchlist, removeFromWatchlist, addToWatchlist,
@@ -58,90 +40,11 @@ function App() {
     setAppError
   );
 
-  const handleSetSelectedContent = useCallback((item: MediaItem, episodeId?: string) => {
-    setSelectedContent(item);
-    setInitialEpisodeId(episodeId);
-  }, []);
-
-  const handleCloseModal = useCallback(() => {
-    setSelectedContent(null);
-    setInitialEpisodeId(undefined);
-  }, []);
-
-  // Filter States
-  const [filterType, setFilterType] = useState<'All' | MediaType>('All');
-  const [filterYear, setFilterYear] = useState<string>('All');
-  const [filterGenre, setFilterGenre] = useState<string[]>(['All']);
-
-  // Reset filters when changing tabs
-  React.useEffect(() => {
-    setFilterType('All');
-    setFilterYear('All');
-    setFilterGenre(['All']);
-  }, [activeTab]);
-
-  // Stats Modal State
-  const [statsModalConfig, setStatsModalConfig] = useState<{
-    isOpen: boolean;
-    title: string;
-    type: 'series' | 'anime' | 'movies';
-  } | null>(null);
-
-  const [expandedSections, setExpandedSections] = useState({
-    watchlist: { movies: true, series: true, anime: true },
-    watched: { movies: true, series: true, anime: true }
-  });
-
-
-
-  // Derived Data Hooks
-  const { dashboardStats } = useAppStats(watched);
-  const { groups: watchlistGroups } = useFilteredMedia(watchlist, filterType, filterYear, filterGenre);
-  const { groups: watchedGroups } = useFilteredMedia(watched, filterType, filterYear, filterGenre);
-
-  // Trending / Hero Data
-  const { 
-    data: heroItems = [], 
-    isLoading: loadingHero, 
-    isFetching: isFetchingHero,
-    isError: heroError, 
-    refetch: loadHero 
-  } = useTrending(MediaType.Movie);
-
-
-
-  const excludedIds = useMemo(() => {
-    return new Set([
-      ...watchlist.map(w => w.id),
-      ...watched.map(w => w.id)
-    ]);
-  }, [watchlist, watched]);
-
-  const handleToggleSection = useCallback((tab: 'watchlist' | 'watched', section: 'movies' | 'series' | 'anime') => {
-    setExpandedSections(prev => ({
-      ...prev,
-      [tab]: {
-        ...prev[tab],
-        [section]: !prev[tab][section]
-      }
-    }));
-  }, []);
-
   const handleSearchResultClick = useCallback((item: MediaItem) => {
     dbService.cacheMediaItem(item);
-    setSelectedContent(item);
+    handleSetSelectedContent(item);
     setIsSearchOpen(false);
-  }, []);
-
-  const continueWatchingItems = useMemo(() => {
-    return continueWatching.map(item => ({
-      ...item,
-      progress: item.totalEpisodes > 0 ? (item.watchedEpisodes / item.totalEpisodes) * 100 : 0,
-      posterUrl: item.posterUrl,
-      backdropUrl: (item as unknown as { backdrop?: string }).backdrop || '',
-      overview: (item as unknown as { overview?: string }).overview || ''
-    })) as MediaItem[];
-  }, [continueWatching]);
+  }, [handleSetSelectedContent, setIsSearchOpen]);
 
   const statsModalData = useStatsModalData(statsModalConfig, watched as unknown as MediaItem[]);
 
@@ -176,18 +79,6 @@ function App() {
         }>
           <AppRoutes
             Home={Home} Upcoming={Upcoming} Watchlist={Watchlist} Watched={Watched} StatsDashboard={StatsDashboard}
-            heroItems={heroItems} continueWatchingItems={continueWatchingItems} watched={watched}
-            loadingHero={loadingHero || (isFetchingHero && heroItems.length === 0)} heroError={heroError}
-            loadHero={() => loadHero()} handleSetSelectedContent={handleSetSelectedContent}
-            isInWatchlist={isInWatchlist} handleToggleWatchlist={handleToggleWatchlist}
-            isWatched={isWatched} handleToggleWatched={handleToggleWatched}
-            excludedIds={excludedIds} userEmail={user?.email}
-            watchlistGroups={watchlistGroups} filterType={filterType} setFilterType={setFilterType}
-            filterYear={filterYear} setFilterYear={setFilterYear} filterGenre={filterGenre} setFilterGenre={setFilterGenre}
-            expandedSections={expandedSections} handleToggleSection={handleToggleSection}
-            setSelectedContent={setSelectedContent} setActiveTab={setActiveTab}
-            watchedGroups={watchedGroups} dashboardStats={dashboardStats} setStatsModalConfig={setStatsModalConfig}
-            isDbLoaded={isDbLoaded}
           />
         </Suspense>
       </main>

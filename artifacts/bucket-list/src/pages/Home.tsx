@@ -9,7 +9,7 @@ import NewSeasonsRow from '@/components/home/NewSeasonsRow';
 import UpNextRow from '@/components/home/UpNextRow';
 import AIRecommendationsRow from '@/components/home/AIRecommendationsRow';
 import { AlertTriangle, Clock, RefreshCw } from 'lucide-react';
-import { MediaItem, WatchedItem } from '@/types';
+import { MediaItem } from '@/types';
 import {
     fetchTrendingMovies,
     fetchTrendingSeries,
@@ -21,62 +21,68 @@ import {
 } from '@/services/tmdb';
 import { recommendationEngine } from '@/lib/recommendationEngine';
 import { Sparkles } from 'lucide-react';
+import { useAuth, useWatchlist, useWatched } from '@/contexts/AppContext';
+import { useUI } from '@/contexts/UIContext';
+import { useTrending } from '@/hooks/useContentQueries';
+import { MediaType } from '@/types';
+import { useMediaToggles } from '@/hooks/useMediaToggles';
 
+export const Home: React.FC = () => {
+    const { user } = useAuth();
+    const { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
+    const { watched, continueWatching, markMovieAsWatched, unmarkMovie, markSeriesAsWatched, unmarkSeries, isWatched } = useWatched();
+    const { handleSetSelectedContent, setAppError } = useUI();
 
-interface HomeProps {
-    heroItems: MediaItem[];
-    continueWatchingItems: MediaItem[];
-    watched: WatchedItem[];
-    watchlist?: any[];
-    loadingHero: boolean;
-    heroError?: boolean;
-    loadHero: () => void;
-    setSelectedContent: (item: MediaItem, episodeId?: string) => void;
-    isInWatchlist: (id: string) => boolean;
-    toggleWatchlist: (e: React.MouseEvent, id: string) => void;
-    isWatched: (id: string) => boolean;
-    toggleWatched: (e: React.MouseEvent, id: string) => void;
-    updateCache: (items: MediaItem[]) => void;
-    excludedIds: Set<string>;
-    userEmail?: string;
-}
+    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles(
+        isInWatchlist, removeFromWatchlist, addToWatchlist,
+        isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
+        setAppError
+    );
 
-export const Home: React.FC<HomeProps> = ({
-    heroItems,
-    continueWatchingItems,
-    watched,
-    watchlist = [],
-    loadingHero,
-    heroError,
-    loadHero,
-    setSelectedContent,
-    isInWatchlist,
-    toggleWatchlist,
-    isWatched,
-    toggleWatched,
-    updateCache,
-    excludedIds,
-    userEmail
-}) => {
+    const { 
+        data: heroItems = [], 
+        isLoading: loadingHero, 
+        isFetching: isFetchingHero,
+        isError: heroError, 
+        refetch: loadHero 
+    } = useTrending(MediaType.Movie);
+
+    const isHeroLoading = loadingHero || (isFetchingHero && heroItems.length === 0);
+
+    const continueWatchingItems = useMemo(() => {
+        return continueWatching.map(item => ({
+            ...item,
+            progress: item.totalEpisodes > 0 ? (item.watchedEpisodes / item.totalEpisodes) * 100 : 0,
+            posterUrl: item.posterUrl,
+            backdropUrl: (item as unknown as { backdrop?: string }).backdrop || '',
+            overview: (item as unknown as { overview?: string }).overview || ''
+        })) as MediaItem[];
+    }, [continueWatching]);
+
+    const excludedIds = useMemo(() => {
+        return new Set([
+            ...watchlist.map(w => w.id),
+            ...watched.map(w => w.id)
+        ]);
+    }, [watchlist, watched]);
+
+    const updateCache = useCallback(() => {}, []);
+
     const filteredHeroItems = useMemo(() => {
         const filtered = heroItems.filter(item => !isWatched(item.id));
-        // Fallback: If EVERYTHING is watched, show the original trending list anyway
         if (heroItems.length > 0 && filtered.length === 0) return heroItems;
         return filtered;
     }, [heroItems, isWatched]);
 
-
-
-    // ✅ Wrap fetchRecommendations in useCallback to prevent unnecessary re-renders
     const fetchRecommendations = useCallback(async () => {
-        if (!userEmail) return [];
+        if (!user?.email) return [];
         const pool = await fetchRecommendationPool();
         return recommendationEngine.getRecommendations(watched, watchlist, pool);
-    }, [userEmail, watchlist, watched]);
+    }, [user?.email, watchlist, watched]);
 
     return (
         <>
-            {(loadingHero && filteredHeroItems.length === 0) ? (
+            {(isHeroLoading && filteredHeroItems.length === 0) ? (
                 <SkeletonHero />
             ) : (heroError && filteredHeroItems.length === 0) ? (
                 <div className="h-[60vh] md:h-[80vh] flex flex-col items-center justify-center text-white bg-[#0a0a0a] relative overflow-hidden border-b border-white/5">
@@ -90,22 +96,22 @@ export const Home: React.FC<HomeProps> = ({
                             <p className="text-gray-400 max-w-sm text-sm font-medium leading-relaxed">TMDB services are currently experiencing issues or your connection is unstable.</p>
                         </div>
                         <button
-                            onClick={loadHero}
+                            onClick={() => loadHero()}
                             className="flex items-center gap-3 px-10 py-3.5 bg-white text-black rounded-full font-black hover:bg-gray-200 transition-all active:scale-95 shadow-xl group"
                         >
-                            <RefreshCw className={`w-5 h-5 transition-transform duration-500 group-hover:rotate-180 ${loadingHero ? 'animate-spin' : ''}`} />
-                            {loadingHero ? 'Retrying...' : 'Try Again'}
+                            <RefreshCw className={`w-5 h-5 transition-transform duration-500 group-hover:rotate-180 ${isHeroLoading ? 'animate-spin' : ''}`} />
+                            {isHeroLoading ? 'Retrying...' : 'Try Again'}
                         </button>
                     </div>
                 </div>
             ) : filteredHeroItems.length > 0 ? (
                 <Hero
                     items={filteredHeroItems.slice(0, 5)}
-                    onMoreInfo={setSelectedContent}
+                    onMoreInfo={handleSetSelectedContent}
                     isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
+                    onToggleWatchlist={handleToggleWatchlist}
                     isWatched={isWatched}
-                    onToggleWatched={toggleWatched}
+                    onToggleWatched={handleToggleWatched}
                 />
             ) : null}
 
@@ -116,11 +122,11 @@ export const Home: React.FC<HomeProps> = ({
                     </div>
                     <ErrorBoundary variant="row">
                         <AiringScheduleRow 
-                            setSelectedContent={setSelectedContent}
+                            setSelectedContent={handleSetSelectedContent}
                             isInWatchlist={isInWatchlist}
-                            toggleWatchlist={toggleWatchlist}
+                            toggleWatchlist={handleToggleWatchlist}
                             isWatched={isWatched}
-                            toggleWatched={toggleWatched}
+                            toggleWatched={handleToggleWatched}
                         />
                     </ErrorBoundary>
                 </div>
@@ -133,21 +139,21 @@ export const Home: React.FC<HomeProps> = ({
                         <NewSeasonsRow 
                             watched={watched}
                             watchlist={watchlist}
-                            setSelectedContent={setSelectedContent}
+                            setSelectedContent={handleSetSelectedContent}
                             isInWatchlist={isInWatchlist}
-                            toggleWatchlist={toggleWatchlist}
+                            toggleWatchlist={handleToggleWatchlist}
                             isWatched={isWatched}
-                            toggleWatched={toggleWatched}
+                            toggleWatched={handleToggleWatched}
                         />
                     </ErrorBoundary>
                 </div>
 
                 <UpNextRow 
-                    onCardClick={setSelectedContent}
+                    onCardClick={handleSetSelectedContent}
                     isInWatchlist={isInWatchlist}
-                    onToggleWatchlist={toggleWatchlist}
+                    onToggleWatchlist={handleToggleWatchlist}
                     isWatched={isWatched}
-                    onToggleWatched={toggleWatched}
+                    onToggleWatched={handleToggleWatched}
                 />
 
                 {continueWatchingItems.length > 0 && (
@@ -161,11 +167,11 @@ export const Home: React.FC<HomeProps> = ({
                                 <div key={`cw-key-${item.id}`} className="snap-start">
                                     <ContentCard
                                         item={item}
-                                        onClick={setSelectedContent}
+                                        onClick={handleSetSelectedContent}
                                         isInWatchlist={isInWatchlist(item.id)}
-                                        onToggleWatchlist={toggleWatchlist}
+                                        onToggleWatchlist={handleToggleWatchlist}
                                         isWatched={isWatched(item.id)}
-                                        onToggleWatched={toggleWatched}
+                                        onToggleWatched={handleToggleWatched}
                                         progress={item.progress}
                                     />
                                 </div>
@@ -179,11 +185,11 @@ export const Home: React.FC<HomeProps> = ({
                     <AIRecommendationsRow
                         watched={watched}
                         watchlist={watchlist}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                     />
                 </ErrorBoundary>
 
@@ -192,11 +198,11 @@ export const Home: React.FC<HomeProps> = ({
                         title="For You"
                         icon={<Sparkles className="w-5 h-5 text-yellow-500" />}
                         fetchStrategy={fetchRecommendations}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                         onDataFetched={updateCache}
                         excludedIds={excludedIds}
                     />
@@ -206,11 +212,11 @@ export const Home: React.FC<HomeProps> = ({
                     <ContentRow
                         title="Trending Movies"
                         fetchStrategy={fetchTrendingMovies}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                         onDataFetched={updateCache}
                         excludedIds={excludedIds}
                     />
@@ -220,11 +226,11 @@ export const Home: React.FC<HomeProps> = ({
                     <ContentRow
                         title="Trending Series"
                         fetchStrategy={fetchTrendingSeries}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                         onDataFetched={updateCache}
                         excludedIds={excludedIds}
                     />
@@ -234,11 +240,11 @@ export const Home: React.FC<HomeProps> = ({
                     <ContentRow
                         title="Trending Anime"
                         fetchStrategy={fetchTrendingAnime}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                         onDataFetched={updateCache}
                         excludedIds={excludedIds}
                     />
@@ -248,11 +254,11 @@ export const Home: React.FC<HomeProps> = ({
                     <ContentRow
                         title="Top Movies"
                         fetchStrategy={fetchTopRatedMovies}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                         onDataFetched={updateCache}
                         excludedIds={excludedIds}
                     />
@@ -262,11 +268,11 @@ export const Home: React.FC<HomeProps> = ({
                     <ContentRow
                         title="Top Series"
                         fetchStrategy={fetchTopRatedSeries}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                         onDataFetched={updateCache}
                         excludedIds={excludedIds}
                     />
@@ -276,11 +282,11 @@ export const Home: React.FC<HomeProps> = ({
                     <ContentRow
                         title="Top Animes"
                         fetchStrategy={fetchTopRatedAnime}
-                        onCardClick={setSelectedContent}
+                        onCardClick={handleSetSelectedContent}
                         isInWatchlist={isInWatchlist}
-                        onToggleWatchlist={toggleWatchlist}
+                        onToggleWatchlist={handleToggleWatchlist}
                         isWatched={isWatched}
-                        onToggleWatched={toggleWatched}
+                        onToggleWatched={handleToggleWatched}
                         onDataFetched={updateCache}
                         excludedIds={excludedIds}
                     />

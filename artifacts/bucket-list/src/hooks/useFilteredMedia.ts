@@ -1,6 +1,16 @@
 import { useMemo } from 'react';
 import { MediaItem, MediaType, WatchlistItem, WatchedItem } from '@/types';
 
+/**
+ * A hook that filters and groups an array of media items (watched or watchlist) based on user selections.
+ * It optimizes performance by doing a single pass over the data for both filtering and categorizing.
+ *
+ * @param items - The array of media items to filter and group
+ * @param filterType - The type to filter by ('All', or a specific MediaType like Movie/Series/Anime)
+ * @param filterYear - The release year to filter by ('All' or a specific 4-digit year string)
+ * @param filterGenres - An array of genres to filter by (includes 'All' if no filter is active)
+ * @returns An object containing the flat `filtered` array and a `groups` object split by MediaType.
+ */
 export function useFilteredMedia(
     items: (WatchlistItem | WatchedItem)[],
     filterType: 'All' | MediaType,

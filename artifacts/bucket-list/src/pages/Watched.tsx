@@ -3,64 +3,41 @@ import { Clock, Film, Tv, PenTool } from 'lucide-react';
 import { FilterBar } from '@/components/FilterBar';
 import HorizontalScrollContainer from '@/components/HorizontalScrollContainer';
 import ContentCard from '@/components/ContentCard';
-import { MediaItem, MediaType } from '@/types';
+import { MediaType } from '@/types';
 import WatchBreakdownModal from '@/components/stats/WatchBreakdownModal';
+import { useWatchlist, useWatched } from '@/contexts/AppContext';
+import { useUI } from '@/contexts/UIContext';
+import { useFilteredMedia } from '@/hooks/useFilteredMedia';
+import { useMediaToggles } from '@/hooks/useMediaToggles';
+import { useAppStats } from '@/hooks/useAppStats';
 
-interface WatchedProps {
-    watchedGroups: {
-        movies: MediaItem[];
-        series: MediaItem[];
-        anime: MediaItem[];
-    };
-    dashboardStats: {
-        hours: number;
-        minutes: number;
-        movieCount: number;
-        seriesCount: number;
-        animatedCount: number;
-        totalTitles: number;
-        hoursMovies: number;
-        minutesMovies: number;
-        hoursSeries: number;
-        minutesSeries: number;
-        hoursAnime: number;
-        minutesAnime: number;
-    };
-    filterType: 'All' | MediaType;
-    setFilterType: (type: 'All' | MediaType) => void;
-    filterYear: string;
-    setFilterYear: (year: string) => void;
-    filterGenre: string[];
-    setFilterGenre: (genres: string[]) => void;
-    expandedSections: { movies: boolean; series: boolean; anime: boolean };
-    toggleSection: (section: 'movies' | 'series' | 'anime') => void;
-    setSelectedContent: (item: MediaItem) => void;
-    isInWatchlist: (id: string) => boolean;
-    toggleWatchlist: (e: React.MouseEvent, id: string) => void;
-    isWatched: (id: string) => boolean;
-    toggleWatched: (e: React.MouseEvent, id: string) => void;
-    openStatsModal: (type: 'series' | 'anime' | 'movies') => void;
-    isDbLoaded: boolean;
-}
-
-
-export const Watched: React.FC<WatchedProps> = React.memo(({
-    watchedGroups,
-    dashboardStats,
-    filterType,
-    setFilterType,
-    filterYear,
-    setFilterYear,
-    filterGenre,
-    setFilterGenre,
-    setSelectedContent,
-    isInWatchlist,
-    toggleWatchlist,
-    toggleWatched,
-    openStatsModal,
-    isDbLoaded
-}) => {
+export const Watched: React.FC = React.memo(() => {
     const [showTimePopup, setShowTimePopup] = useState(false);
+    
+    const { watchlist, removeFromWatchlist, addToWatchlist, isInWatchlist } = useWatchlist();
+    const { watched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched, isWatched, isDbLoaded } = useWatched();
+    const { handleSetSelectedContent, setAppError, setStatsModalConfig } = useUI();
+
+    const openStatsModal = (type: 'series' | 'anime' | 'movies') => {
+        setStatsModalConfig({
+            isOpen: true,
+            title: type === 'series' ? 'Series Watched' : type === 'anime' ? 'Animated Titles' : 'Movies Watched',
+            type
+        });
+    };
+
+    const [filterType, setFilterType] = useState<'All' | MediaType>('All');
+    const [filterYear, setFilterYear] = useState<string>('All');
+    const [filterGenre, setFilterGenre] = useState<string[]>(['All']);
+
+    const { groups: watchedGroups } = useFilteredMedia(watched, filterType, filterYear, filterGenre);
+    const { dashboardStats } = useAppStats(watched);
+
+    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles(
+        isInWatchlist, removeFromWatchlist, addToWatchlist,
+        isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
+        setAppError
+    );
 
 
 
@@ -230,11 +207,11 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
                                     <div key={item.id} className="snap-start">
                                         <ContentCard
                                             item={item}
-                                            onClick={() => setSelectedContent(item)}
+                                            onClick={() => handleSetSelectedContent(item)}
                                             isWatched={true}
                                             isInWatchlist={isInWatchlist(item.id)}
-                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
-                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                            onToggleWatchlist={(e) => handleToggleWatchlist(e, item.id)}
+                                            onToggleWatched={(e) => handleToggleWatched(e, item.id)}
                                         />
                                     </div>
                                 ))}
@@ -257,11 +234,11 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
                                     <div key={item.id} className="snap-start">
                                         <ContentCard
                                             item={item}
-                                            onClick={() => setSelectedContent(item)}
+                                            onClick={() => handleSetSelectedContent(item)}
                                             isWatched={true}
                                             isInWatchlist={isInWatchlist(item.id)}
-                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
-                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                            onToggleWatchlist={(e) => handleToggleWatchlist(e, item.id)}
+                                            onToggleWatched={(e) => handleToggleWatched(e, item.id)}
                                         />
                                     </div>
                                 ))}
@@ -284,11 +261,11 @@ export const Watched: React.FC<WatchedProps> = React.memo(({
                                     <div key={item.id} className="snap-start">
                                         <ContentCard
                                             item={item}
-                                            onClick={() => setSelectedContent(item)}
+                                            onClick={() => handleSetSelectedContent(item)}
                                             isWatched={true}
                                             isInWatchlist={isInWatchlist(item.id)}
-                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
-                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                            onToggleWatchlist={(e) => handleToggleWatchlist(e, item.id)}
+                                            onToggleWatched={(e) => handleToggleWatched(e, item.id)}
                                         />
                                     </div>
                                 ))}

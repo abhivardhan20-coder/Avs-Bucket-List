@@ -2,6 +2,13 @@ import { useQuery } from '@tanstack/react-query';
 import { ContentService } from '../services/contentService';
 import { MediaType } from '@/types';
 
+/**
+ * Fetches trending media of a specific type (movie, tv) for a given page.
+ * Uses React Query for caching to reduce network requests.
+ * @param type - The type of media (e.g., MediaType.Movie, MediaType.Series)
+ * @param page - The page number to fetch (defaults to 1)
+ * @returns React Query object containing the trending data, loading state, etc.
+ */
 export function useTrending(type: MediaType, page: number = 1) {
   return useQuery({
     queryKey: ['trending', type, page],
@@ -11,6 +18,13 @@ export function useTrending(type: MediaType, page: number = 1) {
   });
 }
 
+/**
+ * Searches for media based on a text query.
+ * @param query - The search string
+ * @param type - The type of media to search for
+ * @param page - The page number
+ * @returns React Query object containing search results
+ */
 export function useSearch(query: string, type: 'movie' | 'tv' | 'anime' = 'movie', page: number = 1) {
   return useQuery({
     queryKey: ['search', query, type, page],

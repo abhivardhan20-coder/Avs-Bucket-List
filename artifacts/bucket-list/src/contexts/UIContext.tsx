@@ -10,6 +10,16 @@ interface UIContextType {
   setAppError: (error: string | null) => void;
   selectedContent: MediaItem | null;
   initialEpisodeId?: string;
+  statsModalConfig: {
+    isOpen: boolean;
+    title: string;
+    type: 'series' | 'anime' | 'movies';
+  } | null;
+  setStatsModalConfig: (config: {
+    isOpen: boolean;
+    title: string;
+    type: 'series' | 'anime' | 'movies';
+  } | null) => void;
   handleSetSelectedContent: (item: MediaItem, episodeId?: string) => void;
   handleCloseModal: () => void;
 }
@@ -23,6 +33,12 @@ export function UIProvider({ children }: { children: ReactNode }) {
   
   const [selectedContent, setSelectedContent] = useState<MediaItem | null>(null);
   const [initialEpisodeId, setInitialEpisodeId] = useState<string | undefined>(undefined);
+  
+  const [statsModalConfig, setStatsModalConfig] = useState<{
+    isOpen: boolean;
+    title: string;
+    type: 'series' | 'anime' | 'movies';
+  } | null>(null);
 
   const handleSetSelectedContent = (item: MediaItem, episodeId?: string) => {
     setSelectedContent(item);
@@ -40,6 +56,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       isSettingsOpen, setIsSettingsOpen,
       appError, setAppError,
       selectedContent, initialEpisodeId,
+      statsModalConfig, setStatsModalConfig,
       handleSetSelectedContent, handleCloseModal
     }}>
       {children}

@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, screen } from '@testing-library/react';
-import { UpcomingCard } from '../components/upcoming/UpcomingCard';
+import UpcomingCard from '../components/upcoming/UpcomingCard';
 import { describe, it, expect, vi } from 'vitest';
 import { MediaItem, MediaType } from '../types';
 

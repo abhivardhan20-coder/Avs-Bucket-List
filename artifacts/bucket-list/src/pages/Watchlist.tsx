@@ -1,30 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Plus } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { FilterBar } from '@/components/FilterBar';
 import HorizontalScrollContainer from '@/components/HorizontalScrollContainer';
 import ContentCard from '@/components/ContentCard';
 import { MediaItem, MediaType } from '@/types';
-
-interface WatchlistProps {
-    watchlistGroups: {
-        movies: MediaItem[];
-        series: MediaItem[];
-        anime: MediaItem[];
-    };
-    filterType: 'All' | MediaType;
-    setFilterType: (type: 'All' | MediaType) => void;
-    filterYear: string;
-    setFilterYear: (year: string) => void;
-    filterGenre: string[];
-    setFilterGenre: (genres: string[]) => void;
-    expandedSections: { movies: boolean; series: boolean; anime: boolean };
-    toggleSection: (section: 'movies' | 'series' | 'anime') => void;
-    setSelectedContent: (item: MediaItem) => void;
-    toggleWatchlist: (e: React.MouseEvent, id: string) => void;
-    isWatched: (id: string) => boolean;
-    toggleWatched: (e: React.MouseEvent, id: string) => void;
-    onBrowseContent: () => void;
-}
+import { useWatchlist, useWatched } from '@/contexts/AppContext';
+import { useUI } from '@/contexts/UIContext';
+import { useFilteredMedia } from '@/hooks/useFilteredMedia';
+import { useMediaToggles } from '@/hooks/useMediaToggles';
+import { APP_ROUTES } from '@/constants/routes';
 
 const isReleased = (item: MediaItem) => {
     if (!item.releaseDate) return false;
@@ -36,20 +21,26 @@ const isReleased = (item: MediaItem) => {
 };
 
 
-export const Watchlist: React.FC<WatchlistProps> = React.memo(({
-    watchlistGroups,
-    filterType,
-    setFilterType,
-    filterYear,
-    setFilterYear,
-    filterGenre,
-    setFilterGenre,
-    setSelectedContent,
-    toggleWatchlist,
-    isWatched,
-    toggleWatched,
-    onBrowseContent
-}) => {
+export const Watchlist: React.FC = React.memo(() => {
+    const navigate = useNavigate();
+    const { watchlist, removeFromWatchlist, addToWatchlist, isInWatchlist } = useWatchlist();
+    const { unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched, isWatched } = useWatched();
+    const { handleSetSelectedContent, setAppError } = useUI();
+
+    const [filterType, setFilterType] = useState<'All' | MediaType>('All');
+    const [filterYear, setFilterYear] = useState<string>('All');
+    const [filterGenre, setFilterGenre] = useState<string[]>(['All']);
+
+    const { groups: watchlistGroups } = useFilteredMedia(watchlist, filterType, filterYear, filterGenre);
+
+    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles(
+        isInWatchlist, removeFromWatchlist, addToWatchlist,
+        isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
+        setAppError
+    );
+
+    const onBrowseContent = () => navigate(APP_ROUTES.HOME);
+
     // Memoize split logic for performance
     const sections = React.useMemo(() => {
         const released = [
@@ -124,11 +115,11 @@ export const Watchlist: React.FC<WatchlistProps> = React.memo(({
                                     <div key={item.id} className="snap-start">
                                         <ContentCard
                                             item={item}
-                                            onClick={() => setSelectedContent(item)}
+                                            onClick={() => handleSetSelectedContent(item)}
                                             isInWatchlist={true}
-                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
+                                            onToggleWatchlist={(e) => handleToggleWatchlist(e, item.id)}
                                             isWatched={isWatched(item.id)}
-                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                            onToggleWatched={(e) => handleToggleWatched(e, item.id)}
                                         />
                                     </div>
                                 ))}
@@ -151,11 +142,11 @@ export const Watchlist: React.FC<WatchlistProps> = React.memo(({
                                     <div key={item.id} className="snap-start">
                                         <ContentCard
                                             item={item}
-                                            onClick={() => setSelectedContent(item)}
+                                            onClick={() => handleSetSelectedContent(item)}
                                             isInWatchlist={true}
-                                            onToggleWatchlist={(e) => toggleWatchlist(e, item.id)}
+                                            onToggleWatchlist={(e) => handleToggleWatchlist(e, item.id)}
                                             isWatched={isWatched(item.id)}
-                                            onToggleWatched={(e) => toggleWatched(e, item.id)}
+                                            onToggleWatched={(e) => handleToggleWatched(e, item.id)}
                                         />
                                     </div>
                                 ))}
