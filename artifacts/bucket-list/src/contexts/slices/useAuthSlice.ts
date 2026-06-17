@@ -137,9 +137,25 @@ export const useAuthSlice = () => {
 
   /**
    * logout - Signs out from Supabase and clears local state.
+   * Also sends a request to the backend to blacklist the current JWT token.
    */
   const logout = useCallback(async () => {
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.access_token) {
+        // Send revocation request to API backend
+        try {
+          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+          await fetch(`${apiUrl}/api/auth/logout`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`
+            }
+          });
+        } catch (e) {
+          console.error('[Auth] Failed to send logout signal to backend:', e);
+        }
+      }
       await supabase.auth.signOut();
     } catch (err) {
       console.error('[Auth] Logout error:', err);

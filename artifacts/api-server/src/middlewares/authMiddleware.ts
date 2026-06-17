@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "../lib/env";
+import { isBlacklisted } from "../lib/blacklist";
 
 export interface SupabaseJwtPayload extends JwtPayload {
   sub: string;
@@ -26,6 +27,11 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
   }
 
   const token = authHeader.split(" ")[1];
+
+  if (isBlacklisted(token)) {
+    res.status(401).json({ error: "Token has been revoked" });
+    return;
+  }
 
   try {
     const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as SupabaseJwtPayload;
