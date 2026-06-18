@@ -30,6 +30,8 @@ export function useWatchlistSlice(db: AppDatabase) {
       return items.map(toWatchlistItem);
     },
     enabled: !!user,
+    staleTime: Infinity, // Rely on queryClient.invalidateQueries
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
   });
   // Stabilize reference: `= []` in destructuring creates a new array every render
   // when data is undefined (query disabled), causing cascading re-renders.

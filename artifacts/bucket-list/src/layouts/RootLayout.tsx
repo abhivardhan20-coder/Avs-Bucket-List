@@ -1,39 +1,36 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import Navbar from '@/components/Navbar';
 import GlobalSearch from '@/features/search/GlobalSearch';
 import SettingsModal from '@/components/SettingsModal';
 import { MediaItem } from '@/types';
 import { AlertTriangle, Plus, Loader } from 'lucide-react';
 import { Toaster } from 'sonner';
+import { useWatched } from '@/contexts/AppContext';
+import { useUI } from '@/contexts/UIContext';
+import { useMediaToggles } from '@/hooks/useMediaToggles';
+import { dbService } from '@/services/dbService';
 
 interface RootLayoutProps {
     children: React.ReactNode;
-    watchedCount: number;
-    isSearchOpen: boolean;
-    setIsSearchOpen: (open: boolean) => void;
-    isSettingsOpen: boolean;
-    setIsSettingsOpen: (open: boolean) => void;
-    onSearchResultClick: (item: MediaItem) => void;
-    isProcessing: boolean;
-    appError: string | null;
-    setAppError: (error: string | null) => void;
-    setSelectedContent?: (item: MediaItem, episodeId?: string) => void;
 }
 
-export const RootLayout: React.FC<RootLayoutProps> = ({
-    children,
-    watchedCount,
-    isSearchOpen,
-    setIsSearchOpen,
-    isSettingsOpen,
-    setIsSettingsOpen,
-    onSearchResultClick,
-    isProcessing,
-    appError,
-    setAppError,
-    setSelectedContent
-}) => {
+export const RootLayout: React.FC<RootLayoutProps> = ({ children }) => {
+    const { watched } = useWatched();
+    const { 
+        isSearchOpen, setIsSearchOpen, 
+        isSettingsOpen, setIsSettingsOpen, 
+        appError, setAppError,
+        handleSetSelectedContent 
+    } = useUI();
+    const { isProcessing } = useMediaToggles();
+
+    const handleSearchResultClick = useCallback((item: MediaItem) => {
+        dbService.cacheMediaItem(item);
+        handleSetSelectedContent(item);
+        setIsSearchOpen(false);
+    }, [handleSetSelectedContent, setIsSearchOpen]);
+
     return (
         <div className="min-h-screen bg-[#141414] font-sans relative">
 
@@ -58,7 +55,7 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
             <GlobalSearch
                 isOpen={isSearchOpen}
                 onClose={() => setIsSearchOpen(false)}
-                onResultClick={onSearchResultClick}
+                onResultClick={handleSearchResultClick}
             />
 
             <SettingsModal
@@ -72,7 +69,7 @@ export const RootLayout: React.FC<RootLayoutProps> = ({
             <div className="fixed inset-0 pointer-events-none z-[100]">
                 <div className="pointer-events-auto">
                     <Navbar
-                        watchedCount={watchedCount}
+                        watchedCount={watched.length}
                         onSearchClick={() => setIsSearchOpen(true)}
                         onSettingsClick={() => setIsSettingsOpen(true)}
                     />

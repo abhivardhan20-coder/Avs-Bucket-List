@@ -1,59 +1,26 @@
-import React, { Suspense, useCallback } from 'react';
+import React, { Suspense } from 'react';
 import { useAuth, useWatchlist, useWatched } from '@/contexts/AppContext';
 import { useUI } from '@/contexts/UIContext';
-import { MediaItem } from '@/types';
-
 import StatsListModal from '@/components/stats/StatsListModal';
 import { RootLayout } from '@/layouts/RootLayout';
 import ContentModal from '@/components/ContentModal';
 import LoginPage from '@/components/LoginPage';
-import { lazyWithRetry } from '@/lib/lazyWithRetry';
 import { useMediaToggles } from '@/hooks/useMediaToggles';
 import { useStatsModalData } from '@/hooks/useStatsModalData';
-import { dbService } from '@/services/dbService';
 import { AppRoutes } from '@/AppRoutes';
-
-
 
 function App() {
   const { user } = useAuth();
-  const { watchlist, addToWatchlist, removeFromWatchlist, isInWatchlist } = useWatchlist();
-  const { watched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched, isWatched } = useWatched();
-
-  const {
-    isSearchOpen, setIsSearchOpen,
-    isSettingsOpen, setIsSettingsOpen,
-    appError, setAppError,
-    selectedContent, initialEpisodeId,
-    statsModalConfig, setStatsModalConfig,
-    handleSetSelectedContent, handleCloseModal
-  } = useUI();
-
-  const { handleToggleWatchlist, handleToggleWatched, isProcessing } = useMediaToggles();
-
-  const handleSearchResultClick = useCallback((item: MediaItem) => {
-    dbService.cacheMediaItem(item);
-    handleSetSelectedContent(item);
-    setIsSearchOpen(false);
-  }, [handleSetSelectedContent, setIsSearchOpen]);
-
+  const { isInWatchlist } = useWatchlist();
+  const { watched, isWatched } = useWatched();
+  const { selectedContent, initialEpisodeId, statsModalConfig, setStatsModalConfig, handleSetSelectedContent, handleCloseModal } = useUI();
+  const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles();
   const statsModalData = useStatsModalData(statsModalConfig, watched);
 
   if (!user) return <LoginPage />;
 
   return (
-    <RootLayout
-      watchedCount={watched.length}
-      isSearchOpen={isSearchOpen}
-      setIsSearchOpen={setIsSearchOpen}
-      isSettingsOpen={isSettingsOpen}
-      setIsSettingsOpen={setIsSettingsOpen}
-      onSearchResultClick={handleSearchResultClick}
-      isProcessing={isProcessing}
-      appError={appError}
-      setAppError={setAppError}
-      setSelectedContent={handleSetSelectedContent}
-    >
+    <RootLayout>
       <a href="#main-content" className="sr-only focus:not-sr-only focus:absolute focus:top-20 focus:left-12 focus:z-[100] focus:px-4 focus:py-2 focus:bg-red-600 focus:text-white focus:rounded-md focus:font-bold">
         Skip to content
       </a>

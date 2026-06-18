@@ -14,10 +14,14 @@ vi.mock('jsonwebtoken', () => ({
   }
 }));
 
+vi.mock('../lib/blacklist', () => ({
+  isBlacklisted: vi.fn(async (token) => false)
+}));
+
 describe('API Integration Tests', () => {
   describe('GET /api/health/healthz', () => {
     it('should return status ok', async () => {
-      const response = await request(app).get('/api/health/healthz');
+      const response = await request(app).get('/api/health/healthz').set('Origin', 'http://localhost:5173');
       expect(response.status).toBe(200);
       expect(response.body).toEqual({ status: 'ok' });
     });
@@ -27,6 +31,7 @@ describe('API Integration Tests', () => {
     it('should return 401 if unauthorized', async () => {
       const response = await request(app)
         .post('/api/preferences')
+        .set('Origin', 'http://localhost:5173')
         .send({ theme: 'dark', notificationsEnabled: true });
       expect(response.status).toBe(401);
     });
@@ -34,15 +39,17 @@ describe('API Integration Tests', () => {
     it('should validate inputs and return 400 for bad data', async () => {
       const response = await request(app)
         .post('/api/preferences')
+        .set('Origin', 'http://localhost:5173')
         .set('Authorization', 'Bearer valid_token')
         .send({ theme: 'invalid_theme', notificationsEnabled: true });
       expect(response.status).toBe(400);
-      expect(response.body.message).toContain('Validation failed');
+      expect(response.body.error).toBe('Validation failed');
     });
 
     it('should return 200 with valid data and valid token', async () => {
       const response = await request(app)
         .post('/api/preferences')
+        .set('Origin', 'http://localhost:5173')
         .set('Authorization', 'Bearer valid_token')
         .send({ theme: 'dark', notificationsEnabled: true });
       expect(response.status).toBe(200);

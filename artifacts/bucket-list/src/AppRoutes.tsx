@@ -18,6 +18,15 @@ const Watchlist = lazyWithRetry(() => import(/* webpackChunkName: "watchlist" */
 const Watched = lazyWithRetry(() => import(/* webpackChunkName: "watched" */ '@/pages/Watched').then(module => ({ default: module.Watched })));
 const StatsDashboard = lazyWithRetry(() => import(/* webpackChunkName: "stats" */ '@/components/stats/StatsDashboard'));
 
+const routeConfig = [
+  { path: ROUTES.HOME, element: <Home /> },
+  { path: ROUTES.UPCOMING, element: <Upcoming /> },
+  { path: ROUTES.WATCHLIST, element: <Watchlist /> },
+  { path: ROUTES.WATCHED, element: <Watched /> },
+  { path: ROUTES.STATS, element: <StatsDashboard /> },
+  { path: "*", element: <Navigate to={ROUTES.HOME} replace /> }
+];
+
 /**
  * Main application router configuration.
  * Handles lazy loading of all route components to optimize initial bundle size.
@@ -29,12 +38,9 @@ const StatsDashboard = lazyWithRetry(() => import(/* webpackChunkName: "stats" *
 export const AppRoutes: React.FC = () => {
   return (
     <Routes>
-      <Route path={ROUTES.HOME} element={<Home />} />
-      <Route path={ROUTES.UPCOMING} element={<Upcoming />} />
-      <Route path={ROUTES.WATCHLIST} element={<Watchlist />} />
-      <Route path={ROUTES.WATCHED} element={<Watched />} />
-      <Route path={ROUTES.STATS} element={<StatsDashboard />} />
-      <Route path="*" element={<Navigate to={ROUTES.HOME} replace />} />
+      {routeConfig.map((route, idx) => (
+        <Route key={idx} path={route.path} element={route.element} />
+      ))}
     </Routes>
   );
 };

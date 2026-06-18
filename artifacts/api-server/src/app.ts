@@ -6,8 +6,14 @@ import helmet from "helmet";
 import router from "./routes";
 import { logger } from "./lib/logger";
 import { env } from "./lib/env";
+import { cleanupBlacklist } from "./lib/blacklist";
 
 const app: Express = express();
+
+// Schedule token blacklist cleanup every hour
+setInterval(() => {
+  cleanupBlacklist().catch(err => logger.error({ err }, "Failed to clean up blacklist"));
+}, 60 * 60 * 1000);
 
 // Security headers
 app.use(helmet({
@@ -15,6 +21,19 @@ app.use(helmet({
   xssFilter: true,
   frameguard: { action: "deny" },
   hidePoweredBy: true,
+  referrerPolicy: { policy: "strict-origin-when-cross-origin" },
+  contentSecurityPolicy: {
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'unsafe-inline'"],
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      imgSrc: ["'self'", "data:", "https://image.tmdb.org"],
+      connectSrc: ["'self'", "https://api.themoviedb.org"],
+      fontSrc: ["'self'", "https://fonts.gstatic.com"],
+      objectSrc: ["'none'"],
+      upgradeInsecureRequests: [],
+    },
+  },
 }));
 
 // Rate limiting middleware
@@ -53,8 +72,8 @@ const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 const corsMiddleware = cors({
   origin: function (origin, callback) {
     if (!origin) {
-      // Allow requests with no origin (like mobile apps or curl requests)
-      return callback(null, true);
+      // Reject requests with no origin to strictly enforce web-client access
+      return callback(new Error('Not allowed by CORS: No origin provided'));
     }
     if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
       callback(null, true);

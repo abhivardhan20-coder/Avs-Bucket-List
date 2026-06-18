@@ -36,13 +36,13 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
 
   const token = authHeader.split(" ")[1];
 
-  const isRevoked = await isBlacklisted(token);
-  if (isRevoked) {
-    res.status(401).json({ error: "Token has been revoked" });
-    return;
-  }
-
   try {
+    const isRevoked = await isBlacklisted(token);
+    if (isRevoked) {
+      res.status(401).json({ error: "Token has been revoked" });
+      return;
+    }
+
     const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as SupabaseJwtPayload;
     req.user = decoded;
     next();

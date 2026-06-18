@@ -1,7 +1,7 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { validateRequest } from "../middlewares/validateRequest";
-import { authenticate } from "../middlewares/authMiddleware";
+import { authMiddleware } from "../middlewares/authMiddleware";
 
 const router = Router();
 
@@ -15,7 +15,7 @@ const preferencesSchema = z.object({
 // Example route demonstrating auth and validation middleware
 router.post(
   "/",
-  authenticate,
+  authMiddleware,
   validateRequest(preferencesSchema),
   (req: Request, res: Response) => {
     const { theme, notificationsEnabled } = req.body;
