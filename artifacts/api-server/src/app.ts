@@ -8,6 +8,17 @@ import { logger } from "./lib/logger";
 import { env } from "./lib/env";
 import { cleanupBlacklist } from "./lib/blacklist";
 
+import * as Sentry from "@sentry/node";
+import swaggerUi from "swagger-ui-express";
+import { swaggerSpec } from "./docs/swagger";
+
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    tracesSampleRate: 1.0,
+  });
+}
+
 const app: Express = express();
 
 // Security headers
@@ -91,6 +102,12 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.use(`/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(`/api/${env.API_VERSION}`, router);
+
+// Sentry error handler should be right before any other error handlers
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 
 export default app;

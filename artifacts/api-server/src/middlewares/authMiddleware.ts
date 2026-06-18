@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from "express";
 import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "../lib/env";
 import { isBlacklisted } from "../lib/blacklist";
+import { SecretService } from "../services/SecretService";
 
 export interface UserMetadata {
   avatar_url?: string;
@@ -47,7 +48,8 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
     let lastError: Error | null = null;
 
     // Check against all secrets (supports secret rotation)
-    for (const secret of env.SUPABASE_JWT_SECRET) {
+    const secrets = SecretService.getSecrets();
+    for (const secret of secrets) {
       try {
         decoded = jwt.verify(token, secret) as SupabaseJwtPayload;
         break; // Successfully verified

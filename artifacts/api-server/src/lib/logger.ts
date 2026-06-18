@@ -10,7 +10,12 @@ export const logger = pino({
     "res.headers['set-cookie']",
   ],
   ...(isProduction
-    ? {}
+    ? {
+        transport: {
+          target: "pino/file",
+          options: { destination: "logs/app.log", mkdir: true },
+        },
+      }
     : {
         transport: {
           target: "pino-pretty",

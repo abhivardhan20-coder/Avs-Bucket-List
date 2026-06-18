@@ -21,6 +21,7 @@ const envSchema = z.object({
   PREFERENCES_CACHE_TTL_SECONDS: z.string().default("86400").transform(Number), // 24 hours in s
   API_VERSION: z.string().default("v1"),
   REDIS_URL: z.string().default("redis://localhost:6379"),
+  SENTRY_DSN: z.string().optional(),
 });
 
 let parsedEnv: z.infer<typeof envSchema>;
