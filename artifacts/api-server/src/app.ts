@@ -8,14 +8,7 @@ import { logger } from "./lib/logger";
 import { env } from "./lib/env";
 import { cleanupBlacklist } from "./lib/blacklist";
 
-import cron from "node-cron";
-
 const app: Express = express();
-
-// Schedule token blacklist cleanup every hour using cron
-cron.schedule("0 * * * *", () => {
-  cleanupBlacklist().catch(err => logger.error({ err }, "Failed to clean up blacklist"));
-});
 
 // Security headers
 app.use(helmet({
@@ -45,7 +38,7 @@ const limiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: { error: "Too many requests, please try again later." },
-  skip: (req) => req.path.startsWith('/api/health') || req.path === '/healthz' // Exclude health checks
+  skip: (req) => req.path.startsWith('/api/v1/health') || req.path === '/healthz' // Exclude health checks
 });
 
 app.use(limiter);
@@ -89,7 +82,7 @@ const corsMiddleware = cors({
 });
 
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/health')) {
+  if (req.path.startsWith('/api/v1/health')) {
     return next();
   }
   return corsMiddleware(req, res, next);

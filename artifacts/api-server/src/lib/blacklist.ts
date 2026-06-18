@@ -2,6 +2,7 @@ import { db } from "@workspace/db";
 import { tokenBlacklistTable } from "@workspace/db";
 import { eq, lt } from "drizzle-orm";
 import { logger } from "./logger";
+import { env } from "./env";
 import { CacheService } from "../services/CacheService";
 
 export async function addToBlacklist(token: string): Promise<void> {
@@ -42,8 +43,7 @@ export async function isBlacklisted(token: string): Promise<boolean> {
 
 export async function cleanupBlacklist(): Promise<void> {
   try {
-    // Tokens older than 24 hours are deleted
-    const expiryThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    const expiryThreshold = new Date(Date.now() - env.BLACKLIST_EXPIRY_MS);
     await db.delete(tokenBlacklistTable).where(lt(tokenBlacklistTable.revokedAt, expiryThreshold));
   } catch (error) {
     logger.error({ err: error }, "Failed to cleanup blacklist");

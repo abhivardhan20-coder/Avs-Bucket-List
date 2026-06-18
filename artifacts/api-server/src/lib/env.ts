@@ -1,4 +1,5 @@
 import { z } from "zod";
+import "dotenv/config";
 import { logger } from "./logger";
 
 const envSchema = z.object({
@@ -15,6 +16,8 @@ const envSchema = z.object({
     }, "Each secret must be at least 64 chars long and contain uppercase, lowercase, number, and special character")
     .transform(s => s.split(',').map(v => v.trim())),
   DATABASE_URL: z.string().optional(),
+  CLEANUP_CRON_SCHEDULE: z.string().default("0 * * * *"),
+  BLACKLIST_EXPIRY_MS: z.string().default("86400000").transform(Number), // 24 hours in ms
 });
 
 let parsedEnv: z.infer<typeof envSchema>;
