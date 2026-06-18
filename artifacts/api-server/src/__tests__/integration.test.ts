@@ -23,6 +23,15 @@ vi.mock('../lib/blacklist', () => ({
   isBlacklisted: vi.fn(async (token) => false)
 }));
 
+vi.mock('../services/CacheService', () => ({
+  CacheService: {
+    get: vi.fn(async () => undefined),
+    set: vi.fn(async () => true),
+    del: vi.fn(async () => 1),
+    flushAll: vi.fn(async () => {})
+  }
+}));
+
 describe('API Integration Tests', () => {
   describe('GET /api/v1/health/healthz', () => {
     it('should return status ok', async () => {

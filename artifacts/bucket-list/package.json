@@ -11,7 +11,6 @@
     "test": "vitest run --environment jsdom"
   },
   "devDependencies": {
-    "@radix-ui/react-dialog": "1.1.7",
     "@radix-ui/react-slot": "1.2.0",
     "@radix-ui/react-toast": "1.2.7",
     "@replit/vite-plugin-cartographer": "catalog:",
@@ -30,10 +29,8 @@
     "clsx": "catalog:",
     "jsdom": "29.1.1",
     "lucide-react": "catalog:",
-    "next-themes": "0.4.6",
     "react": "catalog:",
     "react-dom": "catalog:",
-    "react-resizable-panels": "2.1.7",
     "sonner": "2.0.7",
     "tailwind-merge": "catalog:",
     "tailwindcss": "catalog:",

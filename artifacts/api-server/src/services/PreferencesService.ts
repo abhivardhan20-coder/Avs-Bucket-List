@@ -14,7 +14,7 @@ export class PreferencesService {
     // Here you would normally update the database
     // For now, we'll just update the cache to simulate a database operation
     const cacheKey = `prefs_${userId}`;
-    CacheService.set(cacheKey, prefs, env.PREFERENCES_CACHE_TTL_SECONDS); // cache for 24 hours
+    await CacheService.set(cacheKey, prefs, env.PREFERENCES_CACHE_TTL_SECONDS); // cache for 24 hours
     
     return prefs;
   }
@@ -24,7 +24,7 @@ export class PreferencesService {
    */
   static async getPreferences(userId: string): Promise<UserPreferences> {
     const cacheKey = `prefs_${userId}`;
-    const cachedPrefs = CacheService.get<UserPreferences>(cacheKey);
+    const cachedPrefs = await CacheService.get<UserPreferences>(cacheKey);
     
     if (cachedPrefs) {
       return cachedPrefs;
@@ -38,7 +38,7 @@ export class PreferencesService {
     };
     
     // Set in cache for future reads
-    CacheService.set(cacheKey, defaultPrefs, env.PREFERENCES_CACHE_TTL_SECONDS);
+    await CacheService.set(cacheKey, defaultPrefs, env.PREFERENCES_CACHE_TTL_SECONDS);
     
     return defaultPrefs;
   }
