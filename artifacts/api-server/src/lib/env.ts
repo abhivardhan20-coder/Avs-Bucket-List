@@ -16,7 +16,7 @@ const envSchema = z.object({
     }, "Each secret must be at least 64 chars long and contain uppercase, lowercase, number, and special character")
     .transform(s => s.split(',').map(v => v.trim())),
   DATABASE_URL: z.string().optional(),
-  CLEANUP_CRON_SCHEDULE: z.string().default("0 * * * *"),
+  CLEANUP_CRON_SCHEDULE: z.string().default("0 3 * * *"), // 3 AM daily
   BLACKLIST_EXPIRY_MS: z.string().default("86400000").transform(Number), // 24 hours in ms
   PREFERENCES_CACHE_TTL_SECONDS: z.string().default("86400").transform(Number), // 24 hours in s
   API_VERSION: z.string().default("v1"),

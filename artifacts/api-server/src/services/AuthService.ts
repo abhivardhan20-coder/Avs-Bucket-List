@@ -30,6 +30,13 @@ export class AuthService {
         throw new AuthError("Token has already expired");
       }
       
+      if (decoded.iat) {
+        const maxAgeSeconds = 30 * 24 * 60 * 60; // 30 days
+        if ((Date.now() / 1000) - decoded.iat > maxAgeSeconds) {
+           throw new AuthError("Token is too old to be explicitly blacklisted");
+        }
+      }
+      
       // The authMiddleware has already verified that this token is valid and belongs
       // to the authenticated user. We now securely blacklist it.
       await addToBlacklist(token);

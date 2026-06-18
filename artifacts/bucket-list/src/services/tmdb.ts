@@ -119,22 +119,18 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
       }
     }
 
-    // Production: try Edge Function exclusively. Fallback is removed for security.
+    // Production: try backend proxy exclusively. Fallback is removed for security.
     try {
-      const { data: sessionData } = await supabase.auth.getSession();
-      const token = sessionData.session?.access_token;
-
-      const edgeUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb?path=${encodeURIComponent(endpoint)}`;
+      // Get the backend URL or fallback to localhost during dev
+      const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
+      const edgeUrl = `${backendUrl}/tmdb${endpoint}`;
       const headers: Record<string, string> = { ...getHeaders() };
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-
+      
       const response = await fetchWithRetry(edgeUrl, { headers, signal }, 1, 500, 5000);
       if (response && response.ok) return cacheAndReturn(await response.json() as T);
       
       // Any non-OK from edge function means proxy failed
-      throw new Error(`Edge function returned status ${response?.status}. Proxy is required in production.`);
+      throw new Error(`Proxy returned status ${response?.status}. Proxy is required in production.`);
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('TMDB_API_ERROR')) throw error;
       console.error(`[TMDB] Proxy fetch failure for ${endpoint}:`, error);

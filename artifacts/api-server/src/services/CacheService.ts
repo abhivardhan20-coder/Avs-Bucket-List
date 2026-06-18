@@ -1,10 +1,12 @@
 import Redis from "ioredis";
 import { env } from "../lib/env";
+import { logger } from "../lib/logger";
 
 // Initialize Redis client
 const cache = new Redis(env.REDIS_URL, {
-  maxRetriesPerRequest: null,
-  enableReadyCheck: false
+  maxRetriesPerRequest: 1, // Do not retry infinitely if redis is down
+  enableReadyCheck: false,
+  lazyConnect: true
 });
 
 export class CacheService {
@@ -12,12 +14,17 @@ export class CacheService {
    * Get an item from the cache
    */
   static async get<T>(key: string): Promise<T | undefined> {
-    const val = await cache.get(key);
-    if (!val) return undefined;
     try {
-      return JSON.parse(val) as T;
-    } catch {
-      return val as unknown as T;
+      const val = await cache.get(key);
+      if (!val) return undefined;
+      try {
+        return JSON.parse(val) as T;
+      } catch {
+        return val as unknown as T;
+      }
+    } catch (error) {
+      logger.warn({ err: error, key }, "Redis get failed, falling back to database or primary source");
+      return undefined;
     }
   }
 
@@ -28,30 +35,44 @@ export class CacheService {
    * @param ttl Optional time-to-live in seconds
    */
   static async set<T>(key: string, val: T, ttl?: number): Promise<boolean> {
-    const stringVal = typeof val === 'string' ? val : JSON.stringify(val);
-    if (ttl !== undefined) {
-      await cache.set(key, stringVal, 'EX', ttl);
-    } else {
-      await cache.set(key, stringVal);
+    try {
+      const stringVal = typeof val === 'string' ? val : JSON.stringify(val);
+      if (ttl !== undefined) {
+        await cache.set(key, stringVal, 'EX', ttl);
+      } else {
+        await cache.set(key, stringVal);
+      }
+      return true;
+    } catch (error) {
+      logger.warn({ err: error, key }, "Redis set failed");
+      return false;
     }
-    return true;
   }
 
   /**
    * Delete an item from the cache
    */
   static async del(key: string | string[]): Promise<number> {
-    if (Array.isArray(key)) {
-      if (key.length === 0) return 0;
-      return cache.del(...key);
+    try {
+      if (Array.isArray(key)) {
+        if (key.length === 0) return 0;
+        return await cache.del(...key);
+      }
+      return await cache.del(key);
+    } catch (error) {
+      logger.warn({ err: error, key }, "Redis del failed");
+      return 0;
     }
-    return cache.del(key);
   }
 
   /**
    * Clear the entire cache
    */
   static async flushAll(): Promise<void> {
-    await cache.flushall();
+    try {
+      await cache.flushall();
+    } catch (error) {
+      logger.warn({ err: error }, "Redis flushall failed");
+    }
   }
 }
