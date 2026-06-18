@@ -8,12 +8,14 @@ import { logger } from "./lib/logger";
 import { env } from "./lib/env";
 import { cleanupBlacklist } from "./lib/blacklist";
 
+import cron from "node-cron";
+
 const app: Express = express();
 
-// Schedule token blacklist cleanup every hour
-setInterval(() => {
+// Schedule token blacklist cleanup every hour using cron
+cron.schedule("0 * * * *", () => {
   cleanupBlacklist().catch(err => logger.error({ err }, "Failed to clean up blacklist"));
-}, 60 * 60 * 1000);
+});
 
 // Security headers
 app.use(helmet({
@@ -38,8 +40,8 @@ app.use(helmet({
 
 // Rate limiting middleware
 const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes)
+  windowMs: env.RATE_LIMIT_WINDOW_MS,
+  max: env.RATE_LIMIT_MAX_REQUESTS,
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: { error: "Too many requests, please try again later." },
@@ -72,7 +74,9 @@ const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 const corsMiddleware = cors({
   origin: function (origin, callback) {
     if (!origin) {
-      // Reject requests with no origin to strictly enforce web-client access
+      if (env.ALLOW_NO_ORIGIN) {
+        return callback(null, true);
+      }
       return callback(new Error('Not allowed by CORS: No origin provided'));
     }
     if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {

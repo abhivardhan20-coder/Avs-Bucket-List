@@ -1,0 +1,44 @@
+import { CacheService } from "./CacheService";
+
+interface UserPreferences {
+  theme: "light" | "dark" | "system";
+  notificationsEnabled: boolean;
+}
+
+export class PreferencesService {
+  /**
+   * Updates user preferences
+   */
+  static async updatePreferences(userId: string, prefs: UserPreferences): Promise<UserPreferences> {
+    // Here you would normally update the database
+    // For now, we'll just update the cache to simulate a database operation
+    const cacheKey = `prefs_${userId}`;
+    CacheService.set(cacheKey, prefs, 86400); // cache for 24 hours
+    
+    return prefs;
+  }
+
+  /**
+   * Fetches user preferences
+   */
+  static async getPreferences(userId: string): Promise<UserPreferences | null> {
+    const cacheKey = `prefs_${userId}`;
+    const cachedPrefs = CacheService.get<UserPreferences>(cacheKey);
+    
+    if (cachedPrefs) {
+      return cachedPrefs;
+    }
+
+    // Normally fetch from DB here if not in cache
+    // Mocking a fetch from DB
+    const defaultPrefs: UserPreferences = {
+      theme: "system",
+      notificationsEnabled: true
+    };
+    
+    // Set in cache for future reads
+    CacheService.set(cacheKey, defaultPrefs, 86400);
+    
+    return defaultPrefs;
+  }
+}

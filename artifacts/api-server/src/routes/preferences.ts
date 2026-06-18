@@ -1,7 +1,8 @@
 import { Router, Request, Response } from "express";
 import { z } from "zod";
 import { validateRequest } from "../middlewares/validateRequest";
-import { authMiddleware } from "../middlewares/authMiddleware";
+import { authMiddleware, AuthenticatedRequest } from "../middlewares/authMiddleware";
+import { PreferencesService } from "../services/PreferencesService";
 
 const router = Router();
 
@@ -12,22 +13,39 @@ const preferencesSchema = z.object({
   }),
 });
 
-// Example route demonstrating auth and validation middleware
+router.get(
+  "/",
+  authMiddleware,
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.sub;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    const prefs = await PreferencesService.getPreferences(userId);
+    res.json({ success: true, data: prefs });
+  }
+);
+
 router.post(
   "/",
   authMiddleware,
   validateRequest(preferencesSchema),
-  (req: Request, res: Response) => {
+  async (req: AuthenticatedRequest, res: Response) => {
+    const userId = req.user?.sub;
+    if (!userId) {
+      return res.status(401).json({ error: "Unauthorized" });
+    }
+    
     const { theme, notificationsEnabled } = req.body;
     
-    // Process preferences...
+    const updatedPrefs = await PreferencesService.updatePreferences(userId, {
+      theme,
+      notificationsEnabled,
+    });
 
     res.json({
       success: true,
-      data: {
-        theme,
-        notificationsEnabled,
-      },
+      data: updatedPrefs,
     });
   }
 );

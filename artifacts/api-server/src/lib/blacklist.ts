@@ -1,12 +1,13 @@
 import { db } from "@workspace/db";
 import { tokenBlacklistTable } from "@workspace/db";
 import { eq, lt } from "drizzle-orm";
+import { logger } from "./logger";
 
 export async function addToBlacklist(token: string) {
   try {
     await db.insert(tokenBlacklistTable).values({ token });
   } catch (error) {
-    // Ignore if already exists
+    logger.error({ err: error, token }, "Failed to add token to blacklist");
   }
 }
 
@@ -25,6 +26,6 @@ export async function cleanupBlacklist() {
     const expiryThreshold = new Date(Date.now() - 24 * 60 * 60 * 1000);
     await db.delete(tokenBlacklistTable).where(lt(tokenBlacklistTable.revokedAt, expiryThreshold));
   } catch (error) {
-    // Ignore error
+    logger.error({ err: error }, "Failed to cleanup blacklist");
   }
 }
