@@ -3,6 +3,14 @@ import jwt, { JwtPayload } from "jsonwebtoken";
 import { env } from "../lib/env";
 import { isBlacklisted } from "../lib/blacklist";
 
+export interface UserMetadata {
+  avatar_url?: string;
+  full_name?: string;
+  name?: string;
+  preferred_username?: string;
+  [key: string]: unknown;
+}
+
 export interface SupabaseJwtPayload extends JwtPayload {
   sub: string;
   email?: string;
@@ -11,14 +19,14 @@ export interface SupabaseJwtPayload extends JwtPayload {
     provider?: string;
     providers?: string[];
   };
-  user_metadata?: Record<string, any>;
+  user_metadata?: UserMetadata;
 }
 
 export interface AuthenticatedRequest extends Request {
   user?: SupabaseJwtPayload;
 }
 
-export function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
+export async function authMiddleware(req: AuthenticatedRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith("Bearer ")) {
@@ -28,7 +36,8 @@ export function authMiddleware(req: AuthenticatedRequest, res: Response, next: N
 
   const token = authHeader.split(" ")[1];
 
-  if (isBlacklisted(token)) {
+  const isRevoked = await isBlacklisted(token);
+  if (isRevoked) {
     res.status(401).json({ error: "Token has been revoked" });
     return;
   }

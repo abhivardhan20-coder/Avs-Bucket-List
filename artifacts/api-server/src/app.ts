@@ -10,7 +10,12 @@ import { env } from "./lib/env";
 const app: Express = express();
 
 // Security headers
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  xssFilter: true,
+  frameguard: { action: "deny" },
+  hidePoweredBy: true,
+}));
 
 // Rate limiting middleware
 const limiter = rateLimit({
@@ -19,7 +24,7 @@ const limiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: { error: "Too many requests, please try again later." },
-  skip: (req) => req.path.startsWith('/api/health') // Exclude health checks
+  skip: (req) => req.path.startsWith('/api/health') || req.path === '/healthz' // Exclude health checks
 });
 
 app.use(limiter);
@@ -48,7 +53,8 @@ const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 const corsMiddleware = cors({
   origin: function (origin, callback) {
     if (!origin) {
-      return callback(new Error('Origin header required'));
+      // Allow requests with no origin (like mobile apps or curl requests)
+      return callback(null, true);
     }
     if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
       callback(null, true);

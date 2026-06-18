@@ -33,11 +33,7 @@ export const Watchlist: React.FC = React.memo(() => {
 
     const { groups: watchlistGroups } = useFilteredMedia(watchlist, filterType, filterYear, filterGenre);
 
-    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles(
-        isInWatchlist, removeFromWatchlist, addToWatchlist,
-        isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
-        setAppError
-    );
+    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles();
 
     const onBrowseContent = () => navigate(APP_ROUTES.HOME);
 

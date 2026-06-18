@@ -33,11 +33,7 @@ export const Home: React.FC = () => {
     const { watched, continueWatching, markMovieAsWatched, unmarkMovie, markSeriesAsWatched, unmarkSeries, isWatched } = useWatched();
     const { handleSetSelectedContent, setAppError } = useUI();
 
-    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles(
-        isInWatchlist, removeFromWatchlist, addToWatchlist,
-        isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
-        setAppError
-    );
+    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles();
 
     const { 
         data: heroItems = [], 

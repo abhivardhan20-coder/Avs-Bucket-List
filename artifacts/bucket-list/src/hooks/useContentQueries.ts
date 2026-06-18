@@ -14,6 +14,7 @@ export function useTrending(type: MediaType, page: number = 1) {
     queryKey: ['trending', type, page],
     queryFn: () => ContentService.getTrending(type, page),
     staleTime: 1000 * 60 * 60, // 1 hour
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
     retry: 1,
   });
 }
@@ -31,6 +32,7 @@ export function useSearch(query: string, type: 'movie' | 'tv' | 'anime' = 'movie
     queryFn: () => ContentService.search(query, type, page),
     enabled: !!query && query.length > 2,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    gcTime: 1000 * 60 * 30, // 30 minutes
   });
 }
 
@@ -40,6 +42,7 @@ export function useDetails(appId: string | null) {
     queryFn: () => appId ? ContentService.getDetails(appId) : null,
     enabled: !!appId,
     staleTime: 1000 * 60 * 60 * 24, // 24 hours (details don't change often)
+    gcTime: 1000 * 60 * 60 * 24 * 7, // 7 days
   });
 }
 
@@ -52,5 +55,6 @@ export function useItemsByIds(ids: string[]) {
     queryFn: () => ContentService.getItemsByIds(ids),
     enabled: ids.length > 0,
     staleTime: 1000 * 60 * 30, // 30 min — IDs rarely change
+    gcTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 }

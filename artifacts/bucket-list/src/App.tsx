@@ -13,12 +13,7 @@ import { useStatsModalData } from '@/hooks/useStatsModalData';
 import { dbService } from '@/services/dbService';
 import { AppRoutes } from '@/AppRoutes';
 
-// Lazy Pages for better initial load performance
-const Home = lazyWithRetry(() => import(/* webpackChunkName: "home" */ '@/pages/Home').then(module => ({ default: module.Home })));
-const Upcoming = lazyWithRetry(() => import(/* webpackChunkName: "upcoming" */ '@/pages/Upcoming').then(module => ({ default: module.Upcoming })));
-const Watchlist = lazyWithRetry(() => import(/* webpackChunkName: "watchlist" */ '@/pages/Watchlist').then(module => ({ default: module.Watchlist })));
-const Watched = lazyWithRetry(() => import(/* webpackChunkName: "watched" */ '@/pages/Watched').then(module => ({ default: module.Watched })));
-const StatsDashboard = lazyWithRetry(() => import(/* webpackChunkName: "stats" */ '@/components/stats/StatsDashboard'));
+
 
 function App() {
   const { user } = useAuth();
@@ -34,11 +29,7 @@ function App() {
     handleSetSelectedContent, handleCloseModal
   } = useUI();
 
-  const { handleToggleWatchlist, handleToggleWatched, isProcessing } = useMediaToggles(
-    isInWatchlist, removeFromWatchlist, addToWatchlist,
-    isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
-    setAppError
-  );
+  const { handleToggleWatchlist, handleToggleWatched, isProcessing } = useMediaToggles();
 
   const handleSearchResultClick = useCallback((item: MediaItem) => {
     dbService.cacheMediaItem(item);
@@ -77,9 +68,7 @@ function App() {
             <p className="text-[10px] font-black text-gray-700 uppercase tracking-[0.5em]">Syncing Interface</p>
           </div>
         }>
-          <AppRoutes
-            Home={Home} Upcoming={Upcoming} Watchlist={Watchlist} Watched={Watched} StatsDashboard={StatsDashboard}
-          />
+          <AppRoutes />
         </Suspense>
       </main>
 

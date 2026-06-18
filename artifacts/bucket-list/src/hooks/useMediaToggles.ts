@@ -3,34 +3,16 @@ import { MediaItem, MediaType } from '@/types';
 import { db } from '@/lib/db';
 import { hydrateSeries } from '@/services/tmdb';
 import { fetchMediaItem } from '@/lib/api/mediaFetcher';
+import { useLibraryActions, useLibraryData } from '@/contexts/AppContext';
+import { toast } from 'sonner';
 
 /**
  * Custom hook to handle common media toggle operations such as adding to watchlist
- * or marking items as watched. Integrates with the AppContext library and
- * displays toast notifications for user feedback.
- * 
- * @param isInWatchlist - Function checking if an item is in the watchlist
- * @param removeFromWatchlist - Function to remove item from watchlist
- * @param addToWatchlist - Function to add item to watchlist
- * @param isWatched - Function checking if an item is fully watched
- * @param unmarkMovie - Function to unmark a movie as watched
- * @param unmarkSeries - Function to unmark a series as watched
- * @param markMovieAsWatched - Function to mark a movie as watched
- * @param markSeriesAsWatched - Function to mark a series as watched
- * @param setAppError - Function to set a global app error
- * @returns Object with `handleToggleWatchlist`, `handleToggleWatched`, and `isProcessing` boolean.
+ * or marking items as watched. Internally hooks into Library actions and Toast.
  */
-export function useMediaToggles(
-  isInWatchlist: (id: string) => boolean,
-  removeFromWatchlist: (id: string) => Promise<any>,
-  addToWatchlist: (item: MediaItem) => Promise<any>,
-  isWatched: (id: string) => boolean,
-  unmarkMovie: (item: MediaItem) => Promise<any>,
-  unmarkSeries: (item: MediaItem) => Promise<any>,
-  markMovieAsWatched: (item: MediaItem) => Promise<any>,
-  markSeriesAsWatched: (item: MediaItem) => Promise<any>,
-  setAppError: (error: string | null) => void
-) {
+export function useMediaToggles() {
+  const { isInWatchlist, isWatched } = useLibraryData();
+  const { removeFromWatchlist, addToWatchlist, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched } = useLibraryActions();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const handleToggleWatchlist = useCallback(async (e: React.MouseEvent, id: string) => {
@@ -88,13 +70,12 @@ export function useMediaToggles(
           await markSeriesAsWatched(hydrated);
         }
       } catch {
-        setAppError("Status update interruption.");
-        setTimeout(() => setAppError(null), 3000);
+        toast.error("Status update interruption.");
       } finally {
         setIsProcessing(false);
       }
     }
-  }, [isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched, setAppError]);
+  }, [isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched]);
 
   return {
     handleToggleWatchlist,

@@ -27,6 +27,17 @@ interface ContentModalProps {
   initialEpisodeId?: string;
 }
 
+/**
+ * A modal component that displays detailed information about a selected media item.
+ * Features include cast listing, trailer playback, similar content recommendations,
+ * and user interactions (watchlist, watched status).
+ *
+ * @component
+ * @param {ContentModalProps} props - The component props.
+ * @param {MediaItem} props.item - The media item to display details for.
+ * @param {() => void} props.onClose - Callback fired when the modal requests to be closed.
+ * @returns {React.ReactElement} The ContentModal dialog.
+ */
 const ContentModal: React.FC<ContentModalProps> = ({ item: initialItem, isOpen, onClose, onNavigate }) => {
   const { 
     isInWatchlist, addToWatchlist, removeFromWatchlist, 
