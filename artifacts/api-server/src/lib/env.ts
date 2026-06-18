@@ -8,8 +8,12 @@ const envSchema = z.object({
   RATE_LIMIT_WINDOW_MS: z.string().default("900000").transform(Number), // 15 * 60 * 1000
   RATE_LIMIT_MAX_REQUESTS: z.string().default("100").transform(Number),
   SUPABASE_JWT_SECRET: z.string()
-    .min(64, "SUPABASE_JWT_SECRET must be at least 64 characters long")
-    .regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/, "Must contain at least one uppercase, one lowercase, one number, and one special character"),
+    .refine((val) => {
+      const secrets = val.split(',').map(s => s.trim());
+      const regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&_])[A-Za-z\d@$!%*?&_]+$/;
+      return secrets.every(s => s.length >= 64 && regex.test(s));
+    }, "Each secret must be at least 64 chars long and contain uppercase, lowercase, number, and special character")
+    .transform(s => s.split(',').map(v => v.trim())),
   DATABASE_URL: z.string().optional(),
 });
 

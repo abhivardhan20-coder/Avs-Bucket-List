@@ -1,7 +1,7 @@
 import { MediaItem } from '../types';
 
 import { BACKEND_URL } from './config';
-const OMDB_URL = `${BACKEND_URL}/api/omdb`;
+const OMDB_URL = `${BACKEND_URL}/api/v1/omdb`;
 
 /**
  * Robust fetch with timeout

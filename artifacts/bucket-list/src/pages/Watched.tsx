@@ -33,11 +33,7 @@ export const Watched: React.FC = React.memo(() => {
     const { groups: watchedGroups } = useFilteredMedia(watched, filterType, filterYear, filterGenre);
     const { dashboardStats } = useAppStats(watched);
 
-    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles(
-        isInWatchlist, removeFromWatchlist, addToWatchlist,
-        isWatched, unmarkMovie, unmarkSeries, markMovieAsWatched, markSeriesAsWatched,
-        setAppError
-    );
+    const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles();
 
 
 

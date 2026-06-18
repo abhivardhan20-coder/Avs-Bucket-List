@@ -27,8 +27,8 @@ app.use(helmet({
   contentSecurityPolicy: {
     directives: {
       defaultSrc: ["'self'"],
-      scriptSrc: ["'self'", "'unsafe-inline'"],
-      styleSrc: ["'self'", "'unsafe-inline'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
       imgSrc: ["'self'", "data:", "https://image.tmdb.org"],
       connectSrc: ["'self'", "https://api.themoviedb.org"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -98,6 +98,6 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api", router);
+app.use("/api/v1", router);
 
 export default app;

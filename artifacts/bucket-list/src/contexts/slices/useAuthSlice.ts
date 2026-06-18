@@ -146,7 +146,7 @@ export const useAuthSlice = () => {
         // Send revocation request to API backend
         try {
           const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-          await fetch(`${apiUrl}/api/auth/logout`, {
+          await fetch(`${apiUrl}/api/v1/auth/logout`, {
             method: 'POST',
             headers: {
               'Authorization': `Bearer ${session.access_token}`

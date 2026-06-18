@@ -43,10 +43,27 @@ export async function authMiddleware(req: AuthenticatedRequest, res: Response, n
       return;
     }
 
-    const decoded = jwt.verify(token, env.SUPABASE_JWT_SECRET) as SupabaseJwtPayload;
+    let decoded: SupabaseJwtPayload | null = null;
+    let lastError: Error | null = null;
+
+    // Check against all secrets (supports secret rotation)
+    for (const secret of env.SUPABASE_JWT_SECRET) {
+      try {
+        decoded = jwt.verify(token, secret) as SupabaseJwtPayload;
+        break; // Successfully verified
+      } catch (err) {
+        lastError = err as Error;
+      }
+    }
+
+    if (!decoded) {
+      res.status(401).json({ error: "Invalid or expired token", details: lastError?.message });
+      return;
+    }
+
     req.user = decoded;
     next();
   } catch (error) {
-    res.status(401).json({ error: "Invalid or expired token" });
+    res.status(500).json({ error: "Internal server error during authentication" });
   }
 }

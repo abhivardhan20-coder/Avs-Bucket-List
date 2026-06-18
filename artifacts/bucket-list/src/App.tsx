@@ -1,21 +1,12 @@
 import React, { Suspense } from 'react';
-import { useAuth, useWatchlist, useWatched } from '@/contexts/AppContext';
-import { useUI } from '@/contexts/UIContext';
-import StatsListModal from '@/components/stats/StatsListModal';
+import { useAuth } from '@/contexts/AppContext';
 import { RootLayout } from '@/layouts/RootLayout';
-import ContentModal from '@/components/ContentModal';
 import LoginPage from '@/components/LoginPage';
-import { useMediaToggles } from '@/hooks/useMediaToggles';
-import { useStatsModalData } from '@/hooks/useStatsModalData';
 import { AppRoutes } from '@/AppRoutes';
+import { ModalsLayer } from '@/components/ModalsLayer';
 
 function App() {
   const { user } = useAuth();
-  const { isInWatchlist } = useWatchlist();
-  const { watched, isWatched } = useWatched();
-  const { selectedContent, initialEpisodeId, statsModalConfig, setStatsModalConfig, handleSetSelectedContent, handleCloseModal } = useUI();
-  const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles();
-  const statsModalData = useStatsModalData(statsModalConfig, watched);
 
   if (!user) return <LoginPage />;
 
@@ -39,30 +30,7 @@ function App() {
         </Suspense>
       </main>
 
-      {selectedContent && (
-        <ContentModal
-          isOpen={true}
-          onClose={handleCloseModal}
-          item={selectedContent}
-          initialEpisodeId={initialEpisodeId}
-        />
-      )}
-
-      {statsModalConfig && statsModalData && (
-        <StatsListModal
-          isOpen={statsModalConfig.isOpen}
-          onClose={() => setStatsModalConfig(null)}
-          title={statsModalConfig.title}
-          groups={statsModalData.groups}
-          totalCount={statsModalData.totalCount}
-          countLabel={statsModalConfig.type === 'movies' ? 'Titles' : 'Episodes'}
-          onCardClick={(item) => handleSetSelectedContent(item)}
-          isInWatchlist={isInWatchlist}
-          onToggleWatchlist={handleToggleWatchlist}
-          isWatched={isWatched}
-          onToggleWatched={handleToggleWatched}
-        />
-      )}
+      <ModalsLayer />
     </RootLayout>
   );
 }
