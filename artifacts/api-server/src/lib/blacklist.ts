@@ -5,21 +5,32 @@ import { logger } from "./logger";
 import { env } from "./env";
 import { CacheService } from "../services/CacheService";
 
+class DatabaseError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "DatabaseError";
+  }
+}
+
 export async function addToBlacklist(token: string): Promise<void> {
   try {
     await db.insert(tokenBlacklistTable).values({ token });
-    CacheService.set(`blacklist_${token}`, true, 86400); // Cache the revocation for 24h
+    await CacheService.set(`blacklist_${token}`, true, 86400); // Cache the revocation for 24h
   } catch (error) {
     logger.error({ err: error, token }, "Failed to add token to blacklist");
-    throw new Error("Failed to blacklist token");
+    throw new DatabaseError("Failed to blacklist token due to database error");
   }
 }
 
 export async function isBlacklisted(token: string): Promise<boolean> {
   const cacheKey = `blacklist_${token}`;
-  const cached = CacheService.get<boolean>(cacheKey);
-  if (cached !== undefined) {
-    return cached;
+  try {
+    const cached = await CacheService.get<boolean>(cacheKey);
+    if (cached !== undefined) {
+      return cached;
+    }
+  } catch (err) {
+    logger.warn({ err }, "Failed to read from cache");
   }
 
   try {
@@ -32,12 +43,16 @@ export async function isBlacklisted(token: string): Promise<boolean> {
     const isRevoked = result.length > 0;
     
     // Cache the result (5 mins for misses, 24h for hits)
-    CacheService.set(cacheKey, isRevoked, isRevoked ? 86400 : 300);
+    try {
+      await CacheService.set(cacheKey, isRevoked, isRevoked ? 86400 : 300);
+    } catch (err) {
+      logger.warn({ err }, "Failed to write to cache");
+    }
     
     return isRevoked;
   } catch (error) {
     logger.error({ err: error, token }, "Failed to check if token is blacklisted");
-    throw new Error("Failed to verify token revocation status");
+    throw new DatabaseError("Failed to verify token revocation status from database");
   }
 }
 
