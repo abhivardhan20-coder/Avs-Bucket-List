@@ -1,5 +1,6 @@
 /* eslint-disable react-refresh/only-export-components */
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useCallback, useMemo } from 'react';
+import { useSettingsStore } from '../store/settingsStore';
 import { useQueryClient } from '@tanstack/react-query';
 import { UserSettings, ActionResponse, ExportData } from '../types';
 import { db } from '../lib/db';
@@ -27,34 +28,7 @@ export const SettingsProvider = ({ children }: { children: React.ReactNode }) =>
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const [settings, setSettings] = useState<UserSettings>(() => {
-    const defaultSettings: UserSettings = {
-      autoplayTrailer: true,
-      muteTrailer: true,
-      compactView: false,
-      conflictStrategy: 'lww',
-      enableCloudSync: true
-    };
-    try {
-      const stored = localStorage.getItem("av_settings");
-      return stored ? { ...defaultSettings, ...JSON.parse(stored) } : defaultSettings;
-    } catch (e) {
-      console.warn("[SettingsProvider] Failed to parse stored settings", e);
-      return defaultSettings;
-    }
-  });
-
-  const updateSettings = useCallback((s: Partial<UserSettings>) => {
-    setSettings(prev => {
-      const next = { ...prev, ...s };
-      return fastDiff(next, prev) ? next : prev;
-    });
-  }, []);
-
-  // Persist settings to local storage when changed
-  useEffect(() => {
-    localStorage.setItem("av_settings", JSON.stringify(settings));
-  }, [settings]);
+  const { settings, updateSettings, setSettings } = useSettingsStore();
 
   const isDemo = user?.isDemo || user?.id === 'demo_preview_account_001';
 

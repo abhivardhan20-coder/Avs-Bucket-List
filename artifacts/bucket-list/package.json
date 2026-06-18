@@ -21,10 +21,10 @@
     "@tailwindcss/typography": "0.5.15",
     "@tailwindcss/vite": "catalog:",
     "@tanstack/react-query": "catalog:",
+    "@testing-library/dom": "^10.4.1",
     "@types/node": "catalog:",
     "@types/react": "catalog:",
     "@types/react-dom": "catalog:",
-    "@types/react-window": "2.0.0",
     "@vitejs/plugin-react": "catalog:",
     "@workspace/api-client-react": "workspace:*",
     "class-variance-authority": "catalog:",
@@ -36,11 +36,9 @@
     "react-dom": "catalog:",
     "react-hook-form": "7.55.0",
     "react-resizable-panels": "2.1.7",
-    "recharts": "2.15.2",
     "sonner": "2.0.7",
     "tailwind-merge": "catalog:",
     "tailwindcss": "catalog:",
-    "vaul": "1.1.2",
     "vite": "catalog:",
     "vite-plugin-pwa": "1.3.0",
     "zod": "catalog:"
@@ -53,7 +51,7 @@
     "dexie": "4.4.3",
     "react-error-boundary": "6.1.2",
     "react-router-dom": "7.17.0",
-    "react-window": "1.8.11",
-    "vitest": "4.1.8"
+    "vitest": "4.1.8",
+    "zustand": "^5.0.14"
   }
 }

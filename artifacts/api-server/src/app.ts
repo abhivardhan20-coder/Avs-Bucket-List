@@ -38,7 +38,7 @@ const limiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: { error: "Too many requests, please try again later." },
-  skip: (req) => req.path.startsWith('/api/v1/health') || req.path === '/healthz' // Exclude health checks
+  skip: (req) => req.path.startsWith(`/api/${env.API_VERSION}/health`) || req.path === '/healthz' // Exclude health checks
 });
 
 app.use(limiter);
@@ -82,7 +82,7 @@ const corsMiddleware = cors({
 });
 
 app.use((req, res, next) => {
-  if (req.path.startsWith('/api/v1/health')) {
+  if (req.path.startsWith(`/api/${env.API_VERSION}/health`)) {
     return next();
   }
   return corsMiddleware(req, res, next);
@@ -91,6 +91,6 @@ app.use((req, res, next) => {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-app.use("/api/v1", router);
+app.use(`/api/${env.API_VERSION}`, router);
 
 export default app;

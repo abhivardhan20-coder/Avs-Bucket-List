@@ -47,5 +47,6 @@ export async function cleanupBlacklist(): Promise<void> {
     await db.delete(tokenBlacklistTable).where(lt(tokenBlacklistTable.revokedAt, expiryThreshold));
   } catch (error) {
     logger.error({ err: error }, "Failed to cleanup blacklist");
+    throw error;
   }
 }

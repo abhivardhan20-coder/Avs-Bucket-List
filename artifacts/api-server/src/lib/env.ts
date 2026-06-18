@@ -18,6 +18,8 @@ const envSchema = z.object({
   DATABASE_URL: z.string().optional(),
   CLEANUP_CRON_SCHEDULE: z.string().default("0 * * * *"),
   BLACKLIST_EXPIRY_MS: z.string().default("86400000").transform(Number), // 24 hours in ms
+  PREFERENCES_CACHE_TTL_SECONDS: z.string().default("86400").transform(Number), // 24 hours in s
+  API_VERSION: z.string().default("v1"),
 });
 
 let parsedEnv: z.infer<typeof envSchema>;
