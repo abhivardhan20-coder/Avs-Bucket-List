@@ -5,17 +5,16 @@ import { logger } from "../lib/logger";
 const router = Router();
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-// Since api-server requires VITE_TMDB_API_KEY from env, let's load it from process.env
-const TMDB_API_KEY = process.env.VITE_TMDB_API_KEY || process.env.TMDB_API_KEY;
-
+// Since api-server requires VITE_TMDB_API_KEY from env, let's load it dynamically
 router.get(/.*/, async (req: Request, res: Response) => {
   try {
+    const TMDB_API_KEY = process.env.VITE_TMDB_API_KEY || process.env.TMDB_API_KEY;
     if (!TMDB_API_KEY) {
       res.status(500).json({ error: "TMDB API key is not configured on the server." });
       return;
     }
 
-    const cleanPath = path.startsWith('/') ? path.slice(1) : path;
+    const cleanPath = req.path.startsWith('/') ? req.path.slice(1) : req.path;
     const queryString = new URLSearchParams(req.query as Record<string, string>).toString();
     const fullPath = `/${cleanPath}${queryString ? `?${queryString}` : ""}`;
 

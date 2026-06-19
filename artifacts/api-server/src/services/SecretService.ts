@@ -1,5 +1,4 @@
-import fs from 'fs';
-import path from 'path';
+
 import { env } from '../lib/env';
 import { logger } from '../lib/logger';
 
@@ -24,25 +23,22 @@ export class SecretService {
   }
 
   /**
-   * Reloads secrets from the .env file if available, or falls back to the initial env.
+   * Reloads secrets from the environment natively instead of the filesystem.
+   * In a production environment, this should connect to a Secrets Manager (AWS/Vault).
    */
   private static reloadSecrets(): void {
     try {
-      const envPath = path.resolve(process.cwd(), '../../.env'); // Assuming monorepo root .env
-      if (fs.existsSync(envPath)) {
-        const envContent = fs.readFileSync(envPath, 'utf8');
-        const match = envContent.match(/^SUPABASE_JWT_SECRET=(.*)$/m);
-        
-        if (match && match[1]) {
-          const rawSecrets = match[1].replace(/['"]/g, '').trim();
-          this.cachedSecrets = rawSecrets.split(',').map(s => s.trim());
-          this.lastLoadTime = Date.now();
-          logger.debug('Reloaded SUPABASE_JWT_SECRET from .env file for secret rotation');
-          return;
-        }
+      // Dynamic process.env check if orchestration injects updates
+      const dynamicSecret = process.env.SUPABASE_JWT_SECRET;
+      
+      if (dynamicSecret) {
+        const rawSecrets = dynamicSecret.replace(/['"]/g, '').trim();
+        this.cachedSecrets = rawSecrets.split(',').map(s => s.trim());
+        this.lastLoadTime = Date.now();
+        return;
       }
     } catch (error) {
-      logger.warn({ err: error }, 'Failed to reload secrets from .env file, falling back to initial env');
+      logger.warn({ err: error }, 'Failed to parse dynamic process.env secrets');
     }
 
     // Fallback to the initial env variables loaded at startup

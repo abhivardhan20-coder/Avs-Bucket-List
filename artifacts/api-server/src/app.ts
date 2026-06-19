@@ -78,8 +78,12 @@ const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 const corsMiddleware = cors({
   origin: function (origin, callback) {
     if (!origin) {
-      // Mobile apps and server-to-server requests often lack an Origin header
-      return callback(null, true);
+      if (env.ALLOW_NO_ORIGIN) {
+        // Mobile apps and server-to-server requests often lack an Origin header
+        return callback(null, true);
+      } else {
+        return callback(new Error('Not allowed by CORS (missing Origin)'));
+      }
     }
     if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
       callback(null, true);

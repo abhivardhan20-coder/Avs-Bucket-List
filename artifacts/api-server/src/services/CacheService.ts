@@ -6,7 +6,11 @@ import { logger } from "../lib/logger";
 const cache = new Redis(env.REDIS_URL, {
   maxRetriesPerRequest: 1, // Do not retry infinitely if redis is down
   enableReadyCheck: false,
-  lazyConnect: true
+  lazyConnect: true,
+  retryStrategy(times) {
+    const delay = Math.min(times * 100, 3000);
+    return delay;
+  }
 });
 
 export class CacheService {
