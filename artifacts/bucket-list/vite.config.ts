@@ -76,12 +76,12 @@ export default defineConfig({
         background_color: '#0a0a0a',
         icons: [
           {
-            src: 'pwa-192x192.png',
+            src: 'pwa-icon.png',
             sizes: '192x192',
             type: 'image/png'
           },
           {
-            src: 'pwa-512x512.png',
+            src: 'pwa-icon.png',
             sizes: '512x512',
             type: 'image/png'
           }

@@ -32,7 +32,7 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
-      styleSrc: ["'self'"],
+      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https://image.tmdb.org"],
       connectSrc: ["'self'", "https://api.themoviedb.org"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -76,21 +76,7 @@ app.use(
 const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 
 const corsMiddleware = cors({
-  origin: function (origin, callback) {
-    if (!origin) {
-      if (env.ALLOW_NO_ORIGIN) {
-        // Mobile apps and server-to-server requests often lack an Origin header
-        return callback(null, true);
-      } else {
-        return callback(new Error('Not allowed by CORS (missing Origin)'));
-      }
-    }
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes('*')) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: allowedOrigins,
   credentials: true
 });
 
@@ -111,5 +97,24 @@ app.use(`/api/${env.API_VERSION}`, router);
 if (process.env.SENTRY_DSN) {
   Sentry.setupExpressErrorHandler(app);
 }
+
+// Global error handler
+app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  logger.error({ err, url: req.originalUrl }, "Unhandled error");
+  
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  const statusCode = err.status || err.statusCode || 500;
+  const message = statusCode === 500 ? "Internal Server Error" : err.message;
+  
+  res.status(statusCode).json({
+    error: {
+      message,
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    }
+  });
+});
 
 export default app;

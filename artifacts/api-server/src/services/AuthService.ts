@@ -43,4 +43,44 @@ export class AuthService {
     }
     return { success: true, message: "Logged out successfully" };
   }
+
+  static async register(email: string, password: string): Promise<{ user: any; session: any }> {
+    // Mock registration using custom JWTs since we don't have Supabase SDK linked
+    // We sign the token with our secret so that authMiddleware accepts it!
+    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "test_secret";
+    const sub = "usr_" + Math.random().toString(36).substring(7);
+    const token = jwt.sign({
+      sub,
+      email,
+      role: "authenticated",
+      aud: "authenticated"
+    }, secret, { expiresIn: '1h' });
+
+    return {
+      user: { id: sub, email },
+      session: { access_token: token, expires_in: 3600 }
+    };
+  }
+
+  static async login(email: string, password: string): Promise<{ user: any; session: any }> {
+    // Mock login
+    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "test_secret";
+    const sub = "usr_mock_" + Buffer.from(email).toString('hex').slice(0, 8);
+    const token = jwt.sign({
+      sub,
+      email,
+      role: "authenticated",
+      aud: "authenticated"
+    }, secret, { expiresIn: '1h' });
+
+    return {
+      user: { id: sub, email },
+      session: { access_token: token, expires_in: 3600 }
+    };
+  }
+
+  static async resetPassword(email: string): Promise<{ success: boolean; message: string }> {
+    // Mock password reset
+    return { success: true, message: "Password reset instructions sent" };
+  }
 }

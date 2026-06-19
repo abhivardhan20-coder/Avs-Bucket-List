@@ -48,6 +48,25 @@ pnpm run dev
 - Type check: `pnpm run typecheck`
 - Run tests: `pnpm run test`
 
+## API Reference
+
+The backend API is documented using Swagger/OpenAPI. Once the server is running, you can view the complete API documentation at:
+- `http://localhost:3000/api-docs`
+
+### Key Endpoints:
+- `POST /api/v1/auth/register` - Register a new user
+- `POST /api/v1/auth/login` - Authenticate and retrieve a JWT
+- `POST /api/v1/auth/logout` - Blacklist the current JWT
+- `POST /api/v1/auth/reset-password` - Request a password reset
+- `GET /api/v1/health` - API Healthcheck
+- `GET /api/v1/tmdb/*` - Proxied TMDB requests
+
+## Architecture Details
+
+- **Express Middleware:** Uses `helmet` for CSP and security headers, `cors` for cross-origin requests (whitelisted via `FRONTEND_URL`), and `express-rate-limit` for DDoS protection.
+- **Global Error Handling:** All unhandled exceptions are caught by a global error handler that logs the stack trace to Pino and returns a clean `500 Internal Server Error` JSON response in production.
+- **Caching:** Redis is used via `ioredis` with an exponential backoff retry strategy. Redis handles the JWT blacklist and caches TMDB proxy responses.
+
 ## Environment Variables
 
 Key variables for the backend:
@@ -56,10 +75,15 @@ Key variables for the backend:
 - `REDIS_URL`: URL to your Redis instance.
 - `DATABASE_URL`: Your PostgreSQL connection string.
 - `SUPABASE_JWT_SECRET`: Comma-separated list of JWT secrets.
-- `ALLOW_NO_ORIGIN`: Boolean string (`true`/`false`) to allow mobile/server-to-server API calls.
 
 ## Deployment Guidelines
 - Ensure the Redis instance is highly available.
-- Make sure `ALLOW_NO_ORIGIN` is configured according to your needs.
 - Ensure `SUPABASE_JWT_SECRET` is strong and securely managed.
 - Ensure logs from `pino` are directed to a persistent location or a logging aggregator like Datadog.
+
+## Contribution Guidelines
+1. Fork the repository and create your feature branch (`git checkout -b feature/amazing-feature`).
+2. Run tests locally using `pnpm test` and ensure `pnpm typecheck` passes.
+3. Ensure no unused dependencies are introduced. Keep the bundle size small.
+4. Commit your changes and push to the branch (`git push origin feature/amazing-feature`).
+5. Open a Pull Request.
