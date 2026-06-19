@@ -38,6 +38,12 @@ This project is built as a monorepo using `pnpm` workspaces.
    ```
    *Ensure you define `REDIS_URL` in your backend environment (default: `redis://localhost:6379`).*
 
+3. Generate and run database migrations:
+   ```sh
+   pnpm run db:generate
+   pnpm run db:migrate
+   ```
+
 ### Running the Project
 To start the development servers for both frontend and backend concurrently:
 ```sh

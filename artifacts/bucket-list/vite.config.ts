@@ -60,6 +60,8 @@ export default defineConfig({
         description: 'Track your movies, series, and anime',
         theme_color: '#0a0a0a',
         background_color: '#0a0a0a',
+        start_url: '/',
+        display: 'standalone',
         icons: [
           {
             src: 'pwa-icon.png',
