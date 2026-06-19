@@ -41,11 +41,17 @@ jobs:
     - name: Install dependencies
       run: pnpm install
       
+    - name: Run linting
+      run: pnpm run lint --if-present
+
     - name: Run typecheck
       run: pnpm run typecheck
       
     - name: Run tests
       run: pnpm test
+
+    - name: Run security audit
+      run: pnpm audit --audit-level=high
 
     - name: Build project
       run: pnpm run build
