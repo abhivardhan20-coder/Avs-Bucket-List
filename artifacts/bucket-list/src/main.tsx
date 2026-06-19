@@ -9,6 +9,10 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { BrowserRouter } from 'react-router-dom';
 import * as Sentry from '@sentry/react';
 import { API_KEYS } from './services/config';
+import { registerSW } from 'virtual:pwa-register';
+
+// Register the PWA service worker
+registerSW({ immediate: true });
 
 if (import.meta.env.PROD) {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
