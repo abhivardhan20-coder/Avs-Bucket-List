@@ -12,7 +12,7 @@ import * as Sentry from "@sentry/node";
 import swaggerUi from "swagger-ui-express";
 import { swaggerSpec } from "./docs/swagger";
 
-if (process.env.SENTRY_DSN) {
+if (process.env.SENTRY_DSN && process.env.SENTRY_DSN !== 'https://placeholder@o0.ingest.sentry.io/0') {
   Sentry.init({
     dsn: process.env.SENTRY_DSN,
     tracesSampleRate: 1.0,
@@ -83,7 +83,8 @@ app.use(cors((req, callback) => {
 
   const origin = req.header('Origin');
   if (!origin) {
-    return callback(new Error('Not allowed by CORS (missing Origin)'), { origin: false });
+    // Allow requests without an Origin header (e.g., mobile apps, curl)
+    return callback(null, { origin: true });
   }
 
   if (allowedOrigins.indexOf(origin) !== -1) {
@@ -100,7 +101,7 @@ app.use(`/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(`/api/${env.API_VERSION}`, router);
 
 // Sentry error handler should be right before any other error handlers
-if (process.env.SENTRY_DSN) {
+if (process.env.SENTRY_DSN && process.env.SENTRY_DSN !== 'https://placeholder@o0.ingest.sentry.io/0') {
   Sentry.setupExpressErrorHandler(app);
 }
 

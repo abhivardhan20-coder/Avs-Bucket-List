@@ -87,6 +87,8 @@ This project uses `pnpm` workspaces for a clean monorepo architecture:
 | `REDIS_URL` | The connection string to your Redis instance. | `redis://localhost:6379` |
 | `DATABASE_URL` | Your PostgreSQL/Supabase database connection URI. | `postgresql://user:pass@host:5432/db` |
 | `SUPABASE_JWT_SECRET`| Your Supabase Project's JWT Secret used to issue and sign local tokens. | `super_secret_key_string...` |
+| `RATE_LIMIT_WINDOW_MS`| Rate limiting window in milliseconds (default: 900000 / 15 min). | `900000` |
+| `RATE_LIMIT_MAX_REQUESTS`| Maximum requests per window (default: 100). | `100` |
 
 ### Frontend Configuration (`artifacts/bucket-list/.env`)
 | Variable | Description | Example |

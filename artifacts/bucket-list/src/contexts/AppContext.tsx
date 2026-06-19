@@ -38,13 +38,35 @@ const MigrationRunner = ({ children }: { children: React.ReactNode }) => {
   const { showToast } = useToast();
   
   useEffect(() => {
+    let isMounted = true;
+    
+    const attemptMigrations = async (retries = 3) => {
+      for (let i = 0; i < retries; i++) {
+        try {
+          await runMigrations(user!);
+          return; // Success
+        } catch (error) {
+          console.error(`Migration failed (attempt ${i + 1}/${retries}):`, error);
+          if (i === retries - 1 && isMounted) {
+            showToast("Failed to run data migrations. Some data might be out of date.", "error");
+          } else {
+            await new Promise(r => setTimeout(r, 1000 * (i + 1))); // Exponential-ish backoff
+          }
+        }
+      }
+    };
+
     if (user) {
-      runMigrations(user).catch((error) => {
-        console.error("Migration failed:", error);
-        showToast("Failed to run data migrations. Some data might be out of date.", "error");
-      });
+      attemptMigrations();
     }
+    
+    return () => {
+      isMounted = false;
+    };
   }, [user, showToast]);
+  
+  // Note: we could block children from rendering until migrations succeed if we wanted strict consistency, 
+  // but for now we just show a toast if all retries fail.
   return <>{children}</>;
 };
 
