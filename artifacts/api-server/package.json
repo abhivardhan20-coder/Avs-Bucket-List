@@ -4,8 +4,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run build && (node --enable-source-maps ./dist/worker.mjs & node --enable-source-maps ./dist/index.mjs)",
-    "build": "node ./build.mjs",
+    "dev": "tsup --watch && (node --enable-source-maps ./dist/worker.mjs & node --enable-source-maps ./dist/index.mjs)",
+    "build": "tsup",
     "start": "node --enable-source-maps ./dist/worker.mjs & node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run"
@@ -45,6 +45,7 @@
     "pino-pretty": "catalog:",
     "supertest": "catalog:",
     "thread-stream": "catalog:",
+    "tsup": "^8.5.1",
     "vitest": "catalog:"
   }
 }

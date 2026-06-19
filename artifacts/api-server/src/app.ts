@@ -75,27 +75,23 @@ app.use(
 );
 const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 
-const corsMiddleware = cors({
-  origin: function (origin, callback) {
-    if (!origin) {
-      // We no longer allow requests without origin unless it's explicitly local or allowed by other logic
-      return callback(new Error('Not allowed by CORS (missing Origin)'));
-    }
-    if (allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true
-});
-
-app.use((req, res, next) => {
-  if (req.path.startsWith(`/api/${env.API_VERSION}/health`)) {
-    return next();
+app.use(cors((req, callback) => {
+  // Allow health checks explicitly
+  if (req.path.startsWith(`/api/${env.API_VERSION}/health`) || req.path === '/healthz') {
+    return callback(null, { origin: true });
   }
-  return corsMiddleware(req, res, next);
-});
+
+  const origin = req.header('Origin');
+  if (!origin) {
+    return callback(new Error('Not allowed by CORS (missing Origin)'), { origin: false });
+  }
+
+  if (allowedOrigins.indexOf(origin) !== -1) {
+    return callback(null, { origin: true, credentials: true });
+  }
+  
+  return callback(new Error('Not allowed by CORS'), { origin: false });
+}));
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));

@@ -13,6 +13,8 @@ const cache = new Redis(env.REDIS_URL, {
   }
 });
 
+const memoryCache = new Map<string, { value: any, expiresAt: number | null }>();
+
 export class CacheService {
   /**
    * Get an item from the cache
@@ -20,16 +22,28 @@ export class CacheService {
   static async get<T>(key: string): Promise<T | undefined> {
     try {
       const val = await cache.get(key);
-      if (!val) return undefined;
+      if (!val) {
+        return CacheService.getMemory<T>(key);
+      }
       try {
         return JSON.parse(val) as T;
       } catch {
         return val as unknown as T;
       }
     } catch (error) {
-      logger.warn({ err: error, key }, "Redis get failed, falling back to database or primary source");
+      logger.warn({ err: error, key }, "Redis get failed, falling back to in-memory cache");
+      return CacheService.getMemory<T>(key);
+    }
+  }
+
+  private static getMemory<T>(key: string): T | undefined {
+    const item = memoryCache.get(key);
+    if (!item) return undefined;
+    if (item.expiresAt !== null && Date.now() > item.expiresAt) {
+      memoryCache.delete(key);
       return undefined;
     }
+    return item.value as T;
   }
 
   /**
@@ -48,7 +62,9 @@ export class CacheService {
       }
       return true;
     } catch (error) {
-      logger.warn({ err: error, key }, "Redis set failed");
+      logger.warn({ err: error, key }, "Redis set failed, saving to in-memory cache");
+      const expiresAt = ttl !== undefined ? Date.now() + ttl * 1000 : null;
+      memoryCache.set(key, { value: val, expiresAt });
       return false;
     }
   }
@@ -64,7 +80,12 @@ export class CacheService {
       }
       return await cache.del(key);
     } catch (error) {
-      logger.warn({ err: error, key }, "Redis del failed");
+      logger.warn({ err: error, key }, "Redis del failed, clearing in-memory cache");
+      if (Array.isArray(key)) {
+        key.forEach(k => memoryCache.delete(k));
+      } else {
+        memoryCache.delete(key);
+      }
       return 0;
     }
   }
@@ -76,7 +97,9 @@ export class CacheService {
     try {
       await cache.flushall();
     } catch (error) {
-      logger.warn({ err: error }, "Redis flushall failed");
+      logger.warn({ err: error }, "Redis flushall failed, clearing in-memory cache");
+    } finally {
+      memoryCache.clear();
     }
   }
 }

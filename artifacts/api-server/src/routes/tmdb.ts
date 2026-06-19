@@ -36,6 +36,12 @@ router.get(/.*/, async (req: Request, res: Response) => {
       headers: { accept: "application/json" },
     });
 
+    if (response.status === 429) {
+      const retryAfter = response.headers.get('retry-after') || '10';
+      res.status(429).json({ error: "TMDB API rate limit exceeded", retryAfter });
+      return;
+    }
+
     if (!response.ok) {
       res.status(response.status).json({ error: `TMDB API error: ${response.statusText}` });
       return;

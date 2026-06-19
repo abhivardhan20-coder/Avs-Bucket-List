@@ -79,8 +79,20 @@ export class AuthService {
     };
   }
 
-  static async resetPassword(email: string): Promise<{ success: boolean; message: string }> {
-    // Mock password reset
-    return { success: true, message: "Password reset instructions sent" };
+  static async resetPassword(email: string): Promise<{ success: boolean; message: string; resetToken?: string }> {
+    // Mock password reset flow
+    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "test_secret_that_is_at_least_32_characters_long";
+    const resetToken = jwt.sign(
+      { email, type: 'password_reset' },
+      secret,
+      { expiresIn: '15m' }
+    );
+    
+    // In a real app, send this token via email.
+    return { 
+      success: true, 
+      message: "Password reset instructions sent",
+      resetToken // Returned here strictly for testing/mock purposes
+    };
   }
 }

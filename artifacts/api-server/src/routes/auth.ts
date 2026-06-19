@@ -40,7 +40,7 @@ const logoutSchema = z.object({
   body: z.object({}).strict().optional(),
   headers: z.object({
     authorization: z.string().startsWith("Bearer ")
-  }).passthrough() // allow other headers
+  }).passthrough()
 });
 
 router.post("/logout", authMiddleware, validateRequest(logoutSchema), async (req: AuthenticatedRequest, res: Response) => {
