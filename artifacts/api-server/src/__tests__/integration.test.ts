@@ -4,11 +4,11 @@ import app from '../app';
 
 // Mock jsonwebtoken verify to bypass auth middleware for authenticated routes
 vi.mock('jsonwebtoken', async (importOriginal) => {
-  const actual = await importOriginal();
+  const actual = await importOriginal<typeof import('jsonwebtoken')>();
   return {
     ...actual,
     default: {
-      ...actual.default,
+      ...actual,
       verify: vi.fn((token) => {
         if (token === 'valid_token') {
           return { sub: '123' };

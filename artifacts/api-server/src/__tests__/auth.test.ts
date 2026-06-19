@@ -34,7 +34,7 @@ describe('Auth Routes', () => {
       vi.mocked(AuthService.register).mockResolvedValue(mockResult);
 
       const response = await request(app)
-        .post('/api/v1/auth/register')
+        .post('/api/v1/auth/register').set('Origin', 'http://localhost:5173')
         .send({ email: 'test@example.com', password: 'password123' });
 
       expect(response.status).toBe(200);
@@ -44,7 +44,7 @@ describe('Auth Routes', () => {
 
     it('should validate email and password length', async () => {
       const response = await request(app)
-        .post('/api/v1/auth/register')
+        .post('/api/v1/auth/register').set('Origin', 'http://localhost:5173')
         .send({ email: 'invalid-email', password: '123' });
 
       expect(response.status).toBe(400);
@@ -61,7 +61,7 @@ describe('Auth Routes', () => {
       vi.mocked(AuthService.login).mockResolvedValue(mockResult);
 
       const response = await request(app)
-        .post('/api/v1/auth/login')
+        .post('/api/v1/auth/login').set('Origin', 'http://localhost:5173')
         .send({ email: 'test@example.com', password: 'password123' });
 
       expect(response.status).toBe(200);
@@ -71,7 +71,7 @@ describe('Auth Routes', () => {
 
     it('should validate inputs', async () => {
       const response = await request(app)
-        .post('/api/v1/auth/login')
+        .post('/api/v1/auth/login').set('Origin', 'http://localhost:5173')
         .send({ email: 'test@example.com' }); // missing password
 
       expect(response.status).toBe(400);
@@ -84,7 +84,7 @@ describe('Auth Routes', () => {
       vi.mocked(AuthService.resetPassword).mockResolvedValue(mockResult);
 
       const response = await request(app)
-        .post('/api/v1/auth/reset-password')
+        .post('/api/v1/auth/reset-password').set('Origin', 'http://localhost:5173')
         .send({ email: 'test@example.com' });
 
       expect(response.status).toBe(200);

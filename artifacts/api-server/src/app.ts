@@ -42,14 +42,27 @@ app.use(helmet({
   },
 }));
 
-// Rate limiting middleware
+// Health check specific rate limiter
+const healthLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 10, // Limit health checks to 10 per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many health check requests." },
+});
+
+// Apply health limiter only to health routes
+app.use(`/api/${env.API_VERSION}/health`, healthLimiter);
+app.use('/healthz', healthLimiter);
+
+// General Rate limiting middleware
 const limiter = rateLimit({
   windowMs: env.RATE_LIMIT_WINDOW_MS,
   max: env.RATE_LIMIT_MAX_REQUESTS,
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: { error: "Too many requests, please try again later." },
-  skip: (req) => req.path.startsWith(`/api/${env.API_VERSION}/health`) || req.path === '/healthz' // Exclude health checks
+  skip: (req) => req.path.startsWith(`/api/${env.API_VERSION}/health`) || req.path === '/healthz' // Exclude health checks from general limiter
 });
 
 app.use(limiter);
@@ -83,8 +96,8 @@ app.use(cors((req, callback) => {
 
   const origin = req.header('Origin');
   if (!origin) {
-    // Allow requests without an Origin header (e.g., mobile apps, curl)
-    return callback(null, { origin: true });
+    // SECURITY: Strictly require an origin header for API calls
+    return callback(new Error('Not allowed by CORS (missing Origin)'), { origin: false });
   }
 
   if (allowedOrigins.indexOf(origin) !== -1) {
@@ -105,24 +118,31 @@ if (process.env.SENTRY_DSN && process.env.SENTRY_DSN !== 'https://placeholder@o0
   Sentry.setupExpressErrorHandler(app);
 }
 
+import { AppError } from "./lib/AppError";
+
 // Global error handler
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const errorId = Math.random().toString(36).substring(7);
+app.use((err: Error | AppError, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const isAppError = err instanceof AppError;
+  const errorId = isAppError && err.errorId ? err.errorId : Math.random().toString(36).substring(7);
+  const statusCode = isAppError ? err.statusCode : (err as any).status || (err as any).statusCode || 500;
+  
   logger.error({ err, url: req.originalUrl, errorId }, "Unhandled error");
   
   if (res.headersSent) {
     return next(err);
   }
 
-  const statusCode = err.status || err.statusCode || 500;
   const message = statusCode === 500 ? "Internal Server Error" : err.message;
   
   res.status(statusCode).json({
     error: {
       message,
       errorId,
-      type: err.name || 'Error',
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack, details: err.details })
+      type: isAppError ? err.type : err.name || 'Error',
+      ...(process.env.NODE_ENV === 'development' && { 
+        stack: err.stack, 
+        details: isAppError ? err.details : (err as any).details 
+      })
     }
   });
 });

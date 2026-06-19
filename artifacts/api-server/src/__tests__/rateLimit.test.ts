@@ -3,13 +3,14 @@ import { describe, it, expect } from "vitest";
 import app from "../app";
 
 describe("Rate Limiter Exceptions", () => {
-  it("should not rate limit requests to /api/v1/health/healthz", async () => {
-    let lastStatus = 200;
-    for (let i = 0; i < 105; i++) {
+  it("should rate limit requests to /api/v1/health/healthz after 10 requests", async () => {
+    // Send 10 successful requests
+    for (let i = 0; i < 10; i++) {
       const res = await request(app).get("/api/v1/health/healthz");
-      lastStatus = res.status;
       expect(res.status).not.toBe(429);
     }
-    expect(lastStatus).toBe(200);
+    // The 11th request should be rate limited
+    const res = await request(app).get("/api/v1/health/healthz");
+    expect(res.status).toBe(429);
   });
 });

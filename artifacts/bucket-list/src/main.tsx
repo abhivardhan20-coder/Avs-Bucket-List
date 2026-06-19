@@ -33,6 +33,10 @@ if (!import.meta.env.VITE_SUPABASE_ANON_KEY) missingVars.push('VITE_SUPABASE_ANO
 const isMissingConfig = missingVars.length > 0;
 
 if (isMissingConfig) {
+  if (import.meta.env.PROD) {
+    throw new Error(`CRITICAL: Missing required environment variables in production: ${missingVars.join(', ')}`);
+  }
+
   const MissingConfigScreen = () => (
     <div style={{ minHeight: '100vh', background: '#0a0a0a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Inter,sans-serif', color: 'white', padding: '2rem' }}>
       <div style={{ maxWidth: '480px', textAlign: 'center' }}>

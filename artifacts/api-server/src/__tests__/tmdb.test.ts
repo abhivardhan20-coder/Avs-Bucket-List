@@ -23,7 +23,7 @@ app.use('/api/v1/tmdb', tmdbRouter);
 describe('TMDB Proxy Route', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.VITE_TMDB_API_KEY = 'test_api_key';
+    process.env.TMDB_API_KEY = 'test_api_key';
   });
 
   it('should return cached response if available', async () => {
@@ -62,8 +62,8 @@ describe('TMDB Proxy Route', () => {
       })
     );
 
-    // 86400 is 24 hours
-    expect(CacheService.set).toHaveBeenCalledWith('tmdb_proxy:/movie/top_rated', tmdbData, 86400);
+    // 14400 is 4 hours
+    expect(CacheService.set).toHaveBeenCalledWith('tmdb_proxy:/movie/top_rated', tmdbData, 14400);
   });
 
   it('should forward query parameters to TMDB', async () => {
@@ -80,7 +80,7 @@ describe('TMDB Proxy Route', () => {
       'https://api.themoviedb.org/3/search/movie?query=matrix&page=2&api_key=test_api_key',
       expect.any(Object)
     );
-    expect(CacheService.set).toHaveBeenCalledWith('tmdb_proxy:/search/movie?query=matrix&page=2', expect.any(Object), 86400);
+    expect(CacheService.set).toHaveBeenCalledWith('tmdb_proxy:/search/movie?query=matrix&page=2', expect.any(Object), 14400);
   });
 
   it('should return 502 if TMDB API fails', async () => {

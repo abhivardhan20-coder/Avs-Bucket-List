@@ -43,7 +43,7 @@ describe('CacheService', () => {
     expect(result).toBeUndefined();
     expect(logger.warn).toHaveBeenCalledWith(
       expect.objectContaining({ key: 'test_key' }),
-      'Redis get failed, falling back to database or primary source'
+      'Redis get failed, falling back to in-memory cache'
     );
   });
 
@@ -55,7 +55,7 @@ describe('CacheService', () => {
     expect(result).toBe(false);
     expect(logger.warn).toHaveBeenCalledWith(
       expect.objectContaining({ key: 'test_key' }),
-      'Redis set failed'
+      'Redis set failed, saving to in-memory cache'
     );
   });
 
@@ -67,7 +67,7 @@ describe('CacheService', () => {
     expect(result).toBe(0);
     expect(logger.warn).toHaveBeenCalledWith(
       expect.objectContaining({ key: 'test_key' }),
-      'Redis del failed'
+      'Redis del failed, clearing in-memory cache'
     );
   });
 });

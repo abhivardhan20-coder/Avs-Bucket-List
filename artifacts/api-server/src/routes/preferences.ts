@@ -19,10 +19,12 @@ router.get(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.sub;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
     const prefs = await PreferencesService.getPreferences(userId);
     res.json({ success: true, data: prefs });
+    return;
   }
 );
 
@@ -33,7 +35,8 @@ router.post(
   async (req: AuthenticatedRequest, res: Response) => {
     const userId = req.user?.sub;
     if (!userId) {
-      return res.status(401).json({ error: "Unauthorized" });
+      res.status(401).json({ error: "Unauthorized" });
+      return;
     }
     
     const { theme, notificationsEnabled } = req.body;
@@ -47,6 +50,7 @@ router.post(
       success: true,
       data: updatedPrefs,
     });
+    return;
   }
 );
 
