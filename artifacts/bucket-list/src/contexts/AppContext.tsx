@@ -31,13 +31,20 @@ import { GoogleOAuthProvider } from '@react-oauth/google';
 import { ToastProvider } from './ToastProvider';
 import { API_KEYS } from '../services/config';
 
+import { useToast } from './ToastProvider';
+
 const MigrationRunner = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
+  const { showToast } = useToast();
+  
   useEffect(() => {
     if (user) {
-      runMigrations(user).catch(console.error);
+      runMigrations(user).catch((error) => {
+        console.error("Migration failed:", error);
+        showToast("Failed to run data migrations. Some data might be out of date.", "error");
+      });
     }
-  }, [user]);
+  }, [user, showToast]);
   return <>{children}</>;
 };
 

@@ -8,7 +8,7 @@ const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 // Since api-server requires VITE_TMDB_API_KEY from env, let's load it dynamically
 router.get(/.*/, async (req: Request, res: Response) => {
   try {
-    const TMDB_API_KEY = process.env.VITE_TMDB_API_KEY || process.env.TMDB_API_KEY;
+    const TMDB_API_KEY = process.env.TMDB_API_KEY;
     if (!TMDB_API_KEY) {
       res.status(500).json({ error: "TMDB API key is not configured on the server." });
       return;
@@ -43,8 +43,8 @@ router.get(/.*/, async (req: Request, res: Response) => {
 
     const data = await response.json();
 
-    // Cache the response for 24 hours (86400 seconds)
-    await CacheService.set(cacheKey, data, 86400);
+    // Cache the response for 4 hours (14400 seconds)
+    await CacheService.set(cacheKey, data, 14400);
 
     res.json(data);
   } catch (error) {

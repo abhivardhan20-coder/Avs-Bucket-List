@@ -23,7 +23,7 @@ const app: Express = express();
 
 // Security headers
 app.use(helmet({
-  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginResourcePolicy: { policy: "same-site" },
   xssFilter: true,
   frameguard: { action: "deny" },
   hidePoweredBy: true,
@@ -32,7 +32,7 @@ app.use(helmet({
     directives: {
       defaultSrc: ["'self'"],
       scriptSrc: ["'self'"],
-      styleSrc: ["'self'", "'unsafe-inline'", "https://fonts.googleapis.com"],
+      styleSrc: ["'self'", "https://fonts.googleapis.com"],
       imgSrc: ["'self'", "data:", "https://image.tmdb.org"],
       connectSrc: ["'self'", "https://api.themoviedb.org"],
       fontSrc: ["'self'", "https://fonts.gstatic.com"],
@@ -76,7 +76,17 @@ app.use(
 const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
 
 const corsMiddleware = cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    if (!origin) {
+      // We no longer allow requests without origin unless it's explicitly local or allowed by other logic
+      return callback(new Error('Not allowed by CORS (missing Origin)'));
+    }
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true
 });
 
@@ -100,7 +110,8 @@ if (process.env.SENTRY_DSN) {
 
 // Global error handler
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  logger.error({ err, url: req.originalUrl }, "Unhandled error");
+  const errorId = Math.random().toString(36).substring(7);
+  logger.error({ err, url: req.originalUrl, errorId }, "Unhandled error");
   
   if (res.headersSent) {
     return next(err);
@@ -112,7 +123,9 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
   res.status(statusCode).json({
     error: {
       message,
-      ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+      errorId,
+      type: err.name || 'Error',
+      ...(process.env.NODE_ENV === 'development' && { stack: err.stack, details: err.details })
     }
   });
 });

@@ -21,20 +21,22 @@ export const lazyWithRetry = <T extends ComponentType<any>>(
                     );
 
                     if (isChunkError) {
-                        // Check if we've already tried reloading for this session
                         const storageKey = `lazy_retry_${window.location.pathname}`;
-                        const retried = sessionStorage.getItem(storageKey);
+                        const retriesStr = sessionStorage.getItem(storageKey);
+                        const retries = retriesStr ? parseInt(retriesStr, 10) : 0;
 
-                        if (!retried) {
-                            // Mark as retried and reload
-                            sessionStorage.setItem(storageKey, 'true');
-                            console.warn("Chunk load failed, reloading page to get fresh assets...");
-                            window.location.reload();
+                        if (retries < 3) {
+                            const delay = Math.pow(2, retries) * 500; // 500ms, 1000ms, 2000ms
+                            sessionStorage.setItem(storageKey, (retries + 1).toString());
+                            console.warn(`Chunk load failed, reloading page in ${delay}ms (retry ${retries + 1}/3)...`);
+                            setTimeout(() => {
+                                window.location.reload();
+                            }, delay);
                             return;
                         }
                     }
 
-                    // If not a chunk error or already retried, reject
+                    // If not a chunk error or already retried 3 times, reject
                     reject(error);
                 });
         });

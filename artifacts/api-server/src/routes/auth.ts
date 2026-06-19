@@ -9,7 +9,8 @@ const router = Router();
 const authSchema = z.object({
   body: z.object({
     email: z.string().email(),
-    password: z.string().min(6)
+    password: z.string().min(6),
+    name: z.string().optional()
   }).strict()
 });
 

@@ -19,25 +19,6 @@ const LoginPage: React.FC = () => {
     }
   };
 
-  const handleDemoLogin = () => {
-    if (import.meta.env.PROD) {
-      setError('Demo preview mode is disabled in production.');
-      return;
-    }
-    setIsLoading(true);
-    const demoProfile = {
-      id: 'demo_preview_account_001',
-      email: 'demo@avbucketlist.app',
-      name: 'Demo User',
-      picture: undefined,
-      isDemo: true,
-    };
-    setTimeout(() => {
-      login(demoProfile);
-      setIsLoading(false);
-    }, 600);
-  };
-
   return (
     <div className="relative min-h-screen w-full bg-[#0a0a0a] text-white font-sans overflow-hidden">
       {/* Dynamic Background */}
@@ -87,32 +68,6 @@ const LoginPage: React.FC = () => {
                 Securely sign in with your Google account.
               </p>
             </div>
-
-            {import.meta.env.DEV && (
-              <>
-                {/* Divider */}
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-white/10"></div>
-                  <span className="text-xs text-gray-500 uppercase tracking-widest">or</span>
-                  <div className="flex-1 h-px bg-white/10"></div>
-                </div>
-
-                {/* Demo Login Button */}
-                <button
-                  type="button"
-                  onClick={handleDemoLogin}
-                  disabled={isLoading}
-                  className="w-full flex items-center justify-center gap-3 py-3.5 px-6 rounded-lg bg-gradient-to-r from-purple-600/80 to-indigo-600/80 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold text-sm transition-all duration-300 border border-white/10 hover:border-white/20 hover:shadow-[0_0_30px_rgba(139,92,246,0.3)] disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isLoading ? (
-                    <Loader className="w-5 h-5 animate-spin" />
-                  ) : (
-                    <Play className="w-5 h-5" />
-                  )}
-                  {isLoading ? 'Entering Demo...' : 'Try Demo Preview'}
-                </button>
-              </>
-            )}
 
             {/* Error Message */}
             {error && (
