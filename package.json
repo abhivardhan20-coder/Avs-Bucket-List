@@ -1,6 +1,10 @@
 {
-  "name": "workspace",
-  "version": "0.0.0",
+  "name": "avs-bucket-list",
+  "version": "1.0.0",
+  "description": "AV's Bucket List - A comprehensive personal media tracker for your favorite movies and TV shows.",
+  "author": "abhivardhan20-coder",
+  "keywords": ["movie-tracker", "react", "express", "vite", "typescript", "drizzle", "monorepo"],
+  "homepage": "https://github.com/abhivardhan20-coder/Avs-Bucket-List",
   "license": "MIT",
   "scripts": {
     "build": "pnpm run typecheck && pnpm -r --if-present run build",

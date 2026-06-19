@@ -91,12 +91,12 @@ This project uses `pnpm` workspaces for a clean monorepo architecture:
 | `RATE_LIMIT_MAX_REQUESTS`| Maximum requests per window (default: 100). | `100` |
 
 ### Frontend Configuration (`artifacts/bucket-list/.env`)
-| Variable | Description | Example |
-| -------- | ----------- | ------- |
-| `VITE_GOOGLE_CLIENT_ID` | Your Google OAuth 2.0 Client ID for login. | `123456789-xxxx.apps.googleusercontent.com` |
-| `VITE_SUPABASE_URL` | Your Supabase Project URL. | `https://xxxx.supabase.co` |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase Project Anon/Public Key. | `eyJh...` |
-| `VITE_TMDB_API_KEY` | (Optional) Your The Movie Database v3 API key. | `abc123...` |
+| Variable | Description | Example | Required |
+| -------- | ----------- | ------- | -------- |
+| `VITE_GOOGLE_CLIENT_ID` | Your Google OAuth 2.0 Client ID for login. | `123456789-xxxx.apps.googleusercontent.com` | **Yes** |
+| `VITE_SUPABASE_URL` | Your Supabase Project URL. | `https://xxxx.supabase.co` | **Yes** |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase Project Anon/Public Key. | `eyJh...` | **Yes** |
+| `VITE_TMDB_API_KEY` | Your The Movie Database v3 API key. | `abc123...` | Optional |
 
 ## Deployment Guidelines
 - Ensure the Redis instance is highly available.

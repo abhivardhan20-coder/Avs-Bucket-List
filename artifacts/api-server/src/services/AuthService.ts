@@ -1,4 +1,10 @@
 import { addToBlacklist } from "../lib/blacklist";
+import { db } from "@workspace/db";
+import { usersTable } from "@workspace/db";
+import { eq } from "drizzle-orm";
+import bcrypt from "bcryptjs";
+import nodemailer from "nodemailer";
+import { logger } from "../lib/logger";
 
 import jwt from "jsonwebtoken";
 
@@ -45,54 +51,104 @@ export class AuthService {
   }
 
   static async register(email: string, password: string): Promise<{ user: any; session: any }> {
-    // Mock registration using custom JWTs since we don't have Supabase SDK linked
-    // We sign the token with our secret so that authMiddleware accepts it!
-    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "test_secret";
-    const sub = "usr_" + Math.random().toString(36).substring(7);
-    const token = jwt.sign({
-      sub,
+    const existingUser = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    if (existingUser.length > 0) {
+      throw new AuthError("User already exists");
+    }
+
+    const passwordHash = await bcrypt.hash(password, 10);
+    const [newUser] = await db.insert(usersTable).values({
       email,
+      passwordHash,
+    }).returning();
+
+    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0];
+    if (!secret) throw new AuthError("SUPABASE_JWT_SECRET is not configured");
+
+    const token = jwt.sign({
+      sub: newUser.id,
+      email: newUser.email,
       role: "authenticated",
       aud: "authenticated"
     }, secret, { expiresIn: '1h' });
 
     return {
-      user: { id: sub, email },
+      user: { id: newUser.id, email: newUser.email },
       session: { access_token: token, expires_in: 3600 }
     };
   }
 
   static async login(email: string, password: string): Promise<{ user: any; session: any }> {
-    // Mock login
-    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "test_secret";
-    const sub = "usr_mock_" + Buffer.from(email).toString('hex').slice(0, 8);
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    if (!user) {
+      throw new AuthError("Invalid email or password");
+    }
+
+    const isValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isValid) {
+      throw new AuthError("Invalid email or password");
+    }
+
+    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0];
+    if (!secret) throw new AuthError("SUPABASE_JWT_SECRET is not configured");
+
     const token = jwt.sign({
-      sub,
-      email,
+      sub: user.id,
+      email: user.email,
       role: "authenticated",
       aud: "authenticated"
     }, secret, { expiresIn: '1h' });
 
     return {
-      user: { id: sub, email },
+      user: { id: user.id, email: user.email },
       session: { access_token: token, expires_in: 3600 }
     };
   }
 
-  static async resetPassword(email: string): Promise<{ success: boolean; message: string; resetToken?: string }> {
-    // Mock password reset flow
-    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "test_secret_that_is_at_least_32_characters_long";
+  static async resetPassword(email: string): Promise<{ success: boolean; message: string }> {
+    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0];
+    if (!secret) throw new AuthError("SUPABASE_JWT_SECRET is not configured");
+
+    const [user] = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    if (!user) {
+      // Return success even if user doesn't exist to prevent email enumeration
+      return { success: true, message: "Password reset instructions sent to email" };
+    }
+
     const resetToken = jwt.sign(
       { email, type: 'password_reset' },
       secret,
       { expiresIn: '15m' }
     );
     
-    // In a real app, send this token via email.
+    try {
+      const transporter = nodemailer.createTransport({
+        host: process.env.SMTP_HOST || 'smtp.ethereal.email',
+        port: parseInt(process.env.SMTP_PORT || '587'),
+        auth: {
+          user: process.env.SMTP_USER,
+          pass: process.env.SMTP_PASS,
+        },
+      });
+
+      // If no SMTP_USER, we are probably in dev and using a mock or it will fail.
+      if (!process.env.SMTP_USER) {
+        logger.info({ email, resetToken }, "MOCK EMAIL: Password reset requested");
+      } else {
+        await transporter.sendMail({
+          from: '"Bucket List Auth" <noreply@bucketlist.com>',
+          to: email,
+          subject: "Password Reset Request",
+          text: `Your password reset token is: ${resetToken}\nIt will expire in 15 minutes.`,
+        });
+      }
+    } catch (err) {
+      logger.error({ err }, "Failed to send password reset email");
+    }
+
     return { 
       success: true, 
-      message: "Password reset instructions sent",
-      resetToken // Returned here strictly for testing/mock purposes
+      message: "Password reset instructions sent to email",
     };
   }
 }
