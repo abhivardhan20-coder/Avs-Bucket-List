@@ -67,14 +67,34 @@ The backend API is documented using Swagger/OpenAPI. Once the server is running,
 - **Global Error Handling:** All unhandled exceptions are caught by a global error handler that logs the stack trace to Pino and returns a clean `500 Internal Server Error` JSON response in production.
 - **Caching:** Redis is used via `ioredis` with an exponential backoff retry strategy. Redis handles the JWT blacklist and caches TMDB proxy responses.
 
+## Project Structure
+
+This project uses `pnpm` workspaces for a clean monorepo architecture:
+
+- **`artifacts/bucket-list/`**: Frontend React SPA utilizing Vite and Tailwind CSS.
+- **`artifacts/api-server/`**: Backend Express.js server providing authentication and caching proxies.
+- **`lib/db/`**: Supabase/PostgreSQL schema definitions and Drizzle ORM configurations.
+- **`lib/api-spec/`** & **`lib/api-zod/`**: Shared TypeScript types and Zod validation schemas.
+- **`lib/api-client-react/`**: Shared API client integrations.
+
 ## Environment Variables
 
-Key variables for the backend:
-- `PORT`: API server port (default 3000)
-- `FRONTEND_URL`: Allowed frontend origins for CORS.
-- `REDIS_URL`: URL to your Redis instance.
-- `DATABASE_URL`: Your PostgreSQL connection string.
-- `SUPABASE_JWT_SECRET`: Comma-separated list of JWT secrets.
+### Backend Configuration (`artifacts/api-server/.env`)
+| Variable | Description | Example |
+| -------- | ----------- | ------- |
+| `PORT` | The port the Express API listens on. | `3000` |
+| `FRONTEND_URL` | Comma-separated list of allowed domains for CORS validation. | `http://localhost:5173` |
+| `REDIS_URL` | The connection string to your Redis instance. | `redis://localhost:6379` |
+| `DATABASE_URL` | Your PostgreSQL/Supabase database connection URI. | `postgresql://user:pass@host:5432/db` |
+| `SUPABASE_JWT_SECRET`| Your Supabase Project's JWT Secret used to issue and sign local tokens. | `super_secret_key_string...` |
+
+### Frontend Configuration (`artifacts/bucket-list/.env`)
+| Variable | Description | Example |
+| -------- | ----------- | ------- |
+| `VITE_GOOGLE_CLIENT_ID` | Your Google OAuth 2.0 Client ID for login. | `123456789-xxxx.apps.googleusercontent.com` |
+| `VITE_SUPABASE_URL` | Your Supabase Project URL. | `https://xxxx.supabase.co` |
+| `VITE_SUPABASE_ANON_KEY` | Your Supabase Project Anon/Public Key. | `eyJh...` |
+| `VITE_TMDB_API_KEY` | (Optional) Your The Movie Database v3 API key. | `abc123...` |
 
 ## Deployment Guidelines
 - Ensure the Redis instance is highly available.

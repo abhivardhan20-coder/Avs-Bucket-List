@@ -4,198 +4,6 @@ settings:
   autoInstallPeers: false
   excludeLinksFromLockfile: false
 
-catalogs:
-  default:
-    '@radix-ui/react-slot':
-      specifier: 1.2.0
-      version: 1.2.0
-    '@radix-ui/react-toast':
-      specifier: 1.2.7
-      version: 1.2.7
-    '@react-oauth/google':
-      specifier: 0.13.5
-      version: 0.13.5
-    '@replit/vite-plugin-cartographer':
-      specifier: ^0.5.1
-      version: 0.5.5
-    '@replit/vite-plugin-dev-banner':
-      specifier: ^0.1.1
-      version: 0.1.2
-    '@replit/vite-plugin-runtime-error-modal':
-      specifier: ^0.0.6
-      version: 0.0.6
-    '@sentry/node':
-      specifier: ^10.58.0
-      version: 10.58.0
-    '@sentry/react':
-      specifier: 10.56.0
-      version: 10.56.0
-    '@supabase/supabase-js':
-      specifier: 2.107.0
-      version: 2.107.0
-    '@tailwindcss/typography':
-      specifier: 0.5.15
-      version: 0.5.15
-    '@tailwindcss/vite':
-      specifier: ^4.1.14
-      version: 4.3.0
-    '@tanstack/react-query':
-      specifier: ^5.90.21
-      version: 5.100.9
-    '@testing-library/dom':
-      specifier: ^10.4.1
-      version: 10.4.1
-    '@testing-library/react':
-      specifier: 16.3.2
-      version: 16.3.2
-    '@types/cookie-parser':
-      specifier: 1.4.10
-      version: 1.4.10
-    '@types/cors':
-      specifier: 2.8.19
-      version: 2.8.19
-    '@types/express':
-      specifier: 5.0.6
-      version: 5.0.6
-    '@types/jsonwebtoken':
-      specifier: 9.0.10
-      version: 9.0.10
-    '@types/node':
-      specifier: ^25.3.3
-      version: 25.6.2
-    '@types/node-cron':
-      specifier: 3.0.11
-      version: 3.0.11
-    '@types/react':
-      specifier: ^19.2.0
-      version: 19.2.14
-    '@types/react-dom':
-      specifier: ^19.2.0
-      version: 19.2.3
-    '@types/supertest':
-      specifier: 7.2.0
-      version: 7.2.0
-    '@types/swagger-jsdoc':
-      specifier: ^6.0.4
-      version: 6.0.4
-    '@types/swagger-ui-express':
-      specifier: ^4.1.8
-      version: 4.1.8
-    '@vitejs/plugin-react':
-      specifier: ^5.0.4
-      version: 5.2.0
-    class-variance-authority:
-      specifier: 0.7.1
-      version: 0.7.1
-    clsx:
-      specifier: 2.1.1
-      version: 2.1.1
-    cookie-parser:
-      specifier: 1.4.7
-      version: 1.4.7
-    cors:
-      specifier: 2.8.6
-      version: 2.8.6
-    dexie:
-      specifier: 4.4.3
-      version: 4.4.3
-    dotenv:
-      specifier: ^17.4.2
-      version: 17.4.2
-    drizzle-orm:
-      specifier: 0.45.2
-      version: 0.45.2
-    esbuild-plugin-pino:
-      specifier: 2.3.3
-      version: 2.3.3
-    express:
-      specifier: 5.2.1
-      version: 5.2.1
-    express-rate-limit:
-      specifier: 8.5.2
-      version: 8.5.2
-    framer-motion:
-      specifier: 12.23.24
-      version: 12.23.24
-    helmet:
-      specifier: 8.2.0
-      version: 8.2.0
-    ioredis:
-      specifier: ^5.11.1
-      version: 5.11.1
-    jsdom:
-      specifier: 29.1.1
-      version: 29.1.1
-    jsonwebtoken:
-      specifier: 9.0.3
-      version: 9.0.3
-    lucide-react:
-      specifier: 0.545.0
-      version: 0.545.0
-    openapi-types:
-      specifier: ^12.1.3
-      version: 12.1.3
-    pino:
-      specifier: 9.14.0
-      version: 9.14.0
-    pino-http:
-      specifier: 10.5.0
-      version: 10.5.0
-    pino-pretty:
-      specifier: 13.1.3
-      version: 13.1.3
-    react:
-      specifier: 19.1.0
-      version: 19.1.0
-    react-dom:
-      specifier: 19.1.0
-      version: 19.1.0
-    react-error-boundary:
-      specifier: 6.1.2
-      version: 6.1.2
-    react-router-dom:
-      specifier: 7.17.0
-      version: 7.17.0
-    sonner:
-      specifier: 2.0.7
-      version: 2.0.7
-    supertest:
-      specifier: 7.2.2
-      version: 7.2.2
-    swagger-jsdoc:
-      specifier: ^6.3.0
-      version: 6.3.0
-    swagger-ui-express:
-      specifier: ^5.0.1
-      version: 5.0.1
-    tailwind-merge:
-      specifier: 3.3.1
-      version: 3.3.1
-    tailwindcss:
-      specifier: 4.1.14
-      version: 4.1.14
-    thread-stream:
-      specifier: 3.1.0
-      version: 3.1.0
-    tsx:
-      specifier: 4.21.0
-      version: 4.21.0
-    vite:
-      specifier: 7.3.2
-      version: 7.3.2
-    vite-plugin-pwa:
-      specifier: 1.3.0
-      version: 1.3.0
-    vitest:
-      specifier: 4.1.8
-      version: 4.1.8
-    zod:
-      specifier: 3.25.76
-      version: 3.25.76
-    zustand:
-      specifier: ^5.0.14
-      version: 5.0.14
-
 overrides:
   esbuild>@esbuild/darwin-arm64: '-'
   esbuild>@esbuild/darwin-x64: '-'
@@ -270,9 +78,6 @@ importers:
 
   .:
     devDependencies:
-      prettier:
-        specifier: 3.8.3
-        version: 3.8.3
       typescript:
         specifier: 5.9.3
         version: 5.9.3
@@ -9176,7 +8981,8 @@ snapshots:
     dependencies:
       xtend: 4.0.2
 
-  prettier@3.8.3: {}
+  prettier@3.8.3:
+    optional: true
 
   pretty-bytes@5.6.0: {}
 
