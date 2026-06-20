@@ -58,20 +58,7 @@ export class AuthService {
     // In a real app, you might want to send an email saying "someone tried to register with your email"
     if (existingUser.length > 0) {
       logger.info({ email }, "Registration attempt for existing email");
-      
-      // Return a fake successful response that looks identical to a real one
-      const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "dummy_secret";
-      const token = jwt.sign({
-        sub: existingUser[0].id,
-        email: existingUser[0].email,
-        role: "authenticated",
-        aud: "authenticated"
-      }, secret, { expiresIn: '1h' });
-
-      return {
-        user: { id: existingUser[0].id, email: existingUser[0].email },
-        session: { access_token: token, expires_in: 3600 }
-      };
+      throw new AuthError("Unable to complete registration. If this is your email, try logging in or resetting your password.");
     }
 
     const passwordHash = await bcrypt.hash(password, 10);

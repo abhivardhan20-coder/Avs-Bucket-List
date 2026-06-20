@@ -51,7 +51,9 @@ const healthLimiter = rateLimit({
   message: { error: "Too many health check requests." },
 });
 
-// Apply health limiter only to health routes (removed healthLimiter, using general limiter)
+// Apply health limiter only to health routes
+app.use(`/api/${env.API_VERSION}/health`, healthLimiter);
+app.use('/healthz', healthLimiter);
 
 // General Rate limiting middleware
 const limiter = rateLimit({
@@ -114,8 +116,8 @@ app.use(cors((req, callback) => {
 
   const origin = req.header('Origin');
   if (!origin) {
-    // Relaxed CORS for server-to-server or mobile clients missing origin
-    return callback(null, { origin: true });
+    // Reject requests missing origin unless explicitly allowed
+    return callback(new Error('Not allowed by CORS (missing Origin)'), { origin: false });
   }
 
   if (allowedOrigins.indexOf(origin) !== -1) {

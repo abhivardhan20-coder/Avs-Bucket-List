@@ -16,7 +16,7 @@ registerSW({ immediate: true });
 
 if (import.meta.env.PROD) {
   const dsn = import.meta.env.VITE_SENTRY_DSN;
-  if (dsn) {
+  if (dsn && dsn !== 'https://placeholder@o0.ingest.sentry.io/0') {
     Sentry.init({
       dsn,
       tracesSampleRate: 0.1,

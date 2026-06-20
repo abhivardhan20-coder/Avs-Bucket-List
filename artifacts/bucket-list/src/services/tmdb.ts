@@ -25,6 +25,11 @@ const getHeaders = () => ({
   accept: 'application/json'
 });
 
+async function getAuthHeader(): Promise<Record<string, string>> {
+  const { data: { session } } = await supabase.auth.getSession();
+  return session?.access_token ? { Authorization: `Bearer ${session.access_token}` } : {};
+}
+
 async function fetchWithRetry(
   url: string, 
   options: RequestInit, 
@@ -125,7 +130,8 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
       // Get the backend URL or fallback to localhost during dev
       const backendUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api/v1';
       const edgeUrl = `${backendUrl}/tmdb${endpoint}`;
-      const headers: Record<string, string> = { ...getHeaders() };
+      const authHeader = await getAuthHeader();
+      const headers: Record<string, string> = { ...getHeaders(), ...authHeader };
       
       const response = await fetchWithRetry(edgeUrl, { headers, signal }, 1, 500, 5000);
       if (response && response.ok) return cacheAndReturn(await response.json() as T);

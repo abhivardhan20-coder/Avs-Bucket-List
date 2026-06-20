@@ -25,6 +25,12 @@
 #     - typescript
 #
 # ============================================================================
+minimumReleaseAgeExclude:
+  - '@replit/vite-plugin-cartographer'
+  - '@replit/vite-plugin-dev-banner'
+  - '@replit/vite-plugin-runtime-error-modal'
+  - wouter
+
 minimumReleaseAge: 1440
 
 packages:
@@ -179,3 +185,4 @@ overrides:
   # drizzle-kit uses esbuild internally on an older version that's vulnerable, this overrides it
   "@esbuild-kit/esm-loader": "npm:tsx@^4.21.0"
   esbuild: "0.27.3"
+  wouter: "3.3.5"
