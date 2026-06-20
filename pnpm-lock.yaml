@@ -259,6 +259,7 @@ overrides:
   '@expo/ngrok-bin>@expo/ngrok-bin-sunos-x64': '-'
   '@esbuild-kit/esm-loader': npm:tsx@^4.21.0
   esbuild: 0.27.3
+  wouter: 3.3.5
 
 importers:
 
