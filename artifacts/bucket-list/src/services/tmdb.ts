@@ -2,6 +2,7 @@ import { MediaItem, MediaType, Season, Episode, NextEpisodeInfo } from '@/types'
 import { supabase } from './supabaseClient';
 import { dedupe } from '../lib/requestDeduplicator';
 import { getCached, setCached, getTtlForEndpoint } from '../lib/tmdbCache';
+import { logger } from '../lib/logger';
 
 // ✅ PERFORMANCE OPTIMIZED: Use optimized image sizes
 const getImageUrl = (path: string | null, size: 'original' | 'w1280' | 'w780' | 'w500' | 'w342' | 'w300' = 'original') => {
@@ -52,12 +53,12 @@ async function fetchWithRetry(
         ? Math.min(parseInt(retryAfter, 10) * 1000, 15000) 
         : (response.status === 429 ? backoff * 2 : backoff);
       
-      console.warn(`[TMDB] Retrying ${url.split('api_key')[0]} due to ${response.status}... (${retries} left, delay: ${delay}ms)`);
+      logger.warn(`[TMDB] Retrying ${url.split('api_key')[0]} due to ${response.status}... (${retries} left, delay: ${delay}ms)`);
       await new Promise(r => setTimeout(r, delay));
       return fetchWithRetry(url, options, retries - 1, backoff * 2, timeoutMs);
     }
     return response;
-  } catch (error: any) {
+  } catch (error: unknown) {
     clearTimeout(timer);
 
     if (options.signal?.aborted) {
@@ -65,8 +66,8 @@ async function fetchWithRetry(
     }
 
     if (retries > 0) {
-      const isTimeout = error.name === 'AbortError';
-      console.warn(`[TMDB] Retrying ${url.split('api_key')[0]} due to ${isTimeout ? 'timeout' : 'network error'}... (${retries} left)`);
+      const isTimeout = error instanceof Error && error.name === 'AbortError';
+      logger.warn(`[TMDB] Retrying ${url.split('api_key')[0]} due to ${isTimeout ? 'timeout' : 'network error'}... (${retries} left)`);
       await new Promise(r => setTimeout(r, backoff));
       return fetchWithRetry(url, options, retries - 1, backoff * 2, timeoutMs);
     }
@@ -105,7 +106,7 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
       const directUrl = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${tmdbKey}`;
 
       if (!tmdbKey) {
-        console.error('[TMDB] VITE_TMDB_API_KEY is not set');
+        logger.error('[TMDB] VITE_TMDB_API_KEY is not set');
         return null;
       }
       try {
@@ -114,7 +115,7 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
         if (response && response.status === 404) return null;
         throw new Error(`TMDB returned status ${response?.status}`);
       } catch (error) {
-        console.error(`[TMDB] Fetch failed for ${endpoint}:`, error);
+        logger.error(`[TMDB] Fetch failed for ${endpoint}:`, error);
         throw error;
       }
     }
@@ -133,7 +134,7 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
       throw new Error(`Proxy returned status ${response?.status}. Proxy is required in production.`);
     } catch (error) {
       if (error instanceof Error && error.message.startsWith('TMDB_API_ERROR')) throw error;
-      console.error(`[TMDB] Proxy fetch failure for ${endpoint}:`, error);
+      logger.error(`[TMDB] Proxy fetch failure for ${endpoint}:`, error);
       throw error;
     }
   });
@@ -469,7 +470,7 @@ export const fetchPersonCredits = async (name: string, role: 'actor' | 'director
       .slice(0, 60)
       .map((i: any) => mapResultToItem(i, i.media_type === 'movie' ? MediaType.Movie : MediaType.Series));
   } catch (error) {
-    console.error(`Failed to fetch credits for ${name}:`, error);
+    logger.error(`Failed to fetch credits for ${name}:`, error);
     return null;
   }
 };
@@ -503,7 +504,7 @@ export const fetchRecommendationPool = async (): Promise<MediaItem[]> => {
 
     return Array.from(poolMap.values());
   } catch (error) {
-    console.error("[TMDB] Failed to fetch recommendation pool", error);
+    logger.error("[TMDB] Failed to fetch recommendation pool", error);
     return [];
   }
 };

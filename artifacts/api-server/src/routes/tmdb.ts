@@ -1,8 +1,19 @@
 import { Router, Request, Response } from "express";
 import { CacheService } from "../services/CacheService";
 import { logger } from "../lib/logger";
+import rateLimit from "express-rate-limit";
 
 const router = Router();
+
+const tmdbLimiter = rateLimit({
+  windowMs: 60 * 1000, // 1 minute
+  max: 60, // Limit TMDB requests to 60 per minute per IP
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many TMDB proxy requests, please try again later." },
+});
+
+router.use(tmdbLimiter);
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
 // Since api-server requires VITE_TMDB_API_KEY from env, let's load it dynamically

@@ -6,6 +6,7 @@ import { dedupe } from '../requestDeduplicator';
 import { HydrateTmdbToAniList } from '../../utils/animeMapper';
 import { parseLocalDate } from '../dateUtils';
 import { MEDIA_FRESHNESS_MS, ACTIVE_SHOW_REFRESH_MS } from '../../services/config';
+import { logger } from '../logger';
 
 /**
  * Unified Media Fetcher - Simplified 2-Tier Architecture
@@ -56,7 +57,7 @@ export async function fetchMediaItem(
         cacheAge < MEDIA_FRESHNESS_MS
       ) {
         if (import.meta.env.DEV) {
-          console.debug(`[mediaFetcher] Local cache is fresh for ${appId}`);
+          logger.debug(`[mediaFetcher] Local cache is fresh for ${appId}`);
         }
         return cached as MediaItem;
       }
@@ -81,7 +82,7 @@ export async function fetchMediaItem(
 
       // Phase 2: Fallback (If TMDB is rate-limited or fails)
       if (import.meta.env.DEV) {
-        console.info(`[mediaFetcher] TMDB failed for ${appId}. Attempting fallback...`);
+        logger.info(`[mediaFetcher] TMDB failed for ${appId}. Attempting fallback...`);
       }
       
       const fallbackTitle = cached?.title || appId.split('_')[1]; 
@@ -126,7 +127,7 @@ export async function fetchMediaItem(
       return null;
 
     } catch (error) {
-      console.error(`[mediaFetcher] Fatal error for ${appId}:`, error);
+      logger.error(`[mediaFetcher] Fatal error for ${appId}:`, error);
       return null;
     }
   });
@@ -152,7 +153,7 @@ export async function fetchItemsByIdsBatched(ids: string[], concurrency = 6): Pr
           results.push(item);
         }
       } catch (e) {
-        console.warn(`[mediaFetcher] batch fetch failed for ${id}:`, e);
+        logger.warn(`[mediaFetcher] batch fetch failed for ${id}:`, e);
       }
     }
   });

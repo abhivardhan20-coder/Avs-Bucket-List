@@ -38,6 +38,24 @@ This project is built as a monorepo using `pnpm` workspaces.
    ```
    *Ensure you define `REDIS_URL` in your backend environment (default: `redis://localhost:6379`).*
 
+### API Keys Setup
+
+#### TMDB API Key
+1. Go to [The Movie Database (TMDB)](https://www.themoviedb.org/) and create an account.
+2. Navigate to your Account Settings > API.
+3. Request an API key (Developer type) and copy the **API Read Access Token** or the **API Key (v3 auth)**.
+4. Add it to your `.env` as `TMDB_API_KEY`.
+
+#### Google OAuth Client ID
+1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
+2. Create a new project or select an existing one.
+3. Navigate to **APIs & Services > Credentials**.
+4. Click **Create Credentials** > **OAuth client ID**.
+5. Configure your OAuth consent screen if prompted.
+6. Choose **Web application** as the application type.
+7. Add your frontend URL (e.g., `http://localhost:5173`) to **Authorized JavaScript origins**.
+8. Copy the **Client ID** and add it to your `.env` as `VITE_GOOGLE_CLIENT_ID`.
+
 3. Generate and run database migrations:
    ```sh
    pnpm run db:generate
@@ -103,6 +121,16 @@ This project uses `pnpm` workspaces for a clean monorepo architecture:
 | `VITE_SUPABASE_URL` | Your Supabase Project URL. | `https://xxxx.supabase.co` | **Yes** |
 | `VITE_SUPABASE_ANON_KEY` | Your Supabase Project Anon/Public Key. | `eyJh...` | **Yes** |
 | `VITE_TMDB_API_KEY` | Your The Movie Database v3 API key. | `abc123...` | Optional |
+
+## Development Scripts
+
+The `scripts/` directory contains automation tools to assist development:
+- `sync_readme.py`: Synchronizes the main README structure to artifacts. Run this after updating the root README.md.
+- `update-deps.js`: Helper script to unify package versions and ensure workspace dependencies are synced effectively.
+
+## Environment Validation
+
+This project relies on `zod` for rigorous environment variable schema validation in both the frontend and backend. At runtime, the API server initializes `lib/env.ts`, parses the `.env` variables, and exits immediately if critical components like `DATABASE_URL` or `FRONTEND_URL` are missing or malformed.
 
 ## Deployment Guidelines
 - Ensure the Redis instance is highly available.

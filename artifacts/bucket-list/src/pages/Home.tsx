@@ -36,12 +36,13 @@ export const Home: React.FC = () => {
     const { handleToggleWatchlist, handleToggleWatched } = useMediaToggles();
 
     const { 
-        data: heroItems = [], 
+        data: heroItemsData, 
         isLoading: loadingHero, 
         isFetching: isFetchingHero,
         isError: heroError, 
         refetch: loadHero 
     } = useTrending(MediaType.Movie);
+    const heroItems = useMemo(() => heroItemsData ?? [], [heroItemsData]);
 
     const isHeroLoading = loadingHero || (isFetchingHero && heroItems.length === 0);
 

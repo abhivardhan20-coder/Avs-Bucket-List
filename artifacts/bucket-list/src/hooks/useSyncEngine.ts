@@ -5,12 +5,23 @@ import { fetchDeltaFromSupabase, upsertMediaItemInSupabase, deleteMediaItemFromS
 import { rowToWatchlistItem, rowToWatchedItem, watchlistItemToRow, watchedItemToRow, fromWatchlistItem, fromWatchedItem, toWatchlistItem, toWatchedItem } from '../utils/dbMappers';
 import { logger } from '../lib/logger';
 
+import { User } from '@supabase/supabase-js';
+
+export interface SyncStats {
+  pending: number;
+  processing: number;
+  failed: number;
+  total: number;
+  success: number;
+  lastError: string;
+}
+
 export function useSyncEngine(
-  user: any,
+  user: User | null,
   isDemo: boolean,
   syncInProgressRef: React.MutableRefObject<boolean>,
   setIsSyncing: (val: boolean) => void,
-  setSyncStats: (val: any) => void,
+  setSyncStats: React.Dispatch<React.SetStateAction<SyncStats>>,
   setLastSyncTime: (val: number) => void
 ) {
   const queryClient = useQueryClient();

@@ -5,6 +5,7 @@ import { fetchAiringAnime } from '@/services/anilist';
 import { HydrateAniListToTmdb } from '../utils/animeMapper';
 import { ContentService } from '../services/contentService';
 import { safeDate } from '../lib/dateUtils';
+import { logger } from '../lib/logger';
 
 export const useAiringSchedule = () => {
     const [items, setItems] = useState<MediaItem[]>([]);
@@ -40,7 +41,7 @@ export const useAiringSchedule = () => {
                     }
                 }
             } catch (e) {
-                console.warn("Failed to read airing cache", e);
+                logger.warn("Failed to read airing cache", e);
             }
 
             try {
@@ -62,7 +63,7 @@ export const useAiringSchedule = () => {
                 ]);
 
                 if (import.meta.env.DEV) {
-                    console.debug("[AiringSchedule] Fetch complete:", {
+                    logger.debug("[AiringSchedule] Fetch complete:", {
                         tmdbCount: tmdbSeries.length,
                         anilistCount: anilistAnime.length,
                         startSeconds,
@@ -122,14 +123,14 @@ export const useAiringSchedule = () => {
                     return value;
                   }));
                 } catch (e) {
-                  console.warn("Failed to write initial airing cache", e);
+                  logger.warn("Failed to write initial airing cache", e);
                 }
 
                 return; 
 
 
             } catch (err) {
-                console.error("Failed to fetch airing schedule", err);
+                logger.error("Failed to fetch airing schedule", err);
                 setError("Could not load airing schedule.");
             } finally {
                 setLoading(false);

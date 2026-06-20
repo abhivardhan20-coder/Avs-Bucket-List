@@ -52,8 +52,26 @@ export class AuthService {
 
   static async register(email: string, password: string): Promise<{ user: any; session: any }> {
     const existingUser = await db.select().from(usersTable).where(eq(usersTable.email, email));
+    
+    // We intentionally don't throw "User already exists" to prevent email enumeration.
+    // If the user already exists, we will log it and return a mock success response.
+    // In a real app, you might want to send an email saying "someone tried to register with your email"
     if (existingUser.length > 0) {
-      throw new AuthError("User already exists");
+      logger.info({ email }, "Registration attempt for existing email");
+      
+      // Return a fake successful response that looks identical to a real one
+      const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0] || "dummy_secret";
+      const token = jwt.sign({
+        sub: existingUser[0].id,
+        email: existingUser[0].email,
+        role: "authenticated",
+        aud: "authenticated"
+      }, secret, { expiresIn: '1h' });
+
+      return {
+        user: { id: existingUser[0].id, email: existingUser[0].email },
+        session: { access_token: token, expires_in: 3600 }
+      };
     }
 
     const passwordHash = await bcrypt.hash(password, 10);

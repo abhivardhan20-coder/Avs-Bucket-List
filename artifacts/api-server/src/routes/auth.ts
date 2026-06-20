@@ -4,12 +4,22 @@ import { authMiddleware, AuthenticatedRequest } from "../middlewares/authMiddlew
 import { validateRequest } from "../middlewares/validateRequest";
 import { AuthService } from "../services/AuthService";
 
+import rateLimit from "express-rate-limit";
+
 const router = Router();
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { error: "Too many auth attempts, please try again later." },
+});
 
 const authSchema = z.object({
   body: z.object({
     email: z.string().email(),
-    password: z.string().min(6),
+    password: z.string().min(10, "Password must be at least 10 characters").max(72, "Password too long"),
     name: z.string().optional()
   }).strict()
 });
@@ -49,7 +59,7 @@ const logoutSchema = z.object({
  *       200:
  *         description: User registered successfully
  */
-router.post("/register", validateRequest(authSchema), async (req: Request, res: Response) => {
+router.post("/register", authLimiter, validateRequest(authSchema), async (req: Request, res: Response) => {
   const result = await AuthService.register(req.body.email, req.body.password);
   res.json(result);
 });
@@ -76,7 +86,7 @@ router.post("/register", validateRequest(authSchema), async (req: Request, res: 
  *       200:
  *         description: Successfully logged in
  */
-router.post("/login", validateRequest(authSchema), async (req: Request, res: Response) => {
+router.post("/login", authLimiter, validateRequest(authSchema), async (req: Request, res: Response) => {
   const result = await AuthService.login(req.body.email, req.body.password);
   res.json(result);
 });

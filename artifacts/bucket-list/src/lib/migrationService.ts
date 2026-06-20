@@ -1,5 +1,6 @@
 import { db, SyncTask } from './db';
 import { UserProfile } from '../types';
+import { logger } from './logger';
 
 interface Migration {
   id: string;
@@ -138,13 +139,13 @@ export async function runMigrations(user: UserProfile): Promise<void> {
   let ranNew = false;
   for (const migration of MIGRATIONS) {
     if (!applied.includes(migration.id)) {
-      console.log(`Running database migration: ${migration.id}`);
+      logger.info(`Running database migration: ${migration.id}`);
       try {
         await migration.run(user);
         applied.push(migration.id);
         ranNew = true;
       } catch (err) {
-        console.error(`Migration ${migration.id} failed:`, err);
+        logger.error(`Migration ${migration.id} failed:`, err);
         // Break to avoid running subsequent migrations that might depend on this one
         break; 
       }

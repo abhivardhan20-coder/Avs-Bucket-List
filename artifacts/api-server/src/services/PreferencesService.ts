@@ -6,15 +6,34 @@ export interface UserPreferences {
   notificationsEnabled: boolean;
 }
 
+import { db } from "@workspace/db";
+import { preferencesTable } from "@workspace/db/schema";
+import { eq } from "drizzle-orm";
+
 export class PreferencesService {
   /**
    * Updates user preferences
    */
   static async updatePreferences(userId: string, prefs: UserPreferences): Promise<UserPreferences> {
-    // Here you would normally update the database
-    // For now, we'll just update the cache to simulate a database operation
     const cacheKey = `prefs_${userId}`;
-    await CacheService.set(cacheKey, prefs, env.PREFERENCES_CACHE_TTL_SECONDS); // cache for 24 hours
+    
+    // Update database
+    await db.insert(preferencesTable).values({
+      userId,
+      theme: prefs.theme,
+      notificationsEnabled: prefs.notificationsEnabled,
+      updatedAt: new Date()
+    }).onConflictDoUpdate({
+      target: preferencesTable.userId,
+      set: {
+        theme: prefs.theme,
+        notificationsEnabled: prefs.notificationsEnabled,
+        updatedAt: new Date()
+      }
+    });
+
+    // Write-through to cache
+    await CacheService.set(cacheKey, prefs, env.PREFERENCES_CACHE_TTL_SECONDS);
     
     return prefs;
   }
@@ -30,16 +49,20 @@ export class PreferencesService {
       return cachedPrefs;
     }
 
-    // Normally fetch from DB here if not in cache
-    // Mocking a fetch from DB
-    const defaultPrefs: UserPreferences = {
+    // Fetch from DB
+    const [dbPrefs] = await db.select().from(preferencesTable).where(eq(preferencesTable.userId, userId));
+    
+    const prefs: UserPreferences = dbPrefs ? {
+      theme: dbPrefs.theme as "light" | "dark" | "system",
+      notificationsEnabled: dbPrefs.notificationsEnabled
+    } : {
       theme: "system",
       notificationsEnabled: true
     };
     
     // Set in cache for future reads
-    await CacheService.set(cacheKey, defaultPrefs, env.PREFERENCES_CACHE_TTL_SECONDS);
+    await CacheService.set(cacheKey, prefs, env.PREFERENCES_CACHE_TTL_SECONDS);
     
-    return defaultPrefs;
+    return prefs;
   }
 }

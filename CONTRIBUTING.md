@@ -14,7 +14,7 @@ We welcome contributions! Please follow these guidelines to help maintain code q
 ## Development Workflow
 1. Fork the repo and create your branch from main.
 2. Run `pnpm install` at the root.
-3. Set up the required environment variables locally by copying `.env.example` to `.env`.
+3. Set up the required environment variables locally by copying `.env.example` to `.env` in the root, as well as in `artifacts/api-server` and `artifacts/bucket-list` directories.
 4. Verify tests pass with `pnpm test`.
 
 ## Pull Request Guidelines
@@ -23,5 +23,15 @@ We welcome contributions! Please follow these guidelines to help maintain code q
 - Verify the bundle size is not bloated with unused dependencies using `px depcheck`.
 - Run `pnpm typecheck` before pushing.
 - Address any feedback from code reviewers. Once approved, a maintainer will merge your PR.
+
+## Code of Conduct
+We are committed to providing a welcoming and inspiring community for all.
+By participating in this project, you agree to abide by our Code of Conduct:
+- Be respectful and considerate of others.
+- Refrain from using discriminatory, harassing, or derogatory language.
+- Provide constructive feedback and accept it gracefully.
+- Focus on what is best for the community and the project.
+
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by contacting the project team.
 
 Thank you for your contributions!

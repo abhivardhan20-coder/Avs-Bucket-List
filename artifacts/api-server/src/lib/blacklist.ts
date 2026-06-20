@@ -12,12 +12,16 @@ class DatabaseError extends Error {
   }
 }
 
+import { createHash } from "crypto";
+
+const tokenFingerprint = (t: string) => createHash("sha256").update(t).digest("hex").slice(0, 8);
+
 export async function addToBlacklist(token: string): Promise<void> {
   try {
     await db.insert(tokenBlacklistTable).values({ token });
     await CacheService.set(`blacklist_${token}`, true, 86400); // Cache the revocation for 24h
   } catch (error) {
-    logger.error({ err: error, token }, "Failed to add token to blacklist");
+    logger.error({ err: error, tokenFingerprint: tokenFingerprint(token) }, "Failed to add token to blacklist");
     throw new DatabaseError("Failed to blacklist token due to database error");
   }
 }
@@ -51,7 +55,7 @@ export async function isBlacklisted(token: string): Promise<boolean> {
     
     return isRevoked;
   } catch (error) {
-    logger.error({ err: error, token }, "Failed to check if token is blacklisted");
+    logger.error({ err: error, tokenFingerprint: tokenFingerprint(token) }, "Failed to check if token is blacklisted");
     throw new DatabaseError("Failed to verify token revocation status from database");
   }
 }

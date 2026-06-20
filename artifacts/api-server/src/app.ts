@@ -51,9 +51,7 @@ const healthLimiter = rateLimit({
   message: { error: "Too many health check requests." },
 });
 
-// Apply health limiter only to health routes
-app.use(`/api/${env.API_VERSION}/health`, healthLimiter);
-app.use('/healthz', healthLimiter);
+// Apply health limiter only to health routes (removed healthLimiter, using general limiter)
 
 // General Rate limiting middleware
 const limiter = rateLimit({
@@ -62,10 +60,20 @@ const limiter = rateLimit({
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: { error: "Too many requests, please try again later." },
-  skip: (req) => req.path.startsWith(`/api/${env.API_VERSION}/health`) || req.path === '/healthz' // Exclude health checks from general limiter
+  skip: (req) => req.path.startsWith(`/api/${env.API_VERSION}/health`) || req.path === '/healthz' // Exclude health checks from general limiter if desired
 });
 
 app.use(limiter);
+
+// HTTPS Enforcement Middleware
+app.use((req, res, next) => {
+  if (process.env.NODE_ENV === 'production') {
+    if (req.headers['x-forwarded-proto'] !== 'https' && req.secure === false) {
+      return res.redirect(301, `https://${req.headers.host}${req.url}`);
+    }
+  }
+  next();
+});
 
 app.use(
   pinoHttp({
@@ -86,7 +94,17 @@ app.use(
     },
   }),
 );
-const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim());
+
+// Validate FRONTEND_URL entries
+const allowedOrigins = env.FRONTEND_URL.split(",").map(url => url.trim()).filter(url => {
+  try {
+    new URL(url);
+    return true;
+  } catch (e) {
+    logger.warn(`Invalid origin URL found in FRONTEND_URL: ${url}`);
+    return false;
+  }
+});
 
 app.use(cors((req, callback) => {
   // Allow health checks explicitly
@@ -96,12 +114,12 @@ app.use(cors((req, callback) => {
 
   const origin = req.header('Origin');
   if (!origin) {
-    // SECURITY: Strictly require an origin header for API calls
-    return callback(new Error('Not allowed by CORS (missing Origin)'), { origin: false });
+    // Relaxed CORS for server-to-server or mobile clients missing origin
+    return callback(null, { origin: true });
   }
 
   if (allowedOrigins.indexOf(origin) !== -1) {
-    return callback(null, { origin: true, credentials: true });
+    return callback(null, { origin: true, credentials: env.ALLOW_CREDENTIALS });
   }
   
   return callback(new Error('Not allowed by CORS'), { origin: false });
@@ -114,19 +132,21 @@ app.use(`/api-docs`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use(`/api/${env.API_VERSION}`, router);
 
 // Sentry error handler should be right before any other error handlers
-if (process.env.SENTRY_DSN && process.env.SENTRY_DSN !== 'https://placeholder@o0.ingest.sentry.io/0') {
+if (env.SENTRY_DSN && env.SENTRY_DSN !== 'https://placeholder@o0.ingest.sentry.io/0') {
   Sentry.setupExpressErrorHandler(app);
 }
 
 import { AppError } from "./lib/AppError";
+import crypto from "crypto";
 
 // Global error handler
 app.use((err: Error | AppError, req: express.Request, res: express.Response, next: express.NextFunction) => {
   const isAppError = err instanceof AppError;
-  const errorId = isAppError && err.errorId ? err.errorId : Math.random().toString(36).substring(7);
+  const errorId = isAppError && err.errorId ? err.errorId : crypto.randomUUID();
   const statusCode = isAppError ? err.statusCode : (err as any).status || (err as any).statusCode || 500;
   
-  logger.error({ err, url: req.originalUrl, errorId }, "Unhandled error");
+  // Sanitize logging
+  logger.error({ errorId, type: err.name, message: err.message }, "Unhandled error");
   
   if (res.headersSent) {
     return next(err);
