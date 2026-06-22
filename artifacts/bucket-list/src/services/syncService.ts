@@ -1,5 +1,6 @@
 import { supabase } from './supabaseClient';
 import { MediaItemRow } from '../types/database.types';
+import { logger } from '@/lib/logger';
 
 /**
  * Fast shallow comparison difference calculator.
@@ -34,7 +35,7 @@ export const fetchWatchlistFromSupabase = async (userId: string): Promise<MediaI
     .order('updated_at', { ascending: false });
 
   if (error) {
-    console.error('[Supabase] fetchWatchlistFromSupabase failed:', error);
+    logger.error('[Supabase] fetchWatchlistFromSupabase failed:', error);
     throw error;
   }
   return data || [];
@@ -54,7 +55,7 @@ export const fetchWatchedFromSupabase = async (userId: string): Promise<MediaIte
     .order('updated_at', { ascending: false });
 
   if (error) {
-    console.error('[Supabase] fetchWatchedFromSupabase failed:', error);
+    logger.error('[Supabase] fetchWatchedFromSupabase failed:', error);
     throw error;
   }
   return data || [];
@@ -72,7 +73,7 @@ export const fetchDeltaFromSupabase = async (userId: string, since: string): Pro
     .order('updated_at', { ascending: true });
 
   if (error) {
-    console.error('[Supabase] fetchDeltaFromSupabase failed:', error);
+    logger.error('[Supabase] fetchDeltaFromSupabase failed:', error);
     throw error;
   }
   return data || [];
@@ -98,7 +99,7 @@ export const upsertMediaItemInSupabase = async (
     .upsert(itemsWithNullDelete, { onConflict: 'user_id,id', ignoreDuplicates: false });
 
   if (error) {
-    console.error('[Supabase] upsertMediaItemInSupabase failed:', error);
+    logger.error('[Supabase] upsertMediaItemInSupabase failed:', error);
     throw error;
   }
 };
@@ -114,7 +115,7 @@ export const deleteMediaItemFromSupabase = async (id: string, userId: string): P
     .eq('user_id', userId);
 
   if (error) {
-    console.error('[Supabase] deleteMediaItemFromSupabase failed:', error);
+    logger.error('[Supabase] deleteMediaItemFromSupabase failed:', error);
     throw error;
   }
 };

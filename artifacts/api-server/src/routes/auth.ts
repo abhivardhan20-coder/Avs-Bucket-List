@@ -30,6 +30,13 @@ const resetSchema = z.object({
   }).strict()
 });
 
+const confirmResetSchema = z.object({
+  body: z.object({
+    token: z.string().min(1, "Token is required"),
+    new_password: z.string().min(10, "Password must be at least 10 characters")
+  }).strict()
+});
+
 const logoutSchema = z.object({
   body: z.object({}).strict().optional(),
   headers: z.object({
@@ -111,7 +118,7 @@ router.post("/login", authLimiter, validateRequest(authSchema), async (req: Requ
  *       200:
  *         description: Reset instructions sent
  */
-router.post("/reset-password", validateRequest(resetSchema), async (req: Request, res: Response) => {
+router.post("/reset-password", authLimiter, validateRequest(resetSchema), async (req: Request, res: Response) => {
   const result = await AuthService.resetPassword(req.body.email);
   res.json(result);
 });
@@ -131,6 +138,72 @@ router.post("/reset-password", validateRequest(resetSchema), async (req: Request
 router.post("/logout", authMiddleware, validateRequest(logoutSchema), async (req: AuthenticatedRequest, res: Response) => {
   const result = await AuthService.logout(req.headers.authorization, req.user?.sub);
   res.json(result);
+});
+
+/**
+ * @openapi
+ * /auth/confirm-reset:
+ *   post:
+ *     summary: Confirm password reset
+ *     tags: [Auth]
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required: [token, new_password]
+ *             properties:
+ *               token:
+ *                 type: string
+ *               new_password:
+ *                 type: string
+ *     responses:
+ *       200:
+ *         description: Password reset successful
+ */
+router.post("/confirm-reset", authLimiter, validateRequest(confirmResetSchema), async (req: Request, res: Response) => {
+  const result = await AuthService.confirmReset(req.body.token, req.body.new_password);
+  res.json(result);
+});
+
+/**
+ * @openapi
+ * /auth/refresh:
+ *   post:
+ *     summary: Refresh auth token
+ *     tags: [Auth]
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *         description: Token refreshed
+ */
+router.post("/refresh", authMiddleware, async (req: AuthenticatedRequest, res: Response) => {
+  // authMiddleware already validates the token. We just issue a new one.
+  const user = req.user;
+  if (!user) {
+    res.status(401).json({ error: "Unauthorized" });
+    return;
+  }
+  
+  const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0];
+  if (!secret) {
+    res.status(500).json({ error: "Server configuration error" });
+    return;
+  }
+
+  const jwt = require("jsonwebtoken");
+  const newToken = jwt.sign({
+    sub: user.sub,
+    email: user.email,
+    role: user.role,
+    aud: user.aud
+  }, secret, { expiresIn: '1h' });
+
+  res.json({
+    session: { access_token: newToken, expires_in: 3600 }
+  });
 });
 
 export default router;

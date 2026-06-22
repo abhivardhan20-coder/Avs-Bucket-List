@@ -5,7 +5,7 @@ import { fetchDeltaFromSupabase, upsertMediaItemInSupabase, deleteMediaItemFromS
 import { rowToWatchlistItem, rowToWatchedItem, watchlistItemToRow, watchedItemToRow, fromWatchlistItem, fromWatchedItem, toWatchlistItem, toWatchedItem } from '../utils/dbMappers';
 import { logger } from '../lib/logger';
 
-import { User } from '@supabase/supabase-js';
+import { UserProfile } from '../types';
 
 export interface SyncStats {
   pending: number;
@@ -17,7 +17,7 @@ export interface SyncStats {
 }
 
 export function useSyncEngine(
-  user: User | null,
+  user: UserProfile | null,
   isDemo: boolean,
   syncInProgressRef: React.MutableRefObject<boolean>,
   setIsSyncing: (val: boolean) => void,

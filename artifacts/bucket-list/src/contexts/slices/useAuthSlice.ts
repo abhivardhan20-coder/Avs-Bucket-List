@@ -1,6 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { UserProfile } from '../../types';
 import { supabase } from '../../services/supabaseClient';
+import { logger } from '../../lib/logger';
+import { postAuthLogout } from '@workspace/api-client-react';
 import type { AuthSession } from '@supabase/supabase-js';
 
 /**
@@ -19,7 +21,7 @@ export const useAuthSlice = () => {
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('[Auth] Failed to get session:', error);
+          logger.error('[Auth] Failed to get session:', { error });
           return;
         }
 
@@ -45,14 +47,14 @@ export const useAuthSlice = () => {
                 return;
               }
             } catch (e) {
-              console.error('[Auth] Failed to parse stored profile:', e);
+              logger.error('[Auth] Failed to parse stored profile:', { error: e });
             }
           }
           // Clear legacy data if not a demo session
           localStorage.removeItem("av_user_profile");
         }
       } catch (err) {
-        console.error('[Auth] Initialization error:', err);
+        logger.error('[Auth] Initialization error:', { error: err });
       }
     };
 
@@ -116,7 +118,7 @@ export const useAuthSlice = () => {
         throw error;
       }
     } catch (err) {
-      console.error('[Auth] Google sign-in error:', err);
+      logger.error('[Auth] Google sign-in error:', { error: err });
       throw err;
     }
   }, []);
@@ -145,20 +147,18 @@ export const useAuthSlice = () => {
       if (session?.access_token) {
         // Send revocation request to API backend
         try {
-          const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
-          await fetch(`${apiUrl}/api/v1/auth/logout`, {
-            method: 'POST',
+          await postAuthLogout({
             headers: {
               'Authorization': `Bearer ${session.access_token}`
             }
           });
         } catch (e) {
-          console.error('[Auth] Failed to send logout signal to backend:', e);
+          logger.error('[Auth] Failed to send logout signal to backend:', { error: e });
         }
       }
       await supabase.auth.signOut();
     } catch (err) {
-      console.error('[Auth] Logout error:', err);
+      logger.error('[Auth] Logout error:', { error: err });
     } finally {
       setUser(null);
       sessionRef.current = null;

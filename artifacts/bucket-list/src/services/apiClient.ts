@@ -1,4 +1,5 @@
 import { log } from '@/lib/logger';
+import { supabase } from './supabaseClient';
 
 export enum ApiErrorType {
   NETWORK = 'NETWORK',
@@ -88,24 +89,49 @@ export async function apiClient<T>(url: string, options: RequestOptions = {}): P
         await new Promise(r => setTimeout(r, baseDelay + jitter));
       }
 
-      // Get token from sessionStorage
-      let userToken = '';
+      // Get token from Supabase session
+      let authHeader: Record<string, string> = {};
       try {
-        userToken = sessionStorage.getItem('av_session_token') || '';
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.access_token) {
+          authHeader = { Authorization: `Bearer ${session.access_token}` };
+        }
       } catch (e) {
-        console.warn("[apiClient] Failed to read session token", e);
+        log('[apiClient] Failed to get session token', 'warn', 'apiClient');
       }
 
-      const response = await fetch(url, {
+      let response = await fetch(url, {
         ...fetchOptions,
         keepalive: fetchOptions.keepalive, // Crucial for beforeunload/visibilitychange
         signal: controller.signal,
         headers: {
           ...fetchOptions.headers,
           'X-Request-ID': requestId,
-          ...(userToken ? { 'X-User-Token': userToken } : {})
+          ...authHeader
         }
       });
+
+      // Handle 401 by attempting a refresh
+      if (response.status === 401) {
+        try {
+          const { data: { session }, error } = await supabase.auth.refreshSession();
+          if (session?.access_token && !error) {
+            log('[apiClient] Session refreshed, retrying request...', 'info', 'apiClient');
+            response = await fetch(url, {
+              ...fetchOptions,
+              keepalive: fetchOptions.keepalive,
+              signal: controller.signal,
+              headers: {
+                ...fetchOptions.headers,
+                'X-Request-ID': requestId,
+                Authorization: `Bearer ${session.access_token}`
+              }
+            });
+          }
+        } catch (e) {
+          log('[apiClient] Failed to refresh session', 'error', 'apiClient');
+        }
+      }
 
       if (!response.ok) {
         // Retry 5xx server errors and 429 rate-limit responses

@@ -20,6 +20,11 @@ const envSchema = z.object({
   REDIS_URL: z.string().default("redis://localhost:6379"),
   SENTRY_DSN: z.string().url().optional(),
   ALLOW_CREDENTIALS: z.string().default("true").transform(s => s.toLowerCase() === "true"),
+  TMDB_API_KEY: z.string().min(1, "TMDB_API_KEY must be set"),
+  SMTP_HOST: z.string().optional(),
+  SMTP_PORT: z.string().optional(),
+  SMTP_USER: z.string().optional(),
+  SMTP_PASS: z.string().optional(),
 });
 
 let parsedEnv: z.infer<typeof envSchema>;

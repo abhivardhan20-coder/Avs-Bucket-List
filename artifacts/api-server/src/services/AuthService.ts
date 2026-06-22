@@ -8,12 +8,14 @@ import { logger } from "../lib/logger";
 
 import jwt from "jsonwebtoken";
 
+import { AppError } from "../lib/AppError";
+import { createHash } from "crypto";
+
 const BEARER_PREFIX = "Bearer ";
 
-class AuthError extends Error {
+class AuthError extends AppError {
   constructor(message: string) {
-    super(message);
-    this.name = "AuthError";
+    super(message, 401, 'AUTH_ERROR');
   }
 }
 
@@ -138,13 +140,14 @@ export class AuthService {
 
       // If no SMTP_USER, we are probably in dev and using a mock or it will fail.
       if (!process.env.SMTP_USER) {
-        logger.info({ email, resetToken }, "MOCK EMAIL: Password reset requested");
+        const tokenFingerprint = (t: string) => createHash('sha256').update(t).digest('hex').slice(0, 8);
+        logger.info({ email, tokenFingerprint: tokenFingerprint(resetToken) }, "MOCK EMAIL: Password reset requested (dev only)");
       } else {
         await transporter.sendMail({
           from: '"Bucket List Auth" <noreply@bucketlist.com>',
           to: email,
           subject: "Password Reset Request",
-          text: `Your password reset token is: ${resetToken}\nIt will expire in 15 minutes.`,
+          text: `Click the link to reset your password: ${process.env.FRONTEND_URL}/reset?token=${resetToken}\nIt will expire in 15 minutes.`,
         });
       }
     } catch (err) {
@@ -155,5 +158,28 @@ export class AuthService {
       success: true, 
       message: "Password reset instructions sent to email",
     };
+  }
+
+  static async confirmReset(token: string, newPassword: string): Promise<{ success: boolean }> {
+    const secret = process.env.SUPABASE_JWT_SECRET?.split(',')[0];
+    if (!secret) throw new AuthError("SUPABASE_JWT_SECRET is not configured");
+
+    try {
+      const payload = jwt.verify(token, secret) as jwt.JwtPayload;
+      if (payload.type !== 'password_reset') throw new AuthError('Invalid reset token');
+      
+      const passwordHash = await bcrypt.hash(newPassword, 10);
+      await db.update(usersTable).set({ passwordHash }).where(eq(usersTable.email, payload.email));
+      
+      // Prevent token reuse by blacklisting it immediately
+      await addToBlacklist(token);
+      
+      return { success: true };
+    } catch (err) {
+      if (err instanceof jwt.TokenExpiredError) {
+        throw new AuthError('Reset token has expired');
+      }
+      throw new AuthError('Invalid reset token');
+    }
   }
 }

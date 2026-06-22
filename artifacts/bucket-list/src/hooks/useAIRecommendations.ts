@@ -3,6 +3,7 @@ import { db, RecommendationDBItem } from '../lib/db';
 import { recommendationService } from '../services/recommendationService';
 import { MediaType, WatchedItem } from '../types';
 import { useToast } from '../contexts/ToastProvider';
+import { logger } from '@/lib/logger';
 
 export function useAIRecommendations(
   watched: WatchedItem[],
@@ -31,7 +32,7 @@ export function useAIRecommendations(
       const sorted = cached.sort((a, b) => b.createdAt - a.createdAt);
       setRecommendations(sorted);
     } catch (err) {
-      console.error("[useAIRecommendations] Failed loading cache", err);
+      logger.error("[useAIRecommendations] Failed loading cache", { error: err });
     }
   }, []);
 
@@ -62,7 +63,7 @@ export function useAIRecommendations(
       // Reload from db to ensure we get the full consolidated list
       await loadCache();
     } catch (err: any) {
-      console.error("[useAIRecommendations] Generation failed", err);
+      logger.error("[useAIRecommendations] Generation failed", { error: err });
       const errMsg = err?.message || "Failed to contact OpenRouter API";
       setError(errMsg);
       showToast(`AI recommendations failed: ${errMsg}`, "error");

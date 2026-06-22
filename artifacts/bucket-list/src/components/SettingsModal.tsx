@@ -22,19 +22,23 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
   
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isConfirmClearOpen, setIsConfirmClearOpen] = useState(false);
 
   const handleExport = () => {
     exportData();
     showToast("Backup file downloaded!", "success");
   };
 
-  const handleClearData = async () => {
-    if (window.confirm("Are you sure you want to delete all saved data? This action cannot be undone.")) {
-      const res = await clearData();
-      showToast(res.message, res.success ? 'success' : 'error');
-      if (res.success) {
-        setTimeout(onClose, 1500);
-      }
+  const handleClearDataClick = () => {
+    setIsConfirmClearOpen(true);
+  };
+
+  const confirmClearData = async () => {
+    setIsConfirmClearOpen(false);
+    const res = await clearData();
+    showToast(res.message, res.success ? 'success' : 'error');
+    if (res.success) {
+      setTimeout(onClose, 1500);
     }
   };
 
@@ -160,7 +164,7 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
                 </button>
               )}
 
-              <button onClick={handleClearData} className="w-full bg-[#0f0f0f] border border-red-900/30 hover:border-red-600 hover:bg-red-900/10 text-red-500 p-4 rounded-xl flex items-center justify-center gap-3 transition-all group">
+              <button onClick={handleClearDataClick} className="w-full bg-[#0f0f0f] border border-red-900/30 hover:border-red-600 hover:bg-red-900/10 text-red-500 p-4 rounded-xl flex items-center justify-center gap-3 transition-all group">
                 <Trash2 className="w-5 h-5" />
                 <span className="font-bold">Clear All Data</span>
               </button>
@@ -200,6 +204,39 @@ const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose }) => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <Modal
+        isOpen={isConfirmClearOpen}
+        onClose={() => setIsConfirmClearOpen(false)}
+        ariaLabelledBy="confirm-clear-title"
+        overlayClassName="bg-black/80 backdrop-blur-md"
+        className="w-full max-w-sm mx-4"
+        zIndex={200}
+      >
+        <div className="bg-[#1a1a1a] p-6 rounded-2xl border border-red-900/30 shadow-2xl space-y-6">
+          <div>
+            <h2 id="confirm-clear-title" className="text-xl font-bold text-white mb-2">Are you sure?</h2>
+            <p className="text-gray-400 text-sm leading-relaxed">
+              This will permanently delete all your saved data. This action cannot be undone.
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => setIsConfirmClearOpen(false)}
+              className="flex-1 px-4 py-2.5 bg-white/5 hover:bg-white/10 text-white rounded-xl font-medium transition-colors"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={confirmClearData}
+              className="flex-1 px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-bold transition-colors shadow-lg shadow-red-900/20"
+            >
+              Delete All
+            </button>
+          </div>
+        </div>
+      </Modal>
     </Modal>
   );
 };

@@ -1,13 +1,16 @@
 import { db, RecommendationDBItem } from '../lib/db';
 import { searchTmdb, fetchDetails } from './tmdb';
 import { MediaType, WatchedItem } from '../types';
+import { logger } from '@/lib/logger';
 
 const OPENROUTER_ENDPOINT = 'https://openrouter.ai/api/v1/chat/completions';
 const DEFAULT_MODEL = 'google/gemini-2.5-flash';
 const FALLBACK_MODEL = 'openai/gpt-4o-mini';
 
 const getApiKey = () => {
-  return import.meta.env.VITE_OPENROUTER_API_KEY || "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";
+  const key = import.meta.env.VITE_OPENROUTER_API_KEY;
+  if (!key) throw new Error('[RecommendationService] VITE_OPENROUTER_API_KEY is not set');
+  return key;
 };
 
 // Robust retry with backoff helper
@@ -22,7 +25,7 @@ async function fetchWithRetry(
     
     // Retry on 429 (Rate Limit) or 5xx (Server Error), but NOT on 402 (Payment Required)
     if (!response.ok && (response.status === 429 || response.status >= 500) && retries > 0) {
-      console.warn(`[OpenRouter] API returned status ${response.status}. Retrying in ${backoff}ms...`);
+      logger.warn(`[OpenRouter] API returned status ${response.status}. Retrying in ${backoff}ms...`);
       await new Promise(r => setTimeout(r, backoff));
       return fetchWithRetry(url, options, retries - 1, backoff * 2);
     }
@@ -30,7 +33,7 @@ async function fetchWithRetry(
     return response;
   } catch (error) {
     if (retries > 0) {
-      console.warn(`[OpenRouter] Network failure. Retrying in ${backoff}ms...`, error);
+      logger.warn(`[OpenRouter] Network failure. Retrying in ${backoff}ms...`, { error });
       await new Promise(r => setTimeout(r, backoff));
       return fetchWithRetry(url, options, retries - 1, backoff * 2);
     }
@@ -51,7 +54,7 @@ async function resolveRecommendation(
     // Search TMDB
     const searchResults = await searchTmdb(title, tmdbType, 1);
     if (!searchResults || searchResults.length === 0) {
-      console.info(`[RecommendationResolver] No TMDB results found for title: "${title}" (${mediaType})`);
+      logger.info(`[RecommendationResolver] No TMDB results found for title: "${title}" (${mediaType})`);
       return null;
     }
 
@@ -112,7 +115,7 @@ async function resolveRecommendation(
       createdAt: Date.now()
     };
   } catch (error) {
-    console.error(`[RecommendationResolver] Failed resolving title: "${title}"`, error);
+    logger.error(`[RecommendationResolver] Failed resolving title: "${title}"`, { error });
     return null;
   }
 }
@@ -249,13 +252,13 @@ Return valid JSON only. Keep the structure matching the api specification exactl
     try {
       jsonResult = await makeApiCall(DEFAULT_MODEL);
     } catch (primaryError) {
-      console.warn(`[OpenRouter] Primary model ${DEFAULT_MODEL} failed, trying fallback ${FALLBACK_MODEL}...`, primaryError);
+      logger.warn(`[OpenRouter] Primary model ${DEFAULT_MODEL} failed, trying fallback ${FALLBACK_MODEL}...`, { error: primaryError });
       jsonResult = await makeApiCall(FALLBACK_MODEL);
     }
 
     const aiRecommendations = jsonResult?.recommendations || [];
     if (aiRecommendations.length === 0) {
-      console.warn("[OpenRouter] No recommendations returned from AI parsing.");
+      logger.warn("[OpenRouter] No recommendations returned from AI parsing.");
       return [];
     }
 
@@ -321,7 +324,7 @@ Return valid JSON only. Keep the structure matching the api specification exactl
     try {
       return await db.recommendations.toArray();
     } catch (e) {
-      console.error("[recommendationService] Failed getting cached items", e);
+      logger.error("[recommendationService] Failed getting cached items", { error: e });
       return [];
     }
   },
@@ -337,10 +340,10 @@ Return valid JSON only. Keep the structure matching the api specification exactl
       const existing = await db.recommendations.get(id);
       if (existing) {
         await db.recommendations.update(id, { feedback });
-        console.info(`[recommendationService] Updated feedback for ${id} to: ${feedback}`);
+        logger.info(`[recommendationService] Updated feedback for ${id} to: ${feedback}`);
       }
     } catch (e) {
-      console.error("[recommendationService] Failed updating feedback", e);
+      logger.error("[recommendationService] Failed updating feedback", { error: e });
     }
   }
 };

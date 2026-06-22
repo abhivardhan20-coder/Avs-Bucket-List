@@ -5,22 +5,8 @@
  * API Documentation for Avs Bucket List
  * OpenAPI spec version: 1.0.0
  */
-export type PostAuthRegisterBody = {
-  email: string;
-  password: string;
-};
-
-export type PostAuthLoginBody = {
-  email: string;
-  password: string;
-};
-
-export type PostAuthResetPasswordBody = {
-  email: string;
-};
 
 export type PostAuthConfirmResetBody = {
   token: string;
   new_password: string;
 };
-
