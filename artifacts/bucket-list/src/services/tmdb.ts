@@ -172,6 +172,42 @@ const calculateDaysUntil = (dateStr: string): number => {
   return Math.ceil((target.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
 };
 
+// ────────────────────────────────────────────────────────────────────────────
+// TMDB API Response Type Definitions
+// ────────────────────────────────────────────────────────────────────────────
+
+interface TmdbVideo {
+  site: string;
+  type: string;
+  official: boolean;
+  key: string;
+}
+
+interface TmdbCastMember {
+  name: string;
+  character?: string;
+  order?: number;
+}
+
+interface TmdbCrewMember {
+  name: string;
+  job: string;
+  department?: string;
+}
+
+interface TmdbCredits {
+  cast: TmdbCastMember[];
+  crew: TmdbCrewMember[];
+}
+
+interface TmdbSeasonSummary {
+  season_number: number;
+  name: string;
+  poster_path: string | null;
+  air_date: string;
+  episode_count: number;
+}
+
 interface TmdbResult {
   id: number;
   title?: string;
@@ -197,10 +233,68 @@ interface TmdbResult {
     episode_number: number;
     name: string;
   } | null;
-  videos?: { results: { site: string; type: string; official: boolean; key: string }[] };
-  credits?: { cast: { name: string }[]; crew: { name: string; job: string }[] };
-  seasons?: { season_number: number; name: string; poster_path: string | null; air_date: string; episode_count: number }[];
+  videos?: { results: TmdbVideo[] };
+  credits?: TmdbCredits;
+  seasons?: TmdbSeasonSummary[];
+  media_type?: string;
+  popularity?: number;
 }
+
+/** Paginated list response from TMDB (search, discover, trending, top_rated, etc.) */
+interface TmdbPaginatedResponse {
+  page: number;
+  results: TmdbResult[];
+  total_pages: number;
+  total_results: number;
+}
+
+/** Full detail response from TMDB /{type}/{id}?append_to_response=videos,credits */
+interface TmdbDetailResponse extends TmdbResult {
+  genres?: { id: number; name: string }[];
+  videos?: { results: TmdbVideo[] };
+  credits?: TmdbCredits;
+  seasons?: TmdbSeasonSummary[];
+}
+
+/** Person search result from TMDB /search/person */
+interface TmdbPersonResult {
+  id: number;
+  name: string;
+  popularity?: number;
+  known_for_department?: string;
+  profile_path?: string | null;
+}
+
+interface TmdbPersonSearchResponse {
+  results: TmdbPersonResult[];
+}
+
+/** Combined credits response from TMDB /person/{id}/combined_credits */
+interface TmdbPersonCreditsResponse {
+  cast: TmdbResult[];
+  crew: (TmdbResult & { job: string })[];
+}
+
+/** Season detail response from TMDB /tv/{id}/season/{number} */
+interface TmdbSeasonDetailResponse {
+  episodes?: {
+    episode_number: number;
+    name: string;
+    runtime: number;
+    overview: string;
+    still_path: string | null;
+    air_date: string;
+  }[];
+}
+
+/** Video list response from TMDB /{type}/{id}/videos */
+interface TmdbVideoResponse {
+  results?: TmdbVideo[];
+}
+
+// ────────────────────────────────────────────────────────────────────────────
+// Mapping & Helpers
+// ────────────────────────────────────────────────────────────────────────────
 
 const mapResultToItem = (item: TmdbResult, type: MediaType): MediaItem => {
   const genreIds = item.genre_ids || (item.genres ? item.genres.map(g => g.id) : []);
@@ -258,10 +352,14 @@ const getGenreId = (name: string): number | undefined => {
   return undefined;
 };
 
+// ────────────────────────────────────────────────────────────────────────────
+// Public API Functions
+// ────────────────────────────────────────────────────────────────────────────
+
 export const fetchTrailerKey = async (appId: string): Promise<string | undefined> => {
   const { type, id } = parseAppId(appId);
   if (id === -1 || type === 'unknown') return undefined;
-  const data = await safeTmdbFetch<{ results?: { site: string; type: string; official: boolean; key: string }[] }>(`/${type}/${id}/videos`);
+  const data = await safeTmdbFetch<TmdbVideoResponse>(`/${type}/${id}/videos`);
   if (!data) return undefined;
 
   const videos = data.results?.filter(v => v.site === 'YouTube') || [];
@@ -274,7 +372,7 @@ export const fetchTrailerKey = async (appId: string): Promise<string | undefined
 export const fetchSeasonDetails = async (appId: string, seasonNumber: number): Promise<Episode[] | null> => {
   const { id } = parseAppId(appId);
   if (id === -1) return null;
-  const data = await safeTmdbFetch<{ episodes?: { episode_number: number; name: string; runtime: number; overview: string; still_path: string | null; air_date: string }[] }>(`/tv/${id}/season/${seasonNumber}`);
+  const data = await safeTmdbFetch<TmdbSeasonDetailResponse>(`/tv/${id}/season/${seasonNumber}`);
   if (!data) return null;
 
   return data.episodes?.map(e => ({
@@ -292,22 +390,22 @@ export const fetchSeasonDetails = async (appId: string, seasonNumber: number): P
 export const fetchDetails = async (appId: string, signal?: AbortSignal): Promise<Partial<MediaItem> | null> => {
   const { type, id } = parseAppId(appId);
   if (id === -1 || type === 'unknown') return null;
-  const data = await safeTmdbFetch<Record<string, any>>(`/${type}/${id}?append_to_response=videos,credits`, signal);
+  const data = await safeTmdbFetch<TmdbDetailResponse>(`/${type}/${id}?append_to_response=videos,credits`, signal);
   if (!data) return null;
 
-  const videos = data.videos?.results?.filter((v: Record<string, any>) => v.site === 'YouTube') || [];
-  const trailer = videos.find((v: Record<string, any>) => v.type === 'Trailer' && v.official === true)
-    || videos.find((v: Record<string, any>) => v.type === 'Trailer')
-    || videos.find((v: Record<string, any>) => v.type === 'Teaser' && v.official === true);
+  const videos = data.videos?.results?.filter((v: TmdbVideo) => v.site === 'YouTube') || [];
+  const trailer = videos.find((v: TmdbVideo) => v.type === 'Trailer' && v.official === true)
+    || videos.find((v: TmdbVideo) => v.type === 'Trailer')
+    || videos.find((v: TmdbVideo) => v.type === 'Teaser' && v.official === true);
 
-  const cast = data.credits?.cast?.slice(0, 5).map((c: Record<string, any>) => c.name) || [];
-  const director = data.credits?.crew?.find((c: Record<string, any>) => c.job === 'Director')?.name;
+  const cast = data.credits?.cast?.slice(0, 5).map((c: TmdbCastMember) => c.name) || [];
+  const director = data.credits?.crew?.find((c: TmdbCrewMember) => c.job === 'Director')?.name;
 
   let seasons: Season[] | undefined = undefined;
   if (type === 'tv' && data.seasons) {
     seasons = data.seasons
-      .filter((s: { season_number: number }) => s.season_number > 0)
-      .map((s: { season_number: number; name: string; poster_path: string | null; air_date: string; episode_count: number }) => ({
+      .filter((s: TmdbSeasonSummary) => s.season_number > 0)
+      .map((s: TmdbSeasonSummary) => ({
         id: `season_${id}_${s.season_number}`,
         number: s.season_number,
         title: s.name,
@@ -318,74 +416,74 @@ export const fetchDetails = async (appId: string, signal?: AbortSignal): Promise
       }));
   }
   const mediaType = type === 'movie' ? MediaType.Movie : MediaType.Series;
-  const mapped = mapResultToItem(data as TmdbResult, mediaType);
+  const mapped = mapResultToItem(data, mediaType);
   return {
     ...mapped,
     trailerId: trailer?.key,
     cast,
     director,
     seasons,
-    genres: data.genres?.map((g: Record<string, any>) => g.name) || [],
+    genres: data.genres?.map((g: { id: number; name: string }) => g.name) || [],
     totalEpisodes: data.number_of_episodes,
     runtime: Number(data.runtime) || (data.episode_run_time && Number(data.episode_run_time[0])) || 0
   };
 };
 
 export const searchTmdb = async (query: string, type: 'movie' | 'tv', page: number = 1): Promise<MediaItem[]> => {
-  const data = await safeTmdbFetch<{ results: TmdbResult[] }>(`/search/${type}?query=${encodeURIComponent(query)}&page=${page}`);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/search/${type}?query=${encodeURIComponent(query)}&page=${page}`);
   if (!data || !data.results) return [];
   return (data.results.map((item: TmdbResult) => mapResultToItem(item, type === 'movie' ? MediaType.Movie : MediaType.Series)) || []).filter(i => i.posterUrl);
 };
 
 export const fetchTrendingMovies = async (page: number = 1) => {
-  const data = await safeTmdbFetch<{ results: TmdbResult[] }>(`/trending/movie/week?page=${page}`);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/trending/movie/week?page=${page}`);
   return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Movie)) || []).filter(i => i.posterUrl);
 };
 
 export const fetchTrendingSeries = async (page: number = 1) => {
-  const data = await safeTmdbFetch<{ results: TmdbResult[] }>(`/trending/tv/week?page=${page}`);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/trending/tv/week?page=${page}`);
   return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Series)) || []).filter(i => i.posterUrl);
 };
 
 export const fetchTrendingAnime = async (page: number = 1) => {
-  const data = await safeTmdbFetch<{ results: TmdbResult[] }>(`/discover/tv?with_genres=16&with_original_language=ja&sort_by=popularity.desc&page=${page}`);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/discover/tv?with_genres=16&with_original_language=ja&sort_by=popularity.desc&page=${page}`);
   return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Anime)) || []).filter(i => i.posterUrl);
 };
 
 export const fetchTopRatedMovies = async (page: number = 1) => {
-  const data = await safeTmdbFetch<any>(`/movie/top_rated?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Movie)) || []).filter((i: MediaItem) => i.posterUrl);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/movie/top_rated?page=${page}`);
+  return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Movie)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchTopRatedSeries = async (page: number = 1) => {
-  const data = await safeTmdbFetch<any>(`/tv/top_rated?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Series)) || []).filter((i: MediaItem) => i.posterUrl);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/tv/top_rated?page=${page}`);
+  return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Series)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchTopRatedAnime = async (page: number = 1) => {
-  const data = await safeTmdbFetch<any>(`/discover/tv?with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=200&page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Anime)) || []).filter((i: MediaItem) => i.posterUrl);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/discover/tv?with_genres=16&with_original_language=ja&sort_by=vote_average.desc&vote_count.gte=200&page=${page}`);
+  return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Anime)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchUpcomingMovies = async (page: number = 1) => {
-  const data = await safeTmdbFetch<any>(`/movie/upcoming?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Movie)) || []).filter((i: MediaItem) => i.posterUrl);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/movie/upcoming?page=${page}`);
+  return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Movie)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchAiringSeries = async (page: number = 1) => {
-  const data = await safeTmdbFetch<any>(`/tv/on_the_air?page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Series)) || []).filter((i: MediaItem) => i.posterUrl);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/tv/on_the_air?page=${page}`);
+  return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Series)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchUpcomingAnime = async (page: number = 1) => {
   const now = new Date();
   const today = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
-  const data = await safeTmdbFetch<any>(`/discover/tv?with_genres=16&with_original_language=ja&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`);
-  return (data?.results?.map((i: any) => mapResultToItem(i, MediaType.Anime)) || []).filter((i: MediaItem) => i.posterUrl);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/discover/tv?with_genres=16&with_original_language=ja&first_air_date.gte=${today}&sort_by=popularity.desc&page=${page}`);
+  return (data?.results?.map((i: TmdbResult) => mapResultToItem(i, MediaType.Anime)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const searchAnime = async (query: string, page: number = 1): Promise<MediaItem[]> => {
-  const data = await safeTmdbFetch<{ results: TmdbResult[] }>(`/search/tv?query=${encodeURIComponent(query)}&page=${page}`);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/search/tv?query=${encodeURIComponent(query)}&page=${page}`);
   if (!data || !data.results) return [];
   // Filter for Anime type items
   return data.results
@@ -449,7 +547,7 @@ export const hydrateSeries = async (item: MediaItem): Promise<MediaItem> => {
 
 export const fetchPersonCredits = async (name: string, role: 'actor' | 'director'): Promise<MediaItem[] | null> => {
   try {
-    const searchData = await safeTmdbFetch<any>(`/search/person?query=${encodeURIComponent(name)}`);
+    const searchData = await safeTmdbFetch<TmdbPersonSearchResponse>(`/search/person?query=${encodeURIComponent(name)}`);
     if (!searchData?.results?.length) return null;
 
     // Improved matching logic:
@@ -458,23 +556,23 @@ export const fetchPersonCredits = async (name: string, role: 'actor' | 'director
     // 3. Fallback to the most popular person if no department match found
     const targetDept = role === 'actor' ? 'Acting' : 'Directing';
 
-    const candidates = [...searchData.results].sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0));
-    const person = candidates.find((p: any) => p.known_for_department === targetDept) || candidates[0];
+    const candidates = [...searchData.results].sort((a: TmdbPersonResult, b: TmdbPersonResult) => (b.popularity || 0) - (a.popularity || 0));
+    const person = candidates.find((p: TmdbPersonResult) => p.known_for_department === targetDept) || candidates[0];
 
     if (!person) return null;
 
-    const creditsData = await safeTmdbFetch<any>(`/person/${person.id}/combined_credits`);
+    const creditsData = await safeTmdbFetch<TmdbPersonCreditsResponse>(`/person/${person.id}/combined_credits`);
     if (!creditsData) return null;
 
-    const items = role === 'actor'
+    const items: TmdbResult[] = role === 'actor'
       ? (creditsData.cast || [])
-      : (creditsData.crew?.filter((c: any) => c.job === 'Director') || []);
+      : (creditsData.crew?.filter((c: TmdbResult & { job: string }) => c.job === 'Director') || []);
 
     return items
-      .filter((i: any) => (i.poster_path || i.backdrop_path) && i.overview)
-      .sort((a: any, b: any) => (b.popularity || 0) - (a.popularity || 0))
+      .filter((i: TmdbResult) => (i.poster_path || i.backdrop_path) && i.overview)
+      .sort((a: TmdbResult, b: TmdbResult) => (a.popularity || 0) > (b.popularity || 0) ? -1 : 1)
       .slice(0, 60)
-      .map((i: any) => mapResultToItem(i, i.media_type === 'movie' ? MediaType.Movie : MediaType.Series));
+      .map((i: TmdbResult) => mapResultToItem(i, i.media_type === 'movie' ? MediaType.Movie : MediaType.Series));
   } catch (error) {
     logger.error(`Failed to fetch credits for ${name}:`, error);
     return null;
@@ -487,9 +585,9 @@ export const fetchContentByGenre = async (genre: string, type: MediaType, page: 
 
   const endpointType = type === MediaType.Movie ? 'movie' : 'tv';
   // Use discover
-  const data = await safeTmdbFetch<any>(`/discover/${endpointType}?with_genres=${genreId}&sort_by=popularity.desc&page=${page}`);
+  const data = await safeTmdbFetch<TmdbPaginatedResponse>(`/discover/${endpointType}?with_genres=${genreId}&sort_by=popularity.desc&page=${page}`);
   if (!data?.results) return [];
-  return (data.results.map((i: any) => mapResultToItem(i, type)) || []).filter((i: MediaItem) => i.posterUrl);
+  return (data.results.map((i: TmdbResult) => mapResultToItem(i, type)) || []).filter((i: MediaItem) => i.posterUrl);
 };
 
 export const fetchRecommendationPool = async (): Promise<MediaItem[]> => {

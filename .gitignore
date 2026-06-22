@@ -54,6 +54,7 @@ replit.md
 # Env files
 .env
 .env.*
+!.env.example
 
 # Cache and Build Output
 .pwa-profile/
