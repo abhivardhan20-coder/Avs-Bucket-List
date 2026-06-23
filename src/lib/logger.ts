@@ -1,5 +1,5 @@
 import { db } from './db';
-import * as Sentry from '@sentry/react';
+import * as Sentry from '@sentry/nextjs';
 
 export type LogLevel = 'info' | 'warn' | 'error' | 'success';
 const MAX_LOGS = 200;
