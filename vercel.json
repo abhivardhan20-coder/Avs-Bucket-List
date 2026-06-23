@@ -1,5 +1,5 @@
 {
-  "crons": [
+  "_crons": [
     {
       "path": "/api/v1/cron/cleanup-blacklist",
       "schedule": "0 * * * *"
