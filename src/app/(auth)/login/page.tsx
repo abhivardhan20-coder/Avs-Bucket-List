@@ -57,13 +57,19 @@ const LoginPage: React.FC = () => {
               <h2 className="text-sm font-semibold text-white/90 mb-3 text-center">
                 Sign in to Sync
               </h2>
-              <div className="flex justify-center">
+              <div className="flex flex-col gap-3 justify-center">
                 <button
                   onClick={handleGoogleSignIn}
                   disabled={isLoading}
                   className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded bg-white text-gray-900 font-medium hover:bg-gray-100 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
                   {isLoading ? <Loader className="animate-spin w-5 h-5" /> : 'Continue with Google'}
+                </button>
+                <button
+                  onClick={() => login({ id: 'demo-user-id', email: 'demo@example.com', name: 'Demo User', isDemo: true })}
+                  className="w-full flex items-center justify-center gap-3 py-3 px-4 rounded bg-gray-800 text-white font-medium hover:bg-gray-700 transition-colors"
+                >
+                  Demo Login
                 </button>
               </div>
               <p className="text-gray-500 text-xs text-center mt-2">
