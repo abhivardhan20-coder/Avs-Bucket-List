@@ -5,6 +5,7 @@ import React, { useEffect } from 'react';
 import { AuthProvider, useAuth, AuthContextType } from './AuthProvider';
 import { SettingsProvider, useSettings, SettingsContextType } from './SettingsProvider';
 import { SyncProvider, useSync, SyncContextType } from './SyncProvider';
+import { UIProvider } from './UIContext';
 import {
   LibraryProvider,
   useLibrary,
@@ -77,17 +78,19 @@ export const AppProvider = ({ children }: { children: React.ReactNode }) => {
     <QueryClientProvider client={queryClient}>
       <GoogleOAuthProvider clientId={API_KEYS.GOOGLE_CLIENT_ID || 'YOUR_GOOGLE_CLIENT_ID'}>
         <ToastProvider>
-          <AuthProvider>
-            <MigrationRunner>
-              <SettingsProvider>
-                <SyncProvider>
-                  <LibraryProvider>
-                    {children}
-                  </LibraryProvider>
-                </SyncProvider>
-              </SettingsProvider>
-            </MigrationRunner>
-          </AuthProvider>
+          <UIProvider>
+            <AuthProvider>
+              <MigrationRunner>
+                <SettingsProvider>
+                  <SyncProvider>
+                    <LibraryProvider>
+                      {children}
+                    </LibraryProvider>
+                  </SyncProvider>
+                </SettingsProvider>
+              </MigrationRunner>
+            </AuthProvider>
+          </UIProvider>
         </ToastProvider>
       </GoogleOAuthProvider>
     </QueryClientProvider>
