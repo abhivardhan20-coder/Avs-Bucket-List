@@ -134,6 +134,12 @@ const ContentRow: React.FC<ContentRowProps> = ({
     }
   };
 
+  const showInitialSkeletons = !hasInitiallyLoaded.current || (loading && items.length === 0);
+  const totalItems = visibleItems.length + (showInitialSkeletons ? 8 : (loading ? 5 : (error ? 1 : 0)));
+
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const { showLeftArrow, showRightArrow, scrollByAmount } = useScrollArrows(scrollRef, totalItems);
+
   // 1. Initial Load Error (No items yet)
   if (error && items.length === 0) {
     return (
@@ -162,14 +168,6 @@ const ContentRow: React.FC<ContentRowProps> = ({
   if (!loading && visibleItems.length === 0 && !hasMore && !error) {
     return null;
   }
-
-  // 3. Initial loading state - reserve space with skeletons
-  const showInitialSkeletons = !hasInitiallyLoaded.current || (loading && items.length === 0);
-
-  const totalItems = visibleItems.length + (showInitialSkeletons ? 8 : (loading ? 5 : (error ? 1 : 0)));
-
-  const scrollRef = useRef<HTMLDivElement>(null);
-  const { showLeftArrow, showRightArrow, scrollByAmount } = useScrollArrows(scrollRef, totalItems);
 
   const isMobile = width < 768;
   const cardWidth = isMobile ? 160 : 200;
