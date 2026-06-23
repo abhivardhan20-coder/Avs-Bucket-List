@@ -1,145 +1,36 @@
-# AV's Bucket List
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-AV's Bucket List is a comprehensive personal media tracker for your favorite movies and TV shows. Keep track of what you've watched, manage your watchlist, and get smart recommendations based on your preferences.
+## Getting Started
 
-## Features
+First, run the development server:
 
-- **Media Tracking:** Track movies and TV shows.
-- **Recommendations:** Get intelligent suggestions based on your watch history.
-- **Authentication:** Secure user authentication and JWT-based session management.
-- **Security:** CSP configuration, Helmet, rate limiting, and Redis-backed token revocation.
-- **PWA:** Progressive Web App capabilities for native-like experience.
-
-## Architecture
-
-This project is built as a monorepo using `pnpm` workspaces.
-
-- **Frontend:** React, Vite, Tailwind CSS (`artifacts/bucket-list`)
-- **Backend:** Node.js, Express, PostgreSQL with Drizzle ORM (`artifacts/api-server`)
-- **Database:** Supabase/PostgreSQL (`lib/db`)
-- **Shared Code:** Types, API client (`lib/api-spec`, `lib/api-client-react`, `lib/api-zod`)
-
-## Setup Instructions
-
-### Prerequisites
-- Node.js (v20+)
-- pnpm (v10)
-- Redis server
-- PostgreSQL database (or Supabase instance)
-
-### Installation
-1. Clone the repository and install dependencies:
-   ```sh
-   pnpm install
-   ```
-2. Copy `.env.example` to `.env` and fill in your configuration:
-   ```sh
-   cp .env.example .env
-   ```
-   *Ensure you define `REDIS_URL` in your backend environment (default: `redis://localhost:6379`).*
-
-### API Keys Setup
-
-#### TMDB API Key
-1. Go to [The Movie Database (TMDB)](https://www.themoviedb.org/) and create an account.
-2. Navigate to your Account Settings > API.
-3. Request an API key (Developer type) and copy the **API Read Access Token** or the **API Key (v3 auth)**.
-4. Add it to your `.env` as `TMDB_API_KEY`.
-
-#### Google OAuth Client ID
-1. Go to the [Google Cloud Console](https://console.cloud.google.com/).
-2. Create a new project or select an existing one.
-3. Navigate to **APIs & Services > Credentials**.
-4. Click **Create Credentials** > **OAuth client ID**.
-5. Configure your OAuth consent screen if prompted.
-6. Choose **Web application** as the application type.
-7. Add your frontend URL (e.g., `http://localhost:5173`) to **Authorized JavaScript origins**.
-8. Copy the **Client ID** and add it to your `.env` as `VITE_GOOGLE_CLIENT_ID`.
-
-3. Generate and run database migrations:
-   ```sh
-   pnpm run db:generate
-   pnpm run db:migrate
-   ```
-
-### Running the Project
-To start the development servers for both frontend and backend concurrently:
-```sh
-pnpm run dev
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
 ```
 
-### Type Checking & Testing
-- Type check: `pnpm run typecheck`
-- Run tests: `pnpm run test`
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## API Reference
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-The backend API is documented using Swagger/OpenAPI. Once the server is running, you can view the complete API documentation at:
-- `http://localhost:3000/api-docs`
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-### Key Endpoints:
-- `POST /api/v1/auth/register` - Register a new user
-- `POST /api/v1/auth/login` - Authenticate and retrieve a JWT
-- `POST /api/v1/auth/logout` - Blacklist the current JWT
-- `POST /api/v1/auth/reset-password` - Request a password reset
-- `GET /api/v1/health` - API Healthcheck
-- `GET /api/v1/tmdb/*` - Proxied TMDB requests
+## Learn More
 
-## Architecture Details
+To learn more about Next.js, take a look at the following resources:
 
-- **Express Middleware:** Uses `helmet` for CSP and security headers, `cors` for cross-origin requests (whitelisted via `FRONTEND_URL`), and `express-rate-limit` for DDoS protection.
-- **Global Error Handling:** All unhandled exceptions are caught by a global error handler that logs the stack trace to Pino and returns a clean `500 Internal Server Error` JSON response in production.
-- **Caching:** Redis is used via `ioredis` with an exponential backoff retry strategy. Redis handles the JWT blacklist and caches TMDB proxy responses.
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
-## Project Structure
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-This project uses `pnpm` workspaces for a clean monorepo architecture:
+## Deploy on Vercel
 
-- **`artifacts/bucket-list/`**: Frontend React SPA utilizing Vite and Tailwind CSS.
-- **`artifacts/api-server/`**: Backend Express.js server providing authentication and caching proxies.
-- **`lib/db/`**: Supabase/PostgreSQL schema definitions and Drizzle ORM configurations.
-- **`lib/api-spec/`** & **`lib/api-zod/`**: Shared TypeScript types and Zod validation schemas.
-- **`lib/api-client-react/`**: Shared API client integrations.
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-## Environment Variables
-
-### Backend Configuration (`artifacts/api-server/.env`)
-| Variable | Description | Example |
-| -------- | ----------- | ------- |
-| `PORT` | The port the Express API listens on. | `3000` |
-| `FRONTEND_URL` | Comma-separated list of allowed domains for CORS validation. | `http://localhost:5173` |
-| `REDIS_URL` | The connection string to your Redis instance. | `redis://localhost:6379` |
-| `DATABASE_URL` | Your PostgreSQL/Supabase database connection URI. | `postgresql://user:pass@host:5432/db` |
-| `SUPABASE_JWT_SECRET`| Your Supabase Project's JWT Secret used to issue and sign local tokens. | `super_secret_key_string...` |
-| `RATE_LIMIT_WINDOW_MS`| Rate limiting window in milliseconds (default: 900000 / 15 min). | `900000` |
-| `RATE_LIMIT_MAX_REQUESTS`| Maximum requests per window (default: 100). | `100` |
-
-### Frontend Configuration (`artifacts/bucket-list/.env`)
-| Variable | Description | Example | Required |
-| -------- | ----------- | ------- | -------- |
-| `VITE_GOOGLE_CLIENT_ID` | Your Google OAuth 2.0 Client ID for login. | `123456789-xxxx.apps.googleusercontent.com` | **Yes** |
-| `VITE_SUPABASE_URL` | Your Supabase Project URL. | `https://xxxx.supabase.co` | **Yes** |
-| `VITE_SUPABASE_ANON_KEY` | Your Supabase Project Anon/Public Key. | `eyJh...` | **Yes** |
-| `VITE_TMDB_API_KEY` | Your The Movie Database v3 API key. | `abc123...` | Optional |
-
-## Development Scripts
-
-The `scripts/` directory contains automation tools to assist development:
-- `sync_readme.py`: Synchronizes the main README structure to artifacts. Run this after updating the root README.md.
-- `update-deps.js`: Helper script to unify package versions and ensure workspace dependencies are synced effectively.
-
-## Environment Validation
-
-This project relies on `zod` for rigorous environment variable schema validation in both the frontend and backend. At runtime, the API server initializes `lib/env.ts`, parses the `.env` variables, and exits immediately if critical components like `DATABASE_URL` or `FRONTEND_URL` are missing or malformed.
-
-## Deployment Guidelines
-- Ensure the Redis instance is highly available.
-- Ensure `SUPABASE_JWT_SECRET` is strong and securely managed.
-- Ensure logs from `pino` are directed to a persistent location or a logging aggregator like Datadog.
-
-## Contribution Guidelines
-1. Fork the repository and create your feature branch (`git checkout -b feature/amazing-feature`).
-2. Run tests locally using `pnpm test` and ensure `pnpm typecheck` passes.
-3. Ensure no unused dependencies are introduced. Keep the bundle size small.
-4. Commit your changes and push to the branch (`git push origin feature/amazing-feature`).
-5. Open a Pull Request.
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.

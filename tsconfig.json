@@ -1,16 +1,65 @@
 {
-  "extends": "./tsconfig.base.json",
-  "compileOnSave": false,
-  "files": [],
-  "references": [
-    {
-      "path": "./lib/db"
-    },
-    {
-      "path": "./lib/api-client-react"
-    },
-    {
-      "path": "./lib/api-zod"
+  "compilerOptions": {
+    "target": "ES2017",
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
+    "allowJs": true,
+    "skipLibCheck": true,
+    "strict": true,
+    "noEmit": true,
+    "esModuleInterop": true,
+    "module": "esnext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "jsx": "react-jsx",
+    "incremental": true,
+    "plugins": [
+      {
+        "name": "next"
+      }
+    ],
+    "paths": {
+      "@/*": [
+        "./src/*"
+      ],
+      "@workspace/db": [
+        "./src/db/index.ts"
+      ],
+      "@workspace/db/*": [
+        "./src/db/*"
+      ],
+      "@workspace/api-client-react": [
+        "./lib/api-client-react/src/index.ts"
+      ],
+      "@workspace/api-client-react/*": [
+        "./lib/api-client-react/src/*"
+      ],
+      "@workspace/api-spec": [
+        "./lib/api-spec/src/index.ts"
+      ],
+      "@workspace/api-spec/*": [
+        "./lib/api-spec/src/*"
+      ],
+      "@workspace/api-zod": [
+        "./lib/api-zod/src/index.ts"
+      ],
+      "@workspace/api-zod/*": [
+        "./lib/api-zod/src/*"
+      ]
     }
+  },
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts",
+    ".next/dev/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
   ]
 }
