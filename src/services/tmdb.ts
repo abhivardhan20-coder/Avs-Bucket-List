@@ -111,7 +111,7 @@ async function safeTmdbFetch<T>(endpoint: string, signal?: AbortSignal): Promise
       const directUrl = `https://api.themoviedb.org/3${endpoint}${separator}api_key=${tmdbKey}`;
 
       if (!tmdbKey) {
-        logger.error('[TMDB] NEXT_PUBLIC_TMDB_API_KEY is not set');
+        logger.warn('[TMDB] NEXT_PUBLIC_TMDB_API_KEY is not set');
         return null;
       }
       try {
